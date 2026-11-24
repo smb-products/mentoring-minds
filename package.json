@@ -22,6 +22,8 @@
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
     "test:contract": "vitest run --project contract",
+    "build:e2e": "node scripts/build-e2e.mjs",
+    "test:e2e": "playwright test",
     "vercel-build": "node scripts/vercel-build.mjs"
   },
   "dependencies": {

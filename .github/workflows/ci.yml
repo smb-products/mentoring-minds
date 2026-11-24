@@ -12,7 +12,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -29,6 +29,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mm_test
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mm_test
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mm_test
+      E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mm_e2e_test
       AUTH_SECRET: ci-only-secret-not-used-anywhere-else
       INVITE_PEPPER: ci-only-pepper
     steps:
@@ -45,4 +46,15 @@ jobs:
       - run: npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url postgresql://postgres:postgres@localhost:5432/mm_shadow --exit-code
       - run: npm run typecheck
       - run: npm test
-      - run: npm run build
+      # A production build with sign-in on (DEMO_MODE=false), for the browser tests.
+      - run: npm run build:e2e
+      # Browser tests (tests/e2e): sign-in always; each wiring area once it's listed in LIVE.
+      - run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_e2e_test'
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

@@ -15,11 +15,13 @@ npm run dev               # http://localhost:3000 (demo data unless DEMO_MODE=fa
 npm run typecheck         # next typegen + tsc
 npm test                  # unit + integration + contract (needs Postgres: createdb mm_test)
 npm run test:contract     # the wiring checker: mock vs real, function by function
+npm run build:e2e         # production build with sign-in on, for the browser tests
+npm run test:e2e          # browser tests (tests/e2e/README.md); `-- w4` for one ticket
 npm run db:seed:demo      # load the prototype's families into DATABASE_URL (dev only)
 npm run build
 ```
 
-Tests create their tables from `prisma/migrations` and refuse any database whose name lacks "test". Point them elsewhere with `TEST_DATABASE_URL`.
+Tests create their tables from `prisma/migrations` and refuse any database whose name lacks "test". Point them elsewhere with `TEST_DATABASE_URL` (and the browser tests with `E2E_DATABASE_URL`, default `mm_e2e_test`).
 
 ## Where things are
 
@@ -34,6 +36,7 @@ Tests create their tables from `prisma/migrations` and refuse any database whose
 | `prisma/` | `schema.prisma`, `migrations/`, `seed.ts`, `data.ts` (loads the prototype data) |
 | `tests/integration/` | Every server function against Postgres: permissions, leaks, each area |
 | `tests/contract/` | Mock vs real shapes, and the adapter's read list |
+| `tests/e2e/` | Browser tests, one spec per wiring ticket (skipped until its areas are live) |
 | `docs/` | `WIRING` (start here), `CONTRACT`, `DEPLOY`, `COSTS`, `BUILD_PLAN`, `PORTING` |
 
 ## Rules
@@ -57,6 +60,7 @@ Tests create their tables from `prisma/migrations` and refuse any database whose
 
 - [ ] `npm run typecheck` and `npm test` green
 - [ ] New server function: has integration tests, including a permission test, and is in the contract test if a screen uses it
+- [ ] Wiring ticket: its browser test passes (`npm run build:e2e && npm run test:e2e -- wN`), and so do the earlier ones
 - [ ] Clicked through as Vienne and as a parent with no console errors
 - [ ] Docs updated if a contract or setup step changed
 

@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { redeemInvite } from '@/server/invites';
 
 /** Shown to PREVIEW parents: enter the code from Vienne to unlock the app. */
 export function InviteCodeForm() {
-  const router = useRouter();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -18,7 +16,8 @@ export function InviteCodeForm() {
         start(async () => {
           const r = await redeemInvite({ code });
           if (!r.ok) setError(r.error);
-          else router.refresh();
+          // A full load, not router.refresh(): every screen's data was fetched while the account was locked.
+          else window.location.assign('/parent/home');
         });
       }}
     >

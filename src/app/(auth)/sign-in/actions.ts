@@ -3,7 +3,7 @@
 import bcrypt from 'bcryptjs';
 import { AuthError } from 'next-auth';
 import { z } from 'zod';
-import { signIn } from '@/lib/auth';
+import { signIn, signOut } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { DEMO_MODE } from '@/lib/demo';
 import { redirect } from 'next/navigation';
@@ -55,4 +55,10 @@ export async function createAccount(_: FormState, form: FormData): Promise<FormS
     if (e instanceof AuthError) return { error: 'Account created. Please sign in.' };
     throw e;
   }
+}
+
+/** The account menu's "Sign out". Ends the session and goes back to the sign-in screen. */
+export async function signOutNow() {
+  if (DEMO_MODE) redirect('/admin/today');
+  await signOut({ redirectTo: '/sign-in' });
 }

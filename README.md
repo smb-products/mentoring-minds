@@ -31,6 +31,7 @@ npm run db:seed:demo                  # the prototype's families, same ids; pass
 |---|---|
 | `npm test` | Everything: unit, integration (every server function on Postgres) and contract. Needs `mm_test`. |
 | `npm run test:unit` / `test:integration` / `test:contract` | One project. The contract check is the wiring checker: mock vs real. |
+| `npm run build:e2e` then `npm run test:e2e` | Browser tests, one per wiring ticket (`tests/e2e/README.md`). Areas still on the mock are skipped. |
 | `npm run typecheck` | `next typegen` + `tsc --noEmit` |
 | `npm run build` | Production build. On Vercel: `vercel-build`, which applies migrations first. |
 | `npm run db:migrate` / `db:deploy` / `db:seed` / `db:seed:demo` / `db:reset` / `db:studio` | Prisma |

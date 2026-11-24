@@ -7,13 +7,17 @@ import path from 'node:path';
 import pg from 'pg';
 
 export default async function setup() {
-  const url = process.env.TEST_DATABASE_URL ?? 'postgresql://postgres@localhost:5432/mm_test';
+  await migrate(process.env.TEST_DATABASE_URL ?? 'postgresql://postgres@localhost:5432/mm_test');
+}
+
+/** Applies prisma/migrations to a test database (its name must contain "test"). Also used by the e2e setup. */
+export async function migrate(url: string) {
   if (!/test/i.test(new URL(url).pathname)) throw new Error(`The test database name must contain "test" (got ${url}).`);
   const client = new pg.Client({ connectionString: url });
   try {
     await client.connect();
   } catch (e) {
-    throw new Error(`Can't reach the test database at ${url}. Start Postgres and create it (createdb mm_test), or set TEST_DATABASE_URL. (${(e as Error).message})`);
+    throw new Error(`Can't reach the test database at ${url}. Start Postgres and create it (createdb ${new URL(url).pathname.slice(1)}), or set its URL in .env. (${(e as Error).message})`);
   }
   try {
     const dir = path.join(process.cwd(), 'prisma', 'migrations');

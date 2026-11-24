@@ -68,6 +68,7 @@ export async function loadReference(db: PrismaClient, seed = prototypeSeed(), { 
 
 /** Vienne's account. With Google sign-in, ADMIN_EMAIL must be her Google address. */
 export async function ensureAdmin(db: PrismaClient, { email, name, password }: { email: string; name: string; password?: string }) {
+  if (password !== undefined && password.length < 8) throw new Error('ADMIN_PASSWORD must be at least 8 characters (the sign-in screen won’t accept less).');
   const existing = await db.user.findUnique({ where: { email: email.toLowerCase() } });
   if (existing) return db.user.update({ where: { id: existing.id }, data: { role: 'ADMIN', status: 'ACTIVE' } });
   return db.user.create({

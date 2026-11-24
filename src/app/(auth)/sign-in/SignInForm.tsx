@@ -10,6 +10,9 @@ export function SignInForm() {
   const [inState, inAction, inPending] = useActionState(signInWithPassword, undefined);
   const [newState, newAction, newPending] = useActionState(createAccount, undefined);
   const state = mode === 'in' ? inState : newState;
+  // Kept in state: React resets a form after each submit, and retyping an email after a typo'd password is a pain.
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
 
   return (
     <div className="surface rounded-[18px] p-6">
@@ -22,8 +25,8 @@ export function SignInForm() {
       <div className="my-5 flex items-center gap-3 text-[13px] font-bold text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
 
       <form action={mode === 'in' ? inAction : newAction} className="space-y-3">
-        {mode === 'new' && <input name="name" autoComplete="name" placeholder="Your name" aria-label="Your name" className={input} required />}
-        <input name="email" type="email" autoComplete="email" placeholder="Email" aria-label="Email" className={input} required />
+        {mode === 'new' && <input name="name" autoComplete="name" placeholder="Your name" aria-label="Your name" className={input} required value={name} onChange={(e) => setName(e.target.value)} />}
+        <input name="email" type="email" autoComplete="email" placeholder="Email" aria-label="Email" className={input} required value={email} onChange={(e) => setEmail(e.target.value)} />
         <input name="password" type="password" autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder="Password" aria-label="Password" className={input} required minLength={mode === 'new' ? 8 : 1} />
         {state?.error && <p role="alert" className="text-[15px] font-semibold text-critical">{state.error}</p>}
         <button type="submit" disabled={inPending || newPending} className="chrome-primary h-12 w-full rounded-xl bg-primary text-base font-bold text-primary-foreground disabled:opacity-60">

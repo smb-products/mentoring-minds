@@ -175,6 +175,8 @@ model User {
   /// Password sign-in lockout: 5 wrong passwords lock the account for 15 minutes.
   failedLogins      Int        @default(0)
   lockedUntil       DateTime?
+  /// Set when Vienne resets the password: the screens ask for a new one (families.changePassword).
+  mustChangePassword Boolean   @default(false)
   /// Invite-code guessing limit: 10 wrong codes lock code entry for an hour.
   redeemFailures    Int        @default(0)
   redeemLockedUntil DateTime?

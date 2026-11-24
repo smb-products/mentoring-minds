@@ -8,6 +8,9 @@ import * as invites from '@/server/invites';
 import * as notifications from '@/server/notifications';
 import { secureLinkedAccount } from '@/lib/auth-rules';
 import { cleanUp } from '@/lib/jobs';
+import { ensureAdmin } from '../../prisma/data';
+import bcrypt from 'bcryptjs';
+import * as families from '@/server/families';
 
 freshDemo();
 
@@ -65,5 +68,41 @@ describe('clean-up', () => {
     expect(await db.fileAsset.findUnique({ where: { id: file.id } })).toBeNull();
     expect(await db.fileAsset.findUnique({ where: { id: shared.id } })).not.toBeNull(); // still used by another resource
     expect(await db.resource.findUnique({ where: { id: other.id } })).not.toBeNull();
+  });
+});
+
+describe('seeding Vienne’s account', () => {
+  it('refuses an ADMIN_PASSWORD the sign-in screen could never accept', async () => {
+    await expect(ensureAdmin(db as never, { email: 'short@example.com', name: 'V', password: 'abc123' })).rejects.toThrow(/at least 8 characters/);
+    expect(await db.user.findUnique({ where: { email: 'short@example.com' } })).toBeNull();
+  });
+});
+
+describe('changing a password', () => {
+  it('after a reset the account must choose a new one; the temporary password unlocks that', async () => {
+    as('u_admin');
+    const { temporaryPassword } = ok(await families.resetParentPassword({ parentId: 'u_daniel' }));
+    expect((await db.user.findUniqueOrThrow({ where: { id: 'u_daniel' } })).mustChangePassword).toBe(true);
+    as('u_daniel');
+    fails(await families.changePassword({ currentPassword: temporaryPassword, newPassword: 'short' }), 'INVALID', /at least 8 characters/);
+    fails(await families.changePassword({ currentPassword: temporaryPassword, newPassword: temporaryPassword }), 'INVALID', /different from the current one/);
+    ok(await families.changePassword({ currentPassword: temporaryPassword, newPassword: 'daniels-new-password' }));
+    const after = await db.user.findUniqueOrThrow({ where: { id: 'u_daniel' } });
+    expect(after.mustChangePassword).toBe(false);
+    expect(await bcrypt.compare('daniels-new-password', after.passwordHash!)).toBe(true);
+  });
+
+  it('a wrong current password is refused and counts toward the lockout', async () => {
+    as('u_keisha');
+    for (let i = 0; i < 4; i++) fails(await families.changePassword({ currentPassword: `nope-${i}`, newPassword: 'keisha-new-password' }), 'INVALID', /current password isn’t right/);
+    fails(await families.changePassword({ newPassword: 'keisha-new-password' }), 'INVALID', /current password isn’t right/);
+    fails(await families.changePassword({ currentPassword: 'mentoring-demo-2026', newPassword: 'keisha-new-password' }), 'LOCKED', /15 minutes/);
+  });
+
+  it('a Google-only account can add a password', async () => {
+    as('u_priya');
+    expect((await db.user.findUniqueOrThrow({ where: { id: 'u_priya' } })).passwordHash).toBeNull();
+    ok(await families.changePassword({ newPassword: 'priya-password-1' }));
+    expect((await db.user.findUniqueOrThrow({ where: { id: 'u_priya' } })).passwordHash).not.toBeNull();
   });
 });

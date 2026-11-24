@@ -40,6 +40,7 @@ export const MEETING_URL = 'https://meet.google.com/mmv-tutr-room';
 export const BOOK_TITLE = 'Florida Test Prep F.A.S.T. Mathematics';
 
 export function createSeed() {
+  r = 11; // same demo data on every call (tests reset to it many times in one run)
   /* ── People ─────────────────────────────────────────────── */
   const U = (id, name, phone, days, extra = {}) => ({
     id, email: `${name.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`, emailVerified: ago(days * DAY), name, phone, image: null,

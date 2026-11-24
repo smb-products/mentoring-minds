@@ -12,7 +12,8 @@ import { secureLinkedAccount } from './auth-rules';
  * (they can look around, locked) until they enter Vienne's invite code.
  * Kids never have their own login: they use the parent's account.
  */
-const credentialsSchema = z.object({ email: z.email(), password: z.string().min(8).max(200) });
+// Any length is checked (and counted toward the lockout); the 8-character minimum applies when a password is set.
+const credentialsSchema = z.object({ email: z.email(), password: z.string().min(1).max(200) });
 const MAX_FAILED_LOGINS = 5;
 const LOCK_MINUTES = 15;
 const DUMMY_HASH = '$2b$12$C6UzMDM.H6dfI/f/IKcEeO5O7pZcRcbxTdsHpEJnPdA6O38D4ZGXy';
@@ -70,12 +71,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       const id = (user?.id ?? token.sub) as string | undefined;
       if (!id) return token;
-      const fresh = await db.user.findUnique({ where: { id }, select: { role: true, status: true, textSize: true, name: true } });
+      const fresh = await db.user.findUnique({ where: { id }, select: { role: true, status: true, textSize: true, name: true, mustChangePassword: true } });
       if (!fresh) return null;
-      return { ...token, sub: id, role: fresh.role, status: fresh.status, textSize: fresh.textSize, name: fresh.name };
+      return { ...token, sub: id, role: fresh.role, status: fresh.status, textSize: fresh.textSize, name: fresh.name, mustChangePassword: fresh.mustChangePassword };
     },
     async session({ session, token }) {
-      Object.assign(session.user, { id: token.sub, role: token.role, status: token.status, textSize: token.textSize });
+      Object.assign(session.user, { id: token.sub, role: token.role, status: token.status, textSize: token.textSize, mustChangePassword: Boolean(token.mustChangePassword) });
       return session;
     },
   },
@@ -83,6 +84,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 declare module 'next-auth' {
   interface Session {
-    user: { id: string; name: string; email: string; image?: string | null; role: 'ADMIN' | 'PARENT'; status: 'PREVIEW' | 'ACTIVE' | 'PAUSED'; textSize: 'NORMAL' | 'LARGE' | 'XLARGE' };
+    user: { id: string; name: string; email: string; image?: string | null; role: 'ADMIN' | 'PARENT'; status: 'PREVIEW' | 'ACTIVE' | 'PAUSED'; textSize: 'NORMAL' | 'LARGE' | 'XLARGE'; mustChangePassword: boolean };
   }
 }

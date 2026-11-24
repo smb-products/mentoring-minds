@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAdmin, requireStudentAccess, requireUser } from '@/lib/guards';
-import { action, found, need, query } from '@/lib/result';
+import { ApiError, action, found, need, query } from '@/lib/result';
 import { grade, id, ids, optText, parse, text } from '@/lib/validate';
 import { reportDTO, reportInclude, sessionDTO, sessionForParent, sessionInclude, studentDTO, studentInclude, submissionDTOs, submissionInclude, userSummary } from '@/lib/dto';
 import { bookResultsFor } from '@/lib/book-results';
@@ -134,7 +134,7 @@ export const resetParentPassword = action(async (input: { parentId: string }) =>
   const { parentId } = parse(z.object({ parentId: id }), input);
   await parentRow(parentId);
   const temporaryPassword = `mm-${randomBytes(3).toString('hex')}-${randomBytes(3).toString('hex')}`;
-  await db.user.update({ where: { id: parentId }, data: { passwordHash: await bcrypt.hash(temporaryPassword, 12), failedLogins: 0, lockedUntil: null } });
+  await db.user.update({ where: { id: parentId }, data: { passwordHash: await bcrypt.hash(temporaryPassword, 12), failedLogins: 0, lockedUntil: null, mustChangePassword: true } });
   return { temporaryPassword };
 });
 
@@ -211,6 +211,31 @@ export const archiveStudent = action(async (input: { studentId: string }) => {
 });
 
 /** Bigger text and buttons for the signed-in user (applied app-wide). */
+/**
+ * The signed-in person sets a new password. Needs the current one when there is one
+ * (after a reset, that's the temporary password). Wrong current passwords count toward
+ * the same 5-try lockout as sign-in. Google-only accounts can add a password this way.
+ */
+export const changePassword = action(async (input: { currentPassword?: string; newPassword: string }) => {
+  const user = await requireUser();
+  const v = parse(
+    z.object({ currentPassword: z.string().max(200).optional(), newPassword: z.string().min(8, 'Use at least 8 characters').max(200, 'That password is too long') }),
+    input,
+  );
+  const row = found(await db.user.findUnique({ where: { id: user.id } }), 'Account');
+  if (row.passwordHash) {
+    if (row.lockedUntil && row.lockedUntil > new Date()) throw new ApiError('LOCKED', 'Too many wrong passwords. Try again in 15 minutes.');
+    if (!v.currentPassword || !(await bcrypt.compare(v.currentPassword, row.passwordHash))) {
+      const failures = row.failedLogins + 1;
+      await db.user.update({ where: { id: row.id }, data: failures >= 5 ? { failedLogins: 0, lockedUntil: new Date(Date.now() + 15 * 60000) } : { failedLogins: failures } });
+      throw new ApiError('INVALID', 'Your current password isn’t right.');
+    }
+    need(v.currentPassword !== v.newPassword, 'Choose a password that’s different from the current one');
+  }
+  await db.user.update({ where: { id: row.id }, data: { passwordHash: await bcrypt.hash(v.newPassword, 12), mustChangePassword: false, failedLogins: 0, lockedUntil: null } });
+  return { changed: true };
+});
+
 export const setTextSize = action(async (input: { textSize: 'NORMAL' | 'LARGE' | 'XLARGE' }) => {
   const user = await requireUser();
   const { textSize } = parse(z.object({ textSize: z.enum(['NORMAL', 'LARGE', 'XLARGE'], 'Choose a text size') }), input);
