@@ -1,0 +1,298 @@
+import { Star } from 'lucide-react';
+import { cn } from '../../lib/cn';
+import { initials } from './initials';
+
+/* ── Avatar ── tone is Student.avatarColor ('brand' | 'reward' | 'good') or 'ink'/'neutral' */
+const AVATAR_TONES = {
+  brand: 'bg-brand-soft text-brand-soft-foreground',
+  reward: 'bg-reward-soft text-reward-soft-foreground',
+  good: 'bg-good-soft text-good-soft-foreground',
+  ink: 'bg-ink text-ink-foreground',
+  neutral: 'bg-muted text-muted-foreground',
+  rail: 'bg-sidebar-primary text-sidebar-primary-foreground',
+};
+const AVATAR_SIZES = { xs: 'size-6 text-[10px] rounded-md', sm: 'size-8 text-[12px] rounded-lg', md: 'size-10 text-[14px] rounded-[10px]', lg: 'size-12 text-[16px] rounded-xl' };
+
+export function Avatar({ name, tone = 'neutral', size = 'sm', className }) {
+  return (
+    <span aria-hidden className={cn('grid shrink-0 place-items-center font-extrabold tracking-tight', AVATAR_TONES[tone] ?? AVATAR_TONES.neutral, AVATAR_SIZES[size], className)}>
+      {initials(name)}
+    </span>
+  );
+}
+
+/* ── Status badge ── always a word, plus a shape so color is never the only cue */
+const STATUS = {
+  REQUESTED: ['Requested', 'warning', 'ring'],
+  CONFIRMED: ['Confirmed', 'good', 'dot'],
+  COMPLETED: ['Completed', 'neutral', 'check'],
+  CANCELLED: ['Cancelled', 'neutral', 'bar'],
+  DECLINED: ['Declined', 'critical', 'bar'],
+  NO_SHOW: ['No-show', 'serious', 'bar'],
+  ASSIGNED: ['To do', 'brand', 'ring'],
+  SUBMITTED: ['To check', 'warning', 'dot'],
+  GRADED: ['Graded', 'good', 'check'],
+  RETURNED: ['Redo', 'serious', 'ring'],
+  ACTIVE: ['Active', 'good', 'dot'],
+  PAUSED: ['Paused', 'neutral', 'bar'],
+  PREVIEW: ['Preview', 'warning', 'ring'],
+  USED: ['Used', 'neutral', 'check'],
+  EXPIRED: ['Expired', 'serious', 'bar'],
+  REVOKED: ['Revoked', 'neutral', 'bar'],
+  DRAFT: ['Draft', 'neutral', 'ring'],
+  PUBLISHED: ['Published', 'good', 'dot'],
+  LATE: ['Late', 'serious', 'bar'],
+};
+const BADGE_TONES = {
+  good: 'bg-good-soft text-good-soft-foreground',
+  warning: 'bg-warning-soft text-warning-soft-foreground',
+  serious: 'bg-serious-soft text-serious-soft-foreground',
+  critical: 'bg-critical-soft text-critical-soft-foreground',
+  brand: 'bg-brand-soft text-brand-soft-foreground',
+  neutral: 'bg-muted text-muted-foreground',
+};
+
+function Glyph({ shape }) {
+  if (shape === 'ring') return <span className="size-[7px] rounded-full border-[1.5px] border-current" />;
+  if (shape === 'bar') return <span className="h-[1.5px] w-2 rounded bg-current" />;
+  if (shape === 'check')
+    return (
+      <svg viewBox="0 0 10 10" className="size-2.5" aria-hidden>
+        <path d="M1.5 5.2 4 7.5l4.5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  return <span className="size-[7px] rounded-full bg-current" />;
+}
+
+export function StatusBadge({ status, label, className }) {
+  const [text, tone, shape] = STATUS[status] ?? [status, 'neutral', 'dot'];
+  return (
+    <span className={cn('inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-md px-2 text-[12px] font-bold', BADGE_TONES[tone], className)}>
+      <Glyph shape={shape} />
+      {label ?? text}
+    </span>
+  );
+}
+
+/* ── Subject tag ── colored square + name; Subject.color is a chart token name */
+const SUBJECT_BG = { 'chart-1': 'bg-chart-1', 'chart-2': 'bg-chart-2', 'chart-3': 'bg-chart-3', 'chart-4': 'bg-chart-4' };
+export const subjectBg = (color) => SUBJECT_BG[color] ?? 'bg-chart-1';
+
+export function SubjectTag({ subject, className }) {
+  if (!subject) return null;
+  return (
+    <span className={cn('inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-muted-foreground', className)}>
+      <span className={cn('size-2 rounded-[3px]', subjectBg(subject.color))} aria-hidden />
+      {subject.name}
+    </span>
+  );
+}
+
+/* ── FAST areas ── one chart colour per area, the same everywhere */
+const AREA_COLOR = { frac: 'chart-2', alg: 'chart-3', geo: 'chart-4', strand_FR: 'chart-2', strand_AR: 'chart-3', strand_M: 'chart-4', strand_GR: 'chart-4', strand_DP: 'chart-3' };
+export const areaColor = (area) => AREA_COLOR[area?.id?.replace(/^rc_\d_/, '')] ?? AREA_COLOR[area?.id] ?? 'chart-1';
+
+export function AreaTag({ area, className }) {
+  if (!area) return null;
+  return (
+    <span className={cn('inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold text-muted-foreground', className)} title={area.fullName}>
+      <span className={cn('size-2 shrink-0 rounded-[3px]', subjectBg(areaColor(area)))} aria-hidden />
+      <span className="truncate">{area.name}</span>
+    </span>
+  );
+}
+
+/** Right-out-of-total per area, weakest first. areas: [{ id, name, fullName, right, total }] */
+export function AreaBars({ areas, className, empty = 'No book work checked yet.' }) {
+  if (!areas?.length) return <p className={cn('text-[14px] text-muted-foreground', className)}>{empty}</p>;
+  return (
+    <ul className={cn('space-y-3', className)}>
+      {areas.map((a) => {
+        const pct = a.total ? Math.round((a.right / a.total) * 100) : 0;
+        return (
+          <li key={a.id}>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="flex min-w-0 items-center gap-2 text-[14px] font-bold" title={a.fullName}><span className={cn('size-2.5 shrink-0 rounded-[3px]', subjectBg(areaColor(a)))} aria-hidden />{a.name}</span>
+              <span className="tabular shrink-0 text-[13.5px] font-bold text-muted-foreground">{a.right} of {a.total}</span>
+            </div>
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted" role="img" aria-label={`${a.name}: ${a.right} of ${a.total} right`}>
+              <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(pct, 4)}%` }} />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** FAST achievement level 1–5. Level 3 and up is on grade level. */
+export const LEVEL_TEXT = { 1: 'Well below grade level', 2: 'Below grade level', 3: 'On grade level', 4: 'Above grade level', 5: 'Well above grade level' };
+export function LevelBadge({ level, className }) {
+  if (!level) return null;
+  const tone = level >= 4 ? 'good' : level === 3 ? 'brand' : level === 2 ? 'warning' : 'serious';
+  return (
+    <span className={cn('inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-md px-2 text-[12px] font-bold', BADGE_TONES[tone], className)}>
+      Level {level}
+    </span>
+  );
+}
+
+/* ── Page header ── lives in the masthead band */
+export { PageHeader } from '../shell/Masthead';
+
+/* ── Section ── one bordered container per topic; rows inside use <Row> with hairlines */
+export function Section({ title, description, action, children, className, bodyClassName, flush }) {
+  return (
+    <section className={cn('surface rounded-[14px]', className)}>
+      {(title || action) && (
+        <div className="flex items-center justify-between gap-3 border-b border-border/80 px-4 py-3 @3xl/page:px-5">
+          <div className="min-w-0">
+            <h2 className="text-[15px] font-extrabold text-foreground">{title}</h2>
+            {description && <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>}
+          </div>
+          {action}
+        </div>
+      )}
+      <div className={cn(flush ? '' : 'divide-y divide-border/80', bodyClassName)}>{children}</div>
+    </section>
+  );
+}
+
+export function Row({ children, onClick, className, as: As = onClick ? 'button' : 'div' }) {
+  return (
+    <As
+      {...(As === 'button' && { type: 'button' })}
+      onClick={onClick}
+      className={cn(
+        'flex w-full items-center gap-3 px-4 py-3 text-left @3xl/page:px-5',
+        onClick && 'transition-colors hover:bg-muted/60',
+        className,
+      )}
+    >
+      {children}
+    </As>
+  );
+}
+
+/* ── Empty state ── left aligned, says what to do */
+export function Empty({ icon: Icon, title, children, action, className }) {
+  return (
+    <div className={cn('flex items-start gap-3 px-4 py-6 @3xl/page:px-5', className)}>
+      {Icon && (
+        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-border text-subtle-foreground">
+          <Icon size={18} strokeWidth={2} aria-hidden />
+        </span>
+      )}
+      <div className="min-w-0 pt-0.5">
+        <p className="text-[14.5px] font-bold text-foreground">{title}</p>
+        {children && <p className="mt-0.5 max-w-prose text-[14px] leading-relaxed text-muted-foreground">{children}</p>}
+        {action && <div className="mt-3">{action}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ── Figures ── key numbers. variant="band" renders glass tiles on the navy masthead. */
+export function Figures({ items, className, variant }) {
+  const band = variant === 'band';
+  return (
+    <div
+      role={band ? 'region' : undefined}
+      aria-label={band ? 'Key numbers' : undefined}
+      tabIndex={band ? 0 : undefined}
+      className={cn(band ? 'scrollbar-none -mx-4 grid auto-cols-[minmax(9.5rem,1fr)] grid-flow-col gap-2.5 overflow-x-auto px-4 @3xl/page:mx-0 @3xl/page:px-0' : 'surface grid overflow-hidden rounded-[14px]', className)}
+      style={band ? undefined : { gridTemplateColumns: `repeat(${items.length}, minmax(0,1fr))` }}
+    >
+      {items.map((item, i) => {
+        const Comp = item.onClick ? 'button' : 'div';
+        const Icon = item.icon;
+        return (
+          <Comp
+            key={item.label}
+            {...(item.onClick && { type: 'button', onClick: item.onClick })}
+            className={cn(
+              'group min-w-0 text-left transition-colors',
+              band ? 'glass rounded-xl px-3 py-3 @3xl/page:px-4 @3xl/page:py-3.5' : 'px-3 py-3 @3xl/page:px-5 @3xl/page:py-4',
+              !band && i > 0 && 'border-l border-border/80',
+              item.onClick && (band ? 'hover:bg-ink-foreground/[0.12]' : 'hover:bg-muted/60'),
+            )}
+          >
+            <span className={cn('flex items-center gap-1.5 truncate text-[12.5px] font-bold @3xl/page:text-[13px]', band ? 'text-ink-muted' : 'text-muted-foreground')}>
+              {Icon && <Icon size={14} strokeWidth={2.3} aria-hidden className="hidden shrink-0 @xl/page:block" />}
+              {item.label}
+            </span>
+            <span className={cn('tabular mt-1.5 flex items-baseline gap-2 text-[24px] font-extrabold leading-none @3xl/page:text-[30px]', band ? 'text-ink-foreground' : item.highlight ? 'text-brand' : 'text-foreground')}>
+              {item.value}
+              {band && item.highlight && (
+                <>
+                  <span className="size-2 -translate-y-1 rounded-full bg-reward" aria-hidden />
+                  <span className="sr-only">needs attention</span>
+                </>
+              )}
+            </span>
+            {item.note && <span className={cn('mt-1.5 line-clamp-2 block text-[12.5px] font-semibold leading-snug @3xl/page:truncate', band ? 'text-ink-muted' : 'text-muted-foreground')}>{item.note}</span>}
+          </Comp>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── Loading placeholder while a page's data arrives ── */
+export function PageLoading() {
+  return (
+    <div className="space-y-5" aria-busy="true" aria-label="Loading">
+      <div className="grid gap-5 @4xl/page:grid-cols-[1.7fr_1fr]">
+        <div className="surface h-40 animate-pulse rounded-[14px]" />
+        <div className="surface h-40 animate-pulse rounded-[14px]" />
+      </div>
+      <div className="surface h-64 animate-pulse rounded-[14px]" />
+    </div>
+  );
+}
+
+/* ── Stars ── gold is reserved for earned stars */
+export function Stars({ count, max = 3, size = 15, className }) {
+  return (
+    <span className={cn('inline-flex items-center gap-0.5', className)} aria-label={`${count} of ${max} stars`} role="img">
+      {Array.from({ length: max }, (_, i) => (
+        <Star key={i} size={size} strokeWidth={2} className={i < count ? 'fill-reward text-reward-edge' : 'text-border'} aria-hidden />
+      ))}
+    </span>
+  );
+}
+
+/* ── Skill meter ── 4-step rating used in reports */
+export const RATING_LABELS = ['Beginning', 'Developing', 'Proficient', 'Mastered'];
+export function SkillMeter({ rating, className }) {
+  return (
+    <div className={cn('flex items-center gap-2.5', className)}>
+      <div className="flex w-24 gap-1" aria-hidden>
+        {[1, 2, 3, 4].map((step) => (
+          <span key={step} className={cn('h-1.5 flex-1 rounded-full', step <= rating ? 'bg-primary' : 'bg-border')} />
+        ))}
+      </div>
+      <span className="w-[5.5rem] text-[13px] font-bold text-foreground">{RATING_LABELS[rating - 1]}</span>
+    </div>
+  );
+}
+
+/* ── Progress bar ── */
+export function Progress({ value, max, className }) {
+  const pct = max ? Math.round((value / max) * 100) : 0;
+  return (
+    <div className={cn('h-1.5 w-full overflow-hidden rounded-full bg-muted', className)} role="progressbar" aria-valuenow={value} aria-valuemax={max}>
+      <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
+/* ── Labelled value pair for detail drawers ── */
+export function Detail({ label, children }) {
+  return (
+    <div className="grid grid-cols-[7.5rem_1fr] gap-3 py-2 text-[14px]">
+      <dt className="font-semibold text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 font-semibold text-foreground">{children}</dd>
+    </div>
+  );
+}

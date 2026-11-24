@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mm_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mm_test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/mm_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mm_test
+      AUTH_SECRET: ci-only-secret-not-used-anywhere-else
+      INVITE_PEPPER: ci-only-pepper
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Proves the migrations apply cleanly from empty, exactly as on Vercel.
+      - run: npx prisma migrate deploy
+      # Fails if schema.prisma changed without a migration (uses a throwaway database).
+      - run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_shadow'
+      - run: npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url postgresql://postgres:postgres@localhost:5432/mm_shadow --exit-code
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

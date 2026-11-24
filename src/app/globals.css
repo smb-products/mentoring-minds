@@ -1,0 +1,377 @@
+/* Mentoring Minds — design tokens
+ * Generated from OKLCH ramps (see tokens.md). Hex values live ONLY in this file.
+ * Components use semantic tokens: bg-card, text-muted-foreground, bg-primary, etc.
+ */
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* ── Primitive ramps (OKLCH-built, sRGB hex) ── */
+  --mm-brand-50: #f0f5ff;  --mm-brand-100: #dfeaff;  --mm-brand-200: #c5d8ff;  --mm-brand-300: #9fbdff;  --mm-brand-400: #719afb;  --mm-brand-500: #4876f0;  --mm-brand-600: #2b56dc;  --mm-brand-700: #1e40af;  --mm-brand-800: #16328a;  --mm-brand-900: #0b1f5c;  --mm-brand-950: #07143c;
+  --mm-gold-50: #fffae4;  --mm-gold-100: #fff1c5;  --mm-gold-200: #ffe18e;  --mm-gold-300: #ffcd58;  --mm-gold-400: #f5b82e;  --mm-gold-500: #e39f08;  --mm-gold-600: #c37f00;  --mm-gold-700: #a06108;  --mm-gold-800: #804810;  --mm-gold-900: #64340b;  --mm-gold-950: #411e05;
+  --mm-neutral-50: #f9fafc;  --mm-neutral-100: #f2f4f8;  --mm-neutral-200: #e5e7ed;  --mm-neutral-300: #d0d4dc;  --mm-neutral-400: #9aa0ab;  --mm-neutral-500: #6c7380;  --mm-neutral-600: #4e5462;  --mm-neutral-700: #39404e;  --mm-neutral-800: #222937;  --mm-neutral-900: #111826;  --mm-neutral-950: #040814;
+  --mm-good-50: #f0fdf3;  --mm-good-100: #dbf9e2;  --mm-good-200: #baf1c7;  --mm-good-300: #8ee3a5;  --mm-good-400: #5bcc80;  --mm-good-500: #28ad5e;  --mm-good-600: #098b47;  --mm-good-700: #037138;  --mm-good-800: #065a2c;  --mm-good-900: #064420;  --mm-good-950: #032d13;
+  --mm-warning-50: #fff7e5;  --mm-warning-100: #ffecc7;  --mm-warning-200: #ffdaa1;  --mm-warning-300: #ffc473;  --mm-warning-400: #ffa538;  --mm-warning-500: #ec8904;  --mm-warning-600: #c96900;  --mm-warning-700: #a24f00;  --mm-warning-800: #823c00;  --mm-warning-900: #662d03;  --mm-warning-950: #431c04;
+  --mm-serious-50: #fff5ee;  --mm-serious-100: #ffe7d8;  --mm-serious-200: #ffd0b6;  --mm-serious-300: #ffaf85;  --mm-serious-400: #ff8648;  --mm-serious-500: #ef6505;  --mm-serious-600: #cf4b00;  --mm-serious-700: #a83a00;  --mm-serious-800: #882f00;  --mm-serious-900: #692400;  --mm-serious-950: #441600;
+  --mm-critical-50: #fff3f2;  --mm-critical-100: #ffe4e1;  --mm-critical-200: #ffcac4;  --mm-critical-300: #ffa29a;  --mm-critical-400: #fa706a;  --mm-critical-500: #eb4344;  --mm-critical-600: #d4212d;  --mm-critical-700: #b31220;  --mm-critical-800: #90101a;  --mm-critical-900: #711014;  --mm-critical-950: #480709;
+
+  /* ── Shape & depth ── */
+  --radius: 0.75rem;
+  --radius-panel: 1.25rem;
+  --shadow-panel: 0 1px 2px rgb(11 31 92 / 0.04), 0 12px 32px -12px rgb(11 31 92 / 0.14);
+  --shadow-raised: 0 1px 2px rgb(11 31 92 / 0.06), 0 4px 12px -2px rgb(11 31 92 / 0.10);
+  --shadow-card: 0 0 0 1px rgb(11 31 92 / 0.06), 0 1px 2px rgb(11 31 92 / 0.06), 0 8px 24px -12px rgb(11 31 92 / 0.18);
+  --highlight: rgb(255 255 255 / 0.7);
+  --band-from: var(--mm-brand-900);
+  --band-glow: color-mix(in oklch, var(--mm-brand-500) 38%, transparent);
+  --tint: 16%;
+  --shadow-float: 0 2px 6px rgb(11 31 92 / 0.08), 0 18px 40px -12px rgb(11 31 92 / 0.28);
+
+  /* ── Semantic tokens: light ── */
+  --background: var(--mm-neutral-100);
+  --foreground: var(--mm-neutral-900);
+  --card: #ffffff;
+  --card-foreground: var(--mm-neutral-900);
+  --popover: #ffffff;
+  --popover-foreground: var(--mm-neutral-900);
+  --muted: var(--mm-neutral-200);
+  --muted-foreground: var(--mm-neutral-700);
+  --subtle-foreground: var(--mm-neutral-600);
+  --border: var(--mm-neutral-200);
+  --input: var(--mm-neutral-500);
+  --primary: var(--mm-brand-600);
+  --primary-foreground: #ffffff;
+  --primary-edge: var(--mm-brand-800);
+  --secondary: var(--mm-neutral-100);
+  --secondary-foreground: var(--mm-neutral-900);
+  --accent: var(--mm-neutral-100);
+  --accent-foreground: var(--mm-neutral-900);
+  --brand: var(--mm-brand-700);
+  --brand-soft: var(--mm-brand-50);
+  --brand-soft-foreground: var(--mm-brand-800);
+  --ink: var(--mm-brand-950);
+  --ink-foreground: #ffffff;
+  --ink-muted: var(--mm-brand-200);
+  --destructive: var(--mm-critical-600);
+  --destructive-foreground: #ffffff;
+  --ring: var(--mm-brand-500);
+  --reward: var(--mm-gold-400);
+  --reward-foreground: var(--mm-brand-950);
+  --reward-edge: var(--mm-gold-600);
+  --reward-soft: var(--mm-gold-50);
+  --reward-soft-foreground: var(--mm-gold-800);
+  --good: var(--mm-good-700);
+  --good-foreground: #ffffff;
+  --good-soft: var(--mm-good-50);
+  --good-soft-foreground: var(--mm-good-800);
+  --warning: var(--mm-warning-500);
+  --warning-foreground: var(--mm-warning-950);
+  --warning-soft: var(--mm-warning-50);
+  --warning-soft-foreground: var(--mm-warning-800);
+  --serious: var(--mm-serious-600);
+  --serious-foreground: #ffffff;
+  --serious-soft: var(--mm-serious-50);
+  --serious-soft-foreground: var(--mm-serious-800);
+  --critical: var(--mm-critical-600);
+  --critical-foreground: #ffffff;
+  --critical-soft: var(--mm-critical-50);
+  --critical-soft-foreground: var(--mm-critical-800);
+  --sidebar: var(--mm-brand-950);
+  --sidebar-foreground: var(--mm-brand-200);
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: var(--mm-brand-950);
+  --sidebar-accent: var(--mm-brand-900);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: var(--mm-brand-900);
+  --sidebar-ring: var(--mm-brand-400);
+  --chart-1: #2b56dc;
+  --chart-2: #2fa29d;
+  --chart-3: #967cdb;
+  --chart-4: #932a33;
+  --chart-seq-from: var(--mm-brand-100);
+  --chart-seq-to: var(--mm-brand-800);
+  --chart-div-neg: var(--mm-brand-600);
+  --chart-div-mid: var(--mm-neutral-300);
+  --chart-div-pos: var(--mm-gold-600);
+}
+
+.dark {
+  color-scheme: dark;
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -12px rgb(0 0 0 / 0.6);
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 12px -2px rgb(0 0 0 / 0.5);
+  --shadow-float: 0 2px 6px rgb(0 0 0 / 0.5), 0 18px 40px -12px rgb(0 0 0 / 0.7);
+  --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --highlight: rgb(255 255 255 / 0.06);
+  --band-from: var(--mm-brand-950);
+  --band-glow: color-mix(in oklch, var(--mm-brand-600) 30%, transparent);
+  --tint: 30%;
+  --background: var(--mm-neutral-900);
+  --foreground: var(--mm-neutral-50);
+  --card: var(--mm-neutral-800);
+  --card-foreground: var(--mm-neutral-50);
+  --popover: var(--mm-neutral-800);
+  --popover-foreground: var(--mm-neutral-50);
+  --muted: var(--mm-neutral-700);
+  --muted-foreground: var(--mm-neutral-200);
+  --subtle-foreground: var(--mm-neutral-300);
+  --border: var(--mm-neutral-700);
+  --input: var(--mm-neutral-400);
+  --primary: var(--mm-brand-600);
+  --primary-foreground: #ffffff;
+  --primary-edge: var(--mm-brand-800);
+  --secondary: var(--mm-neutral-700);
+  --secondary-foreground: var(--mm-neutral-50);
+  --accent: var(--mm-neutral-700);
+  --accent-foreground: var(--mm-neutral-50);
+  --brand: var(--mm-brand-300);
+  --brand-soft: var(--mm-brand-900);
+  --brand-soft-foreground: var(--mm-brand-200);
+  --ink: var(--mm-brand-950);
+  --ink-foreground: #ffffff;
+  --ink-muted: var(--mm-brand-200);
+  --destructive: var(--mm-critical-400);
+  --destructive-foreground: var(--mm-critical-950);
+  --ring: var(--mm-brand-400);
+  --reward: var(--mm-gold-400);
+  --reward-foreground: var(--mm-brand-950);
+  --reward-edge: var(--mm-gold-600);
+  --reward-soft: var(--mm-gold-950);
+  --reward-soft-foreground: var(--mm-gold-200);
+  --good: var(--mm-good-400);
+  --good-foreground: var(--mm-good-950);
+  --good-soft: var(--mm-good-950);
+  --good-soft-foreground: var(--mm-good-200);
+  --warning: var(--mm-warning-400);
+  --warning-foreground: var(--mm-warning-950);
+  --warning-soft: var(--mm-warning-950);
+  --warning-soft-foreground: var(--mm-warning-200);
+  --serious: var(--mm-serious-400);
+  --serious-foreground: var(--mm-serious-950);
+  --serious-soft: var(--mm-serious-950);
+  --serious-soft-foreground: var(--mm-serious-200);
+  --critical: var(--mm-critical-400);
+  --critical-foreground: var(--mm-critical-950);
+  --critical-soft: var(--mm-critical-950);
+  --critical-soft-foreground: var(--mm-critical-200);
+  --sidebar: var(--mm-brand-950);
+  --sidebar-foreground: var(--mm-brand-200);
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: var(--mm-brand-950);
+  --sidebar-accent: var(--mm-brand-900);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: var(--mm-brand-900);
+  --sidebar-ring: var(--mm-brand-400);
+  --chart-1: #719afb;
+  --chart-2: #84ead7;
+  --chart-3: #d7ccff;
+  --chart-4: #cd5f62;
+  --chart-seq-from: var(--mm-brand-950);
+  --chart-seq-to: var(--mm-brand-300);
+  --chart-div-neg: var(--mm-brand-400);
+  --chart-div-mid: var(--mm-neutral-600);
+  --chart-div-pos: var(--mm-gold-400);
+}
+
+@theme inline {
+  --font-display: "Fredoka Variable", "Fredoka", ui-rounded, system-ui, sans-serif;
+  --font-sans: "Nunito Sans Variable", "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-panel: var(--radius-panel);
+  --shadow-panel: var(--shadow-panel);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-float: var(--shadow-float);
+  --shadow-card: var(--shadow-card);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-edge: var(--primary-edge);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-soft-foreground: var(--brand-soft-foreground);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-ink-muted: var(--ink-muted);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-ring: var(--ring);
+  --color-reward: var(--reward);
+  --color-reward-foreground: var(--reward-foreground);
+  --color-reward-edge: var(--reward-edge);
+  --color-reward-soft: var(--reward-soft);
+  --color-reward-soft-foreground: var(--reward-soft-foreground);
+  --color-good: var(--good);
+  --color-good-foreground: var(--good-foreground);
+  --color-good-soft: var(--good-soft);
+  --color-good-soft-foreground: var(--good-soft-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+  --color-serious: var(--serious);
+  --color-serious-foreground: var(--serious-foreground);
+  --color-serious-soft: var(--serious-soft);
+  --color-serious-soft-foreground: var(--serious-soft-foreground);
+  --color-critical: var(--critical);
+  --color-critical-foreground: var(--critical-foreground);
+  --color-critical-soft: var(--critical-soft);
+  --color-critical-soft-foreground: var(--critical-soft-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-seq-from: var(--chart-seq-from);
+  --color-chart-seq-to: var(--chart-seq-to);
+  --color-chart-div-neg: var(--chart-div-neg);
+  --color-chart-div-mid: var(--chart-div-mid);
+  --color-chart-div-pos: var(--chart-div-pos);
+}
+
+@layer base {
+  * { @apply border-border; }
+  html, body { @apply bg-sidebar text-foreground font-sans antialiased; }
+  html { font-size: 15px; }
+  body { font-size: 1rem; }
+  h1, h2, h3 { letter-spacing: -0.015em; }
+  .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  :focus { outline: none; }
+  /* Focus ring: 2px ring + 2px offset in the surface colour, visible on every surface */
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 10px; }
+  ::selection { background: var(--brand-soft); color: var(--brand-soft-foreground); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
+}
+
+@utility press-primary {
+  box-shadow: 0 3px 0 var(--primary-edge);
+  &:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--primary-edge); }
+}
+@utility press-reward {
+  box-shadow: 0 3px 0 var(--reward-edge);
+  &:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--reward-edge); }
+}
+@utility press-quiet {
+  box-shadow: 0 2px 0 var(--border);
+  &:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 var(--border); }
+}
+@utility scrollbar-none { scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
+
+@keyframes mm-fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes mm-drawer-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes mm-sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes mm-pop { from { opacity: 0; transform: scale(.96) translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes mm-spin-slow { to { transform: rotate(360deg); } }
+@utility animate-fade-up { animation: mm-fade-up .32s cubic-bezier(.2,.8,.2,1) both; }
+@utility animate-drawer-in { animation: mm-drawer-in .26s cubic-bezier(.2,.8,.2,1) both; }
+@utility animate-sheet-up { animation: mm-sheet-up .28s cubic-bezier(.2,.8,.2,1) both; }
+@utility animate-pop { animation: mm-pop .18s cubic-bezier(.2,.8,.2,1) both; }
+@utility animate-spin-slow { animation: mm-spin-slow 18s linear infinite; }
+
+/* ── Brand-forward depth (from the logo: glossy navy, brushed silver) ── */
+
+/* Cards: top-lit silver surface, hairline ring and soft drop. */
+@utility surface {
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, var(--card) 0%, color-mix(in oklch, var(--card) 82%, var(--muted)) 100%);
+  box-shadow: inset 0 1px 0 var(--highlight), var(--shadow-card);
+}
+
+/* Navy masthead band: glossy navy with a soft light source top-right. */
+@utility band {
+  background-color: var(--ink);
+  background-image:
+    radial-gradient(60rem 22rem at 100% -40%, var(--band-glow), transparent 70%),
+    linear-gradient(180deg, var(--band-from), var(--ink));
+  color: var(--ink-foreground);
+}
+
+/* Glass tile for content sitting on the band. */
+@utility glass {
+  background-color: color-mix(in oklch, var(--ink-foreground) 7%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in oklch, var(--ink-foreground) 12%, transparent), inset 0 0 0 1px color-mix(in oklch, var(--ink-foreground) 10%, transparent);
+}
+
+/* Chrome primary button: lit from above like the logo's lettering. */
+@utility chrome-primary {
+  background-image: linear-gradient(180deg, color-mix(in oklch, var(--primary) 82%, white), var(--primary) 55%, color-mix(in oklch, var(--primary) 88%, var(--ink)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28), 0 1px 0 var(--primary-edge), 0 4px 10px -4px color-mix(in oklch, var(--primary) 70%, transparent);
+  &:hover { filter: brightness(1.06); }
+  &:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.2); }
+}
+/* Silver secondary button. */
+@utility chrome-secondary {
+  background-image: linear-gradient(180deg, var(--card), color-mix(in oklch, var(--card) 80%, var(--muted)));
+  box-shadow: inset 0 1px 0 var(--highlight), 0 0 0 1px var(--border), 0 1px 2px rgb(11 31 92 / 0.08);
+  &:hover { background-image: linear-gradient(180deg, var(--card), var(--muted)); }
+  &:active:not(:disabled) { transform: translateY(1px); }
+}
+/* On-band secondary button. */
+@utility chrome-glass {
+  background-color: color-mix(in oklch, var(--ink-foreground) 10%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in oklch, var(--ink-foreground) 16%, transparent), inset 0 0 0 1px color-mix(in oklch, var(--ink-foreground) 16%, transparent);
+  &:hover { background-color: color-mix(in oklch, var(--ink-foreground) 16%, transparent); }
+}
+/* Rail: deep navy with a faint vertical sheen. */
+@utility rail {
+  background-image: linear-gradient(180deg, var(--mm-brand-900) 0%, var(--sidebar) 45%);
+}
+
+/* Dark mode: primary buttons get a light edge so they read as buttons on dark cards. */
+.dark .chrome-primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 0 0 1px var(--ring), 0 4px 12px -4px rgb(0 0 0 / 0.6); }
+
+/* Dark mode soft tints: a little of each hue over the card, so they stay clean instead of muddy.
+   Contrast with the matching -soft-foreground (200 step) is 7.8–8.6:1. */
+.dark {
+  --reward-soft: color-mix(in srgb, var(--mm-gold-400) 18%, var(--mm-neutral-800));
+  --good-soft: color-mix(in srgb, var(--mm-good-400) 18%, var(--mm-neutral-800));
+  --warning-soft: color-mix(in srgb, var(--mm-warning-400) 18%, var(--mm-neutral-800));
+  --serious-soft: color-mix(in srgb, var(--mm-serious-400) 18%, var(--mm-neutral-800));
+  --critical-soft: color-mix(in srgb, var(--mm-critical-400) 18%, var(--mm-neutral-800));
+  --brand-soft: color-mix(in srgb, var(--mm-brand-400) 18%, var(--mm-neutral-800));
+}
+
+/* Larger invisible tap area for small text links (phones). */
+@utility hit-area {
+  position: relative;
+  &::after { content: ''; position: absolute; inset: -10px -8px; }
+}
+
+/* ── App root (signed-in screens). Same rules as the prototype's root CSS:
+   the page itself never scrolls (only the app's own scroll areas do), which keeps
+   phone sheets pinned to the bottom of the screen. ── */
+html:has(.app-root), html:has(.app-root) body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+.app-root { height: 100%; height: 100dvh; overflow: hidden; }
+/* Text size (User.textSize): the prototype sizes type in px, so the whole app scales with zoom. */
+.app-root[data-text='LARGE'] { zoom: 1.125; height: calc(100dvh / 1.125); }
+.app-root[data-text='XLARGE'] { zoom: 1.25; height: calc(100dvh / 1.25); }
+
+/* Installed PWA: respect the notch / home indicator. */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+}
