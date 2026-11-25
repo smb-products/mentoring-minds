@@ -177,6 +177,8 @@ model User {
   lockedUntil       DateTime?
   /// Set when Vienne resets the password: the screens ask for a new one (families.changePassword).
   mustChangePassword Boolean   @default(false)
+  /// Bumped when the password changes or is reset: every session issued before then is signed out.
+  sessionVersion    Int       @default(0)
   /// Invite-code guessing limit: 10 wrong codes lock code entry for an hour.
   redeemFailures    Int        @default(0)
   redeemLockedUntil DateTime?

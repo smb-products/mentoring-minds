@@ -35,8 +35,20 @@ How files move:
 
 In Google Cloud Console → APIs & Services → Credentials, create an OAuth client (Web).
 
-- **Authorised redirect URI:** `https://YOUR-DOMAIN/api/auth/callback/google`, plus `http://localhost:3000/api/auth/callback/google` for local work.
+- **OAuth consent screen:** user type **External**, app name "Mentoring Minds", Vienne's email as support contact. Scopes: only the defaults (email, profile, openid), so Google doesn't need to review the app. Then **Publish app** (status "In production"). While it says "Testing", only the test users listed there can sign in, and parents get a Google error.
+- **Authorised redirect URI:** `https://YOUR-DOMAIN/api/auth/callback/google`, plus `http://localhost:3000/api/auth/callback/google` for local work. Preview deployments have changing addresses, so Google won't work there: use email and password on previews.
 - **Client ID / secret** → `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`
+
+Google is optional. Without both keys, the sign-in screen simply doesn't show the Google button. If Google sign-in fails (say, an unconfirmed email), the parent lands back on the sign-in screen with a plain message.
+
+### How sign-in behaves (for support questions)
+
+- **Accounts:** a parent creates one with email and password, or with Google. It starts locked ("preview") until they enter Vienne's invite code. Only `npm run db:seed` makes an admin.
+- **Same email, both ways:** a Google sign-in joins an existing email/password account with that address. If nobody ever proved they own that email (it was typed into the sign-up form), its password is removed and its sessions end, in case someone registered a parent's address first.
+- **Wrong passwords:** 5 in a row pause password sign-in for that account for 15 minutes. Google sign-in still works.
+- **Forgot password:** Vienne taps "Reset password" on the family page and passes on the temporary password. The parent is asked to choose a new one after signing in. There's no email reset link (no email service yet; see "Hardening later").
+- **Sessions** last 30 days. A password change or reset signs out every other device right away. Pausing a family takes effect on their next tap.
+- **Start-up check:** in production the server refuses to start if a secret is missing or unsafe (`src/lib/env-check.ts`). The deployment log names the problem.
 
 ## 4. Vercel
 
@@ -56,7 +68,7 @@ This loads settings (Miami time, the FAST windows), Math and Vienne's skills, th
 
 | Variable | Where | What |
 |---|---|---|
-| `DEMO_MODE` | all | Leave unset while the screens run on demo data. Set to `false` once wired. It's read at build time, so redeploy after changing it. |
+| `DEMO_MODE` | none | **Don't set it in production.** Unset means real sign-in. `true` (demo screens, no sign-in) is for local work and throwaway demo deploys only. Read at build time, so redeploy after changing it. |
 | `DATABASE_URL` | all | Neon **pooled** URL |
 | `DIRECT_URL` | all | Neon **direct** URL (migrations) |
 | `AUTH_SECRET` | all | `npx auth secret` |
@@ -85,7 +97,9 @@ CI fails if `schema.prisma` and the migrations disagree. Vercel applies new migr
 - [ ] Spend limit set in the Claude Console (e.g. $5/month)
 - [ ] Blob store is **Private**, with a read-write token on the connection
 - [ ] `CRON_SECRET` set; after the first 13:00 UTC run, the job shows 200 in Vercel → Schedules → Cron Jobs → View Logs
-- [ ] Vienne signs in with Google and lands on Today
+- [ ] Vienne signs in with Google and lands on Today (the consent screen is published, not "Testing")
+- [ ] A parent's Gmail address can sign in with Google on a phone
+- [ ] `DEMO_MODE` isn't set anywhere in Vercel → Settings → Environment Variables
 - [ ] Invite code → a test parent redeems it → sees their child
 - [ ] A photo upload from a real iPhone and a real Android phone
 - [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit)
@@ -103,4 +117,5 @@ CI fails if `schema.prisma` and the migrations disagree. Vercel applies new migr
 ## Hardening later
 
 - **Content-Security-Policy with script nonces.** `next.config.ts` sets a starter policy: no framing, no plugins, no `<base>` changes. A full `script-src` policy needs per-request nonces (Next.js `proxy.ts` + `headers()`). Worth doing once the app is live, then testing every screen.
+- **Email password reset and address confirmation.** Needs an email service (for example Resend, free for this volume). Until then Vienne resets passwords, and Google sign-in is the way to prove an address.
 - **Rate limiting** on sign-up and sign-in by IP (for example Vercel Firewall rate-limit rules on `/sign-in` and `/api/auth/*`). Accounts already lock after repeated wrong passwords or codes.

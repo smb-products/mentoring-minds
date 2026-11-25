@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  * build signed in as real users, against their own database (E2E_DATABASE_URL, name
  * must contain "test"). Each spec file starts from a fresh copy of the demo data.
  *
- *   npm run build:e2e     once, and after changing code (a build with DEMO_MODE=false)
+ *   npm run build:e2e     once, and after changing code (sign-in on)
  *   npm run test:e2e      everything that's switched on
  *   npm run test:e2e -- w4                one ticket
  *   npm run test:e2e -- --headed w6       watch it

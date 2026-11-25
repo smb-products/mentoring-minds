@@ -20,16 +20,17 @@ async function newWorksheet(page: Page, title: string, pdf: string, { publish = 
 
 test.describe('answer keys', () => {
   test('Vienne corrects an answer and it’s saved', async ({ page, as, db }) => {
+    const before = await db.bookItem.findFirstOrThrow({ where: { bookId: 'book_g4', test: 'T1', format: 'MC' }, orderBy: { number: 'asc' } });
+    const label = `Answer for #${before.number}`;
     await as('vienne');
     await page.goto('/admin/content/book/book_g4/T1');
-    const before = await db.bookItem.findFirstOrThrow({ where: { bookId: 'book_g4', test: 'T1', number: 1 } });
     const next = before.answer === 'B' ? 'C' : 'B';
-    await page.getByLabel('Answer for #1', { exact: true }).fill(next);
+    await page.getByLabel(label, { exact: true }).fill(next);
     await page.getByRole('button', { name: 'Save 1 change' }).click();
     await expect(page.getByRole('button', { name: 'Saved' })).toBeVisible();
     await expect.poll(async () => (await db.bookItem.findUniqueOrThrow({ where: { id: before.id } })).answer).toBe(next);
     await page.reload();
-    await expect(page.getByLabel('Answer for #1', { exact: true })).toHaveValue(next);
+    await expect(page.getByLabel(label, { exact: true })).toHaveValue(next);
   });
 
   test('a family saying they have the book updates Vienne’s count', async ({ page, as, db }) => {

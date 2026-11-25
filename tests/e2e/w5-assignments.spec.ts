@@ -22,6 +22,25 @@ function recordResponses(page: Page) {
   };
 }
 
+/** One answer on the sheet, the way a child gives it: tap a letter, tap letters, or type a number. */
+async function answer(page: Page, format: string, number: number, value: string) {
+  const sheet = page.getByRole('dialog', { name: /answer sheet/ });
+  if (format === 'MC') await sheet.getByRole('radiogroup', { name: `Answer for question ${number}` }).getByRole('radio', { name: value, exact: true }).click();
+  else if (format === 'MULTI') {
+    for (const letter of value.split(',')) await sheet.getByRole('group', { name: `Answers for question ${number}` }).getByRole('checkbox', { name: letter, exact: true }).click();
+  } else {
+    await page.keyboard.type(value);
+    await expect(sheet.getByLabel(`Your answer for question ${number}`)).toHaveText(value);
+  }
+}
+
+/** Something that isn't the key's answer. */
+function wrongAnswer(format: string, right: string) {
+  if (format === 'MC') return right === 'A' ? 'B' : 'A';
+  if (format === 'MULTI') return right === 'E' ? 'A' : 'E';
+  return right === '1' ? '2' : '1';
+}
+
 test('Vienne assigns book questions; Lucia answers on Ana’s phone with a photo; Vienne checks the written one', async ({ page, as, db, browser }) => {
   // Vienne: Test 1, questions 10–14 for Lucia (grade 5). #13 is a written answer.
   await as('vienne');
@@ -46,22 +65,22 @@ test('Vienne assigns book questions; Lucia answers on Ana’s phone with a photo
   await main(ana.page).getByText('Test 1, #10–14').click();
   await ana.page.getByRole('button', { name: 'Fill in answers' }).click();
   const sheet = ana.page.getByRole('dialog', { name: /answer sheet/ });
-  const pick = async (n: number, letter: string) => {
-    await sheet.getByRole('radiogroup', { name: `Answer for question ${n}` }).getByRole('radio', { name: letter, exact: true }).click();
-  };
-  await pick(10, 'C'); // right
-  await sheet.getByRole('button', { name: 'Next' }).click();
-  await pick(11, 'B'); // wrong (A)
-  await sheet.getByRole('button', { name: 'Next' }).click();
-  await pick(12, 'A'); // right
-  await sheet.getByRole('button', { name: 'Next' }).click();
-  await sheet.locator('input[type=file]').setInputFiles(photo); // #13, written
-  await expect(sheet.getByRole('button', { name: 'Retake' })).toBeVisible();
-  await sheet.getByRole('button', { name: 'Next' }).click();
-  await pick(14, 'D'); // right
+  // Answer from the real key, by each question's type; get the first checkable one wrong.
+  const items = await db.bookItem.findMany({ where: { bookId: 'book_g5', test: 'T1', number: { gte: 10, lte: 14 } }, orderBy: { number: 'asc' } });
+  const checkable = items.filter((i) => i.format !== 'OPEN');
+  const missed = checkable[0];
+  for (const [index, item] of items.entries()) {
+    if (item.format === 'OPEN') {
+      await sheet.locator('input[type=file]').setInputFiles(photo);
+      await expect(sheet.getByRole('button', { name: 'Retake' })).toBeVisible();
+    } else {
+      await answer(ana.page, item.format, item.number, item === missed ? wrongAnswer(item.format, item.answer!) : item.answer!);
+    }
+    if (index < items.length - 1) await sheet.getByRole('button', { name: 'Next' }).click();
+  }
   await sheet.getByRole('button', { name: 'Check my answers' }).click();
   await sheet.getByRole('button', { name: 'Hand it in' }).click();
-  await expect(sheet.getByText('3 of 4 right')).toBeVisible();
+  await expect(sheet.getByText(`${checkable.length - 1} of ${checkable.length} right`)).toBeVisible();
   await expect(sheet.getByText('Vienne will check your written answer')).toBeVisible();
   for (const body of await sent()) expect(body, 'the answer key reached a family’s browser').not.toMatch(/"answer":/);
   expect(ana.errors).toEqual([]);
@@ -70,8 +89,8 @@ test('Vienne assigns book questions; Lucia answers on Ana’s phone with a photo
   const sub = await db.submission.findFirstOrThrow({ where: { assignmentId: assignment.id } });
   expect(sub.status).toBe('SUBMITTED');
   expect(sub.photos).toEqual([expect.objectContaining({ number: 13, fileId: expect.any(String) })]);
-  expect(sub.answers).toEqual(expect.arrayContaining([expect.objectContaining({ number: 11, value: 'B', correct: false }), expect.objectContaining({ number: 13, correct: null })]));
-  expect(await db.redoItem.count({ where: { submissionId: sub.id, clearedAt: null, bookItem: { number: 11 } } })).toBe(1);
+  expect(sub.answers).toEqual(expect.arrayContaining([expect.objectContaining({ number: missed.number, correct: false }), expect.objectContaining({ number: 13, correct: null })]));
+  expect(await db.redoItem.count({ where: { submissionId: sub.id, clearedAt: null, bookItem: { number: missed.number } } })).toBe(1);
 
   // Vienne opens the photo and marks #13 right.
   await page.goto(`/admin/assignments/${assignment.id}`);

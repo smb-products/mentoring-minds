@@ -33,12 +33,12 @@ Demo sign-in: `vienne@example.com` or any demo parent (for example `ana.mendoza@
 
 ## Step 1: turn on sign-in (once)
 
-1. Set `DEMO_MODE=false` in `.env`. It's read at build time; `npm run dev` picks it up on restart.
+1. Remove `DEMO_MODE="true"` from `.env` (unset means sign-in is on). It's read at build time; `npm run dev` picks it up on restart.
 2. In `src/ui/AppRoot.jsx`, take the user from the session instead of the demo persona:
    - **The layouts:** both group layouts (`src/app/(admin|parent)/*/layout.tsx`) already call `auth()` when demo mode is off. Pass `session.user` into `<AppRoot user={…}>`.
    - **AppRoot:** call `setSessionUser(user.id)` only while some areas are still on the mock. Use `user.role` instead of reading it from the URL, and `user.textSize` for the text size.
    - **Account menu:** remove the "Demo account" switcher in `components/shell/AccountMenu.jsx`. "Sign out" calls `signOutNow()` from `src/app/(auth)/sign-in/actions.ts`; it replaces the placeholder toast. After "Text size" saves, call `router.refresh()` so the layout passes the new size down.
-   - **New password after a reset:** when `session.user.mustChangePassword` is true (Vienne used "Reset password"), ask for a new one before anything else. Call `families.changePassword({ currentPassword, newPassword })`; it needs the temporary password as `currentPassword`. Any parent can also use it from the account panel.
+   - **New password after a reset:** when `session.user.mustChangePassword` is true (Vienne used "Reset password"), ask for a new one before anything else. Call `families.changePassword({ currentPassword, newPassword })`; it needs the temporary password as `currentPassword`. It signs the parent out on their other devices and keeps this one signed in; if it returns `signInAgain: true`, send them to `/sign-in`. Any parent can also use it from the account panel (a "Change password" row there is part of this step).
 3. **Preview parents** (`status: 'PREVIEW'`) see `InviteCodeForm` (`src/components/family`) until they redeem a code. `invites.redeemInvite` does the rest, and the form reloads the app so every screen fetches the unlocked data.
 
 Test: `npm run test:e2e -- w0` (runs once any area is live).

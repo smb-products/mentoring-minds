@@ -53,16 +53,24 @@ test('Vienne invites a family; the new parent signs up, enters the code, and the
   expect((await db.invite.findUniqueOrThrow({ where: { id: invite.id } })).usedAt).not.toBeNull();
 });
 
-test('Vienne resets a password: the temporary one works and the old one stops working', async ({ page, as, browser }) => {
+test('Vienne resets a password: Daniel’s open session ends, the old password stops working, the temporary one works', async ({ page, as, browser }) => {
+  // Daniel is signed in on his phone.
+  const phone = await browser.newContext({ timezoneId: 'America/New_York' });
+  const p = await phone.newPage();
+  await p.goto('/sign-in');
+  await p.locator('input[name=email]').fill('daniel.reyes@example.com');
+  await p.locator('input[name=password]').fill('mentoring-demo-2026');
+  await p.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await p.waitForURL('**/parent/home');
+
   await as('vienne');
   await page.goto('/admin/families/u_daniel');
   await page.getByRole('button', { name: 'Reset password' }).click();
-  const shown = main(page).getByText(/^mm-[0-9a-f]{6}-[0-9a-f]{6}$/);
-  const temporary = (await shown.textContent())!.trim();
+  const temporary = (await main(page).getByText(/^mm-[0-9a-f]{6}-[0-9a-f]{6}$/).textContent())!.trim();
 
-  const daniel = await browser.newContext({ timezoneId: 'America/New_York' });
-  const p = await daniel.newPage();
-  await p.goto('/sign-in');
+  // His phone's session is over: the next screen asks him to sign in.
+  await p.goto('/parent/learning');
+  await expect(p).toHaveURL(/\/sign-in$/);
   await p.locator('input[name=email]').fill('daniel.reyes@example.com');
   await p.locator('input[name=password]').fill('mentoring-demo-2026');
   await p.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -70,7 +78,7 @@ test('Vienne resets a password: the temporary one works and the old one stops wo
   await p.locator('input[name=password]').fill(temporary);
   await p.getByRole('button', { name: 'Sign in', exact: true }).click();
   await p.waitForURL('**/parent/home');
-  await daniel.close();
+  await phone.close();
 });
 
 test('pausing a family takes effect right away, and Undo restores it', async ({ page, as, db }) => {

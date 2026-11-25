@@ -6,6 +6,7 @@
 import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import { signIn } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { requireAdmin, requireStudentAccess, requireUser } from '@/lib/guards';
 import { ApiError, action, found, need, query } from '@/lib/result';
@@ -134,7 +135,7 @@ export const resetParentPassword = action(async (input: { parentId: string }) =>
   const { parentId } = parse(z.object({ parentId: id }), input);
   await parentRow(parentId);
   const temporaryPassword = `mm-${randomBytes(3).toString('hex')}-${randomBytes(3).toString('hex')}`;
-  await db.user.update({ where: { id: parentId }, data: { passwordHash: await bcrypt.hash(temporaryPassword, 12), failedLogins: 0, lockedUntil: null, mustChangePassword: true } });
+  await db.user.update({ where: { id: parentId }, data: { passwordHash: await bcrypt.hash(temporaryPassword, 12), failedLogins: 0, lockedUntil: null, mustChangePassword: true, sessionVersion: { increment: 1 } } });
   return { temporaryPassword };
 });
 
@@ -232,8 +233,18 @@ export const changePassword = action(async (input: { currentPassword?: string; n
     }
     need(v.currentPassword !== v.newPassword, 'Choose a password that’s different from the current one');
   }
-  await db.user.update({ where: { id: row.id }, data: { passwordHash: await bcrypt.hash(v.newPassword, 12), mustChangePassword: false, failedLogins: 0, lockedUntil: null } });
-  return { changed: true };
+  // Every other session (another phone, someone who knew the old password) is signed out…
+  await db.user.update({
+    where: { id: row.id },
+    data: { passwordHash: await bcrypt.hash(v.newPassword, 12), mustChangePassword: false, failedLogins: 0, lockedUntil: null, sessionVersion: { increment: 1 } },
+  });
+  // …and this one gets a fresh session, so the person who just changed it stays signed in.
+  try {
+    await signIn('credentials', { email: row.email, password: v.newPassword, redirect: false });
+  } catch {
+    return { changed: true, signInAgain: true };
+  }
+  return { changed: true, signInAgain: false };
 });
 
 export const setTextSize = action(async (input: { textSize: 'NORMAL' | 'LARGE' | 'XLARGE' }) => {

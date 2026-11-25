@@ -5,7 +5,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { db } from './db';
-import { secureLinkedAccount } from './auth-rules';
+import { refreshToken, secureLinkedAccount } from './auth-rules';
 
 /**
  * One sign-in screen: Google, or email + password. New accounts start as PREVIEW
@@ -20,6 +20,9 @@ const DUMMY_HASH = '$2b$12$C6UzMDM.H6dfI/f/IKcEeO5O7pZcRcbxTdsHpEJnPdA6O38D4ZGXy
 
 const adapter = PrismaAdapter(db);
 
+/** Google sign-in is offered only once its keys are set (docs/DEPLOY.md → Google). */
+export const googleEnabled = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: {
     ...adapter,
@@ -27,12 +30,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     createUser: ({ id: _id, ...data }) => adapter.createUser!({ ...data, id: '', name: data.name?.trim() || data.email.split('@')[0] }),
   },
   session: { strategy: 'jwt' }, // required for the Credentials provider
-  pages: { signIn: '/sign-in' },
+  // Failures (a Google account with an unverified email, a misconfigured provider) come back to
+  // our sign-in screen with ?error=…, not Auth.js's unbranded error page.
+  pages: { signIn: '/sign-in', error: '/sign-in' },
   providers: [
     // Linking by email lets Vienne (created by the seed with her Google address) sign in
     // with Google. Safe because Google verifies the address (checked in signIn below), and
     // linking wipes any password someone set on that email without verifying it (events).
-    Google({ allowDangerousEmailAccountLinking: true }),
+    ...(googleEnabled ? [Google({ allowDangerousEmailAccountLinking: true })] : []),
     Credentials({
       credentials: { email: {}, password: {} },
       authorize: async (raw) => {
@@ -67,14 +72,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.provider === 'google') return profile?.email_verified === true;
       return true;
     },
-    // Role and status are read fresh, so pausing an account or redeeming a code takes effect right away.
-    async jwt({ token, user }) {
-      const id = (user?.id ?? token.sub) as string | undefined;
-      if (!id) return token;
-      const fresh = await db.user.findUnique({ where: { id }, select: { role: true, status: true, textSize: true, name: true, mustChangePassword: true } });
-      if (!fresh) return null;
-      return { ...token, sub: id, role: fresh.role, status: fresh.status, textSize: fresh.textSize, name: fresh.name, mustChangePassword: fresh.mustChangePassword };
-    },
+    // Read fresh on every request: pausing an account or redeeming a code takes effect right away,
+    // and a password change or reset signs out every session issued before it (auth-rules.ts).
+    jwt: ({ token, user }) => refreshToken(token, user),
     async session({ session, token }) {
       Object.assign(session.user, { id: token.sub, role: token.role, status: token.status, textSize: token.textSize, mustChangePassword: Boolean(token.mustChangePassword) });
       return session;
@@ -85,5 +85,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 declare module 'next-auth' {
   interface Session {
     user: { id: string; name: string; email: string; image?: string | null; role: 'ADMIN' | 'PARENT'; status: 'PREVIEW' | 'ACTIVE' | 'PAUSED'; textSize: 'NORMAL' | 'LARGE' | 'XLARGE'; mustChangePassword: boolean };
+  }
+}
+
+declare module '@auth/core/jwt' {
+  interface JWT {
+    /** The account's sessionVersion when this session was issued. */
+    sv?: number;
   }
 }

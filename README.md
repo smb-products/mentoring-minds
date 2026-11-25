@@ -43,12 +43,12 @@ To test the PWA (service worker, install, offline), use `npm run build && npm st
 ```
 src/app/(admin)/admin/*   Vienne's routes: each page.tsx renders its screen from src/ui/pages/admin
 src/app/(parent)/parent/* family routes: screens from src/ui/pages/parent
-src/app/(auth)/sign-in    the single sign-in screen (used once DEMO_MODE=false)
+src/app/(auth)/sign-in    the single sign-in screen (whenever DEMO_MODE isn't true)
 src/ui/                   the UI, ported from the prototype: pages, components, config, lib
 src/ui/api/index.js       THE SWITCH: today re-exports the mock; going live points it at src/server
 src/ui/AppRoot.jsx        client root for signed-in screens (shell, demo persona, theme)
 src/mock/                 the prototype's mock API + demo data (deleted once live)
-src/lib/demo.ts           DEMO_MODE (on unless DEMO_MODE=false)
+src/lib/demo.ts           DEMO_MODE (demo screens only when DEMO_MODE=true)
 src/lib/db.ts             Prisma client (pg driver adapter); connects on first query
 prisma/schema.prisma      data model (mirrors the mock's collections)
 prisma/seed.ts, data.ts   day-one data (db:seed) and the full demo (db:seed:demo), loaded from src/mock/seed.js

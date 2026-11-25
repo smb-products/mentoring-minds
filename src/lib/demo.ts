@@ -1,9 +1,10 @@
 /**
- * SCAFFOLD SWITCH. While DEMO_MODE isn't "false", the app runs on the in-browser
- * mock data (src/mock): no sign-in, no database. /admin is Vienne; /parent is the
- * parent picked in the account menu.
+ * SCAFFOLD SWITCH. Only when DEMO_MODE is exactly "true" does the app skip sign-in and
+ * run on the in-browser mock data (src/mock): /admin is Vienne; /parent is the parent
+ * picked in the account menu. Anything else, including unset, means real sign-in,
+ * so a production deploy that forgets the variable is never left open.
  *
- * Going live: set DEMO_MODE=false once src/ui/api points at src/server and the
- * database is set up (docs/PORTING.md → "Going live").
+ * Going live: remove DEMO_MODE=true once src/ui/api points at src/server
+ * (docs/WIRING.md → Step 1).
  */
-export const DEMO_MODE = process.env.DEMO_MODE !== 'false';
+export const DEMO_MODE = process.env.DEMO_MODE === 'true';

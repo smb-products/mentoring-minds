@@ -46,7 +46,7 @@ jobs:
       - run: npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url postgresql://postgres:postgres@localhost:5432/mm_shadow --exit-code
       - run: npm run typecheck
       - run: npm test
-      # A production build with sign-in on (DEMO_MODE=false), for the browser tests.
+      # A production build with sign-in on (DEMO_MODE not "true"), for the browser tests.
       - run: npm run build:e2e
       # Browser tests (tests/e2e): sign-in always; each wiring area once it's listed in LIVE.
       - run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_e2e_test'

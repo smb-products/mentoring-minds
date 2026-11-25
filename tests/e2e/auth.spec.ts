@@ -63,6 +63,20 @@ test.describe('sign-in', () => {
     expect(rosa.passwordHash).not.toContain('rosa-password-1');
   });
 
+  test('Google is offered only once its keys are set', async ({ page }) => {
+    await page.goto('/sign-in');
+    const google = page.getByRole('button', { name: 'Continue with Google' });
+    if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) await expect(google).toBeVisible();
+    else await expect(google).toHaveCount(0);
+  });
+
+  test('a failed Google sign-in comes back with a plain message, not an error page', async ({ page }) => {
+    await page.goto('/sign-in?error=AccessDenied');
+    await expect(page.getByRole('alert').filter({ hasText: 'Google hasn’t confirmed that email address yet' })).toBeVisible();
+    await page.goto('/sign-in?error=SomethingUnexpected');
+    await expect(page.getByRole('alert').filter({ hasText: 'Signing in didn’t work. Please try again.' })).toBeVisible();
+  });
+
   test('the same email can’t sign up twice', async ({ page }) => {
     await page.goto('/sign-in');
     await page.getByRole('button', { name: 'Create an account' }).click();

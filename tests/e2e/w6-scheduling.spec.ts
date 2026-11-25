@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, openAs, requires, test } from './support/fixtures';
+import { endNextSession, openCompleteForm } from './support/sessions';
 import { expectToast, main } from './support/ui';
 
 /** W6: request, confirm, decline, cancel; the timing rules; Join call; complete with a note. */
@@ -105,17 +106,9 @@ test('Join call opens Vienne’s video link shortly before the start, and marks 
 });
 
 test('Vienne completes a finished session with a note the family can read', async ({ page, as, db, browser }) => {
-  // Sofia's next session, moved to have ended an hour ago today.
-  const s = await db.session.findFirstOrThrow({ where: { studentId: 's_sofia', status: 'CONFIRMED', startsAt: { gt: new Date() } }, orderBy: { startsAt: 'asc' } });
-  const endsAt = new Date(Date.now() - 60 * 60_000);
-  await db.session.update({ where: { id: s.id }, data: { startsAt: new Date(endsAt.getTime() - s.durationMin * 60_000), endsAt } });
-
+  const s = await endNextSession(db, 's_sofia');
   await as('vienne');
-  await page.goto('/admin/today');
-  await main(page).getByText('Sofia Reyes').first().click();
-  const drawer = page.getByRole('dialog', { name: 'Sofia Reyes' });
-  await drawer.getByRole('button', { name: 'Complete with note' }).click();
-  const form = page.getByRole('dialog', { name: 'Complete session' });
+  const form = await openCompleteForm(page, 'Sofia Reyes', s.label);
   await form.getByLabel('What you worked on').fill('Equivalent fractions with strips. Sofia explained her thinking out loud.');
   await form.getByRole('button', { name: 'Complete session' }).click();
   await expect.poll(async () => (await db.session.findUniqueOrThrow({ where: { id: s.id } })).status).toBe('COMPLETED');

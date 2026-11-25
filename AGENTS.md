@@ -11,7 +11,7 @@ A tutoring app for one math tutor (Vienne, admin) and her families (parents; kid
 ## Commands
 
 ```bash
-npm run dev               # http://localhost:3000 (demo data unless DEMO_MODE=false)
+npm run dev               # http://localhost:3000 (demo data while .env has DEMO_MODE="true")
 npm run typecheck         # next typegen + tsc
 npm test                  # unit + integration + contract (needs Postgres: createdb mm_test)
 npm run test:contract     # the wiring checker: mock vs real, function by function

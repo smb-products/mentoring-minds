@@ -246,6 +246,10 @@ export function createSeed() {
     return null;
   };
   const bookItems = [];
+  // The book's questions use their own fixed sequence: everything above depends on today's
+  // date (how many sessions fit), and a printed book's answer key shouldn't change day to day.
+  const resumeAt = r;
+  r = 4242;
   books.forEach((book) => {
     const codes = codesForGrade(book.grade);
     keyed[book.grade].forEach((test) => {
@@ -261,6 +265,7 @@ export function createSeed() {
       }
     });
   });
+  r = resumeAt;
   const itemsOf = (bookId, test, from = 1, to = 999) => bookItems.filter((b) => b.bookId === bookId && b.test === test && b.number >= from && b.number <= to);
 
   /* ── Content: math resources and official FLDOE practice links ── */

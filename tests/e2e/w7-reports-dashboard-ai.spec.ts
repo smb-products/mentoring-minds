@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, openAs, requires, test } from './support/fixtures';
+import { endNextSession, openCompleteForm } from './support/sessions';
 import { chooseChild, expectToast, main } from './support/ui';
 
 /** W7: progress reports; Today and parent Home; the AI helpers. */
@@ -49,15 +50,11 @@ test.describe('Today', () => {
   });
 });
 
-/** A session of Sofia's, moved to have ended an hour ago, opened in "Complete session". */
+/** A session of Sofia's that has just finished, opened in "Complete session", with a spoken-style recap typed in. */
 async function completeFormForSofia(page: Page, db: Parameters<Parameters<typeof test>[2]>[0]['db']) {
-  const s = await db.session.findFirstOrThrow({ where: { studentId: 's_sofia', status: 'CONFIRMED', startsAt: { gt: new Date() } }, orderBy: { startsAt: 'asc' } });
-  const endsAt = new Date(Date.now() - 60 * 60_000);
-  await db.session.update({ where: { id: s.id }, data: { startsAt: new Date(endsAt.getTime() - s.durationMin * 60_000), endsAt } });
-  await page.goto('/admin/today');
-  await main(page).getByText('Sofia Reyes').first().click();
-  await page.getByRole('dialog', { name: 'Sofia Reyes' }).getByRole('button', { name: 'Complete with note' }).click();
-  const talk = page.getByRole('region', { name: 'Talk about it' });
+  const s = await endNextSession(db, 's_sofia');
+  const form = await openCompleteForm(page, 'Sofia Reyes', s.label);
+  const talk = form.getByRole('region', { name: 'Talk about it' });
   await talk.getByRole('textbox').fill('Sofia did well on comparing fractions. Missed number 3 and 11 on mini test 1, so we will redo those.');
   return talk;
 }
