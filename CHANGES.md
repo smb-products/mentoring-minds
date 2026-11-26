@@ -3,6 +3,13 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: amend lines
+
+- **S26 check 1 (#94's amend):** a push other than a message is tagged by its type, its href and its title, not
+  only its type and href. Why: every session request opens `/admin/schedule`, and two families' work on one
+  assignment opens the same page. With type and href alone, one family's push would still replace another's.
+  The title names the family or child. Approved after the fact: Axis; Zero reviewed #94.
+
 ## 2026-11-26: S23 reopened, invite codes; reopen notices go to both leads
 
 - **S23 check 1:** names the family's invite codes. They are the codes the parent used, the codes addressed to

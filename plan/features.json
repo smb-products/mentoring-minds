@@ -1018,7 +1018,7 @@
         "plan/reports/S26.md"
       ],
       "checks": [
-        "A push's tag names what it is about, not only its type. A message push is tagged by its thread. Every other push is tagged by its type and the item it opens (its href), and one without an href keeps its type alone. So on Vienne's phone, a second family's message, handed-in work or session request shows next to the first family's, instead of replacing it.",
+        "A push's tag names what it is about, not only its type. A message push is tagged by its thread. Every other push is tagged by its type, the item it opens (its href) and its title, because the title names the family or child: every session request opens /admin/schedule, and two families' work on one assignment opens the same page. A push without an href keeps its type alone. So on Vienne's phone, a second family's message, handed-in work or session request shows next to the first family's, instead of replacing it.",
         "A newer push about the same thread or item still replaces the older one. tests/s16-push-payload.test.ts and tests/holdout/S16.test.ts pass unchanged. The in-app feed doesn't change.",
         "tests/integration/s26-push-tag.test.ts covers three cases: two families' messages give two tags, two messages in one thread give one tag, and two families' handed-in work gives two tags."
       ],
