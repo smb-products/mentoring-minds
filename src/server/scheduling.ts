@@ -9,7 +9,7 @@
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireAdmin, requireStudentAccess, requireUser } from '@/lib/guards';
+import { requireActive, requireAdmin, requireStudentAccess, requireUser } from '@/lib/guards';
 import { action, ApiError, found, need, query } from '@/lib/result';
 import { httpsUrl, id, ids, instant, int, mode as modeSchema, optText, parse } from '@/lib/validate';
 import { conflicts, openSlots, type AvailabilityRow, type Booked, type Mode, type Place } from '@/lib/slots';
@@ -89,9 +89,11 @@ export const setAvailability = action(async (input: { rows: { weekday: number; s
   return saved.map((a) => ({ ...a, modes: a.modes as Mode[] }));
 });
 
+/** Vienne's own calendar: families never see it (getOpenSlots leaves those times out for them). */
 export const listTimeOff = query(async () => {
-  await requireUser();
-  return db.timeOff.findMany({ orderBy: { startsAt: 'asc' } });
+  await requireAdmin();
+  const rows = await db.timeOff.findMany({ orderBy: { startsAt: 'asc' } });
+  return rows.map(({ id, startsAt, endsAt, reason }) => ({ id, startsAt, endsAt, reason }));
 });
 
 export const addTimeOff = action(async (input: { startsAt: string; endsAt: string; reason?: string }) => {
@@ -185,7 +187,13 @@ export const listSessions = query(async (input: { from?: string; to?: string; st
   };
   const [rows, settings] = await Promise.all([db.session.findMany({ where, include: sessionInclude, orderBy: { startsAt: 'asc' } }), loadSettings()]);
   const now = new Date();
-  return rows.map((s) => (admin ? sessionDTO(s) : sessionForParent(s, settings, now)));
+  if (admin) return rows.map((s) => sessionDTO(s));
+  // A family that isn't active (paused, or still in preview) still sees its sessions, never the video link.
+  const active = user.status === 'ACTIVE';
+  return rows.map((s) => {
+    const dto = sessionForParent(s, settings, now);
+    return active ? dto : { ...dto, meetingUrl: null };
+  });
 });
 
 /* ── Lifecycle ──────────────────────────────────────────── */
@@ -400,10 +408,16 @@ export const markNoShow = action(async (input: { sessionId: string }) => {
 
 /** Records that the call was opened (Vienne or the family pressed Join) and returns the link. */
 export const joinCall = action(async (input: { sessionId: string }) => {
-  const user = await requireUser();
+  const user = await requireActive();
   const { sessionId } = parse(z.object({ sessionId: id }), input);
-  const s = await loadSession(sessionId);
-  if (user.role !== 'ADMIN') await requireStudentAccess(s.studentId);
+  let s: SessionRow;
+  if (user.role === 'ADMIN') s = await loadSession(sessionId);
+  else {
+    // A missing session and another family's look the same, so ids can't be probed.
+    const row = await db.session.findUnique({ where: { id: sessionId }, include: sessionInclude });
+    if (row?.student.parentId !== user.id) throw new ApiError('FORBIDDEN', 'You don’t have access to this student.');
+    s = row;
+  }
   need(s.mode === 'VIDEO' && s.status === 'CONFIRMED', 'This isn’t a video session');
   const settings = await loadSettings();
   const opens = s.startsAt.getTime() - settings.joinOpensMin * MIN;
