@@ -673,6 +673,57 @@
       "held": "zero"
     },
     {
+      "id": "S13",
+      "title": "getFileForUser checks the account first and returns a file DTO, not the row",
+      "spec": "tests/integration/s13-file-dto.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/server/content.ts",
+        "src/lib/dto.ts",
+        "tests/integration/s13-file-dto.test.ts",
+        "tests/integration/p-sec.test.ts",
+        "tests/contract/contract.test.ts",
+        "plan/reports/S13.md"
+      ],
+      "checks": [
+        "content.getFileForUser returns only { id, filename, mimeType, sizeBytes, url } (a DTO in src/lib/dto.ts), for Vienne and for a family. No storageKey, uploadedById or any other column of the FileAsset row.",
+        "A PREVIEW or PAUSED parent gets NOT_ACTIVE for a real file id and for a made-up one alike (the account is checked before the lookup). Signed out gets UNAUTHENTICATED. An active family still gets FORBIDDEN for a file that isn't theirs, and Vienne NOT_FOUND for a missing id.",
+        "SECRET_KEYS in tests/integration/p-sec.test.ts gains storageKey and uploadedById, and nothing else in that file changes. tests/holdout/W4.test.ts, tests/integration/permissions.test.ts and leaks.test.ts stay green.",
+        "npm run test:contract passes. If it compares getFileForUser's keys with the frozen mock (tests/contract/mock/, never edited), add one exception beside the existing `.url` one and say why in the report."
+      ],
+      "hints": [
+        "Finding S-sec1 from the P-sec audit (#54). Nothing leaks today (a storageKey doesn't open a private Blob), but a column added later would, and AGENTS rule 3 says DTOs, never rows.",
+        "Held for Zero (src/server, src/lib). /api/files/<id> uses canReadFile (src/lib/files.ts), not this function: leave it alone."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S14",
+      "title": "Sign-up caps the password at MAX_PASSWORD, as sign-in and change-password do",
+      "spec": "tests/integration/s14-signup-password.test.ts (new)",
+      "deps": [
+        "S6"
+      ],
+      "touches": [
+        "src/lib/auth-rules.ts",
+        "src/lib/auth.ts",
+        "src/server/families.ts",
+        "src/app/(auth)/sign-in/actions.ts",
+        "tests/integration/s14-signup-password.test.ts",
+        "plan/reports/S14.md"
+      ],
+      "checks": [
+        "One constant, MAX_PASSWORD (200), in src/lib/auth-rules.ts. Sign-up (createSchema in src/app/(auth)/sign-in/actions.ts), sign-in (credentialsSchema in src/lib/auth.ts) and changePassword (src/server/families.ts) all use it, and no bare 200 for a password is left.",
+        "Sign-up refuses a password of MAX_PASSWORD + 1 characters with \"That password is too long\", and creates no account. Exactly MAX_PASSWORD still signs up and then signs in.",
+        "Nothing else about sign-up, sign-in or changing a password changes. tests/e2e/auth.spec.ts, tests/e2e/change-password.spec.ts and npm test pass."
+      ],
+      "hints": [
+        "Finding S-sec2 from the P-sec audit (#54): a 201+ character password made an account that could never sign in by password.",
+        "After S6, which also edits the sign-in folder. Held for Zero (src/lib, src/server)."
+      ],
+      "held": "zero"
+    },
+    {
       "id": "C1",
       "title": "Clean-up: no references to the deleted src/mock",
       "spec": "plan/reports/C1.md",

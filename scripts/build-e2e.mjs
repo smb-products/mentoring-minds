@@ -1,4 +1,4 @@
-// A production build for the browser tests: sign-in on (DEMO_MODE not "true"). Same as `next build` otherwise.
+// A production build for the browser tests. Same as `next build`.
 import { spawnSync } from 'node:child_process';
-const r = spawnSync('npx', ['next', 'build'], { stdio: 'inherit', shell: process.platform === 'win32', env: { ...process.env, DEMO_MODE: 'false' } });
+const r = spawnSync('npx', ['next', 'build'], { stdio: 'inherit', shell: process.platform === 'win32', env: process.env });
 process.exit(r.status ?? 1);

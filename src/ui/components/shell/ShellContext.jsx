@@ -3,8 +3,7 @@ import { api, useQuery } from '../../api';
 
 /**
  * Signed-in user, their children (parents), the selected child and the layout mode.
- * `sessionUser` is the Auth.js session user AppRoot passes in (in demo mode, a stand-in
- * for the demo account). Selected child lives in state.
+ * `sessionUser` is the Auth.js session user AppRoot passes in. Selected child lives in state.
  */
 const ShellContext = createContext(null);
 
@@ -75,6 +74,6 @@ export function useNavBadges() {
   return data ?? {};
 }
 
-/** Theme, plus the demo user switch (demo mode only: `isDemo`). */
-export const DemoContext = createContext({ isDemo: true, userId: 'u_admin', setUserId: () => {}, theme: 'light', setTheme: () => {} });
-export const useDemo = () => useContext(DemoContext);
+/** Light or dark (the account menu's Appearance). */
+export const ThemeContext = createContext({ theme: 'light', setTheme: () => {} });
+export const useTheme = () => useContext(ThemeContext);
