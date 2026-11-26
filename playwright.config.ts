@@ -38,7 +38,9 @@ export default defineConfig({
     locale: 'en-US',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    ...(chrome && { launchOptions: { executablePath: chrome } }),
+    // Full Chromium (new headless), not the headless shell: the shell has no PDF viewer and
+    // downloads PDFs, so a worksheet opened in a new tab never gets a URL (w4).
+    ...(chrome ? { launchOptions: { executablePath: chrome } } : { channel: 'chromium' }),
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
