@@ -3,7 +3,7 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
-## 2026-11-26: S1 widened, new S5b, same FORBIDDEN for S3 and S4, WC narrowed, W6 and W7 outside touches
+## 2026-11-26: production-readiness phase after W8
 
 - **Production-readiness phase (new P-sec, P-product, P-ops, P-review):** after W8, an audit in three parts,
   each run by its owner and not a lane (`"role": "audit"`, `"owner"`). P-sec (Zero): guards and `parse()` on
@@ -16,6 +16,8 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   does the clicks. Why: Javaris's decision, via OSA. Approved: Javaris.
 - **Kit, `kit/plan.py`:** the checker takes only lane builds (`role` build) for holdouts, so an audit or ops
   ticket marked merged isn't handed to Rigg. Approved: Axis; Zero reviews.
+
+## 2026-11-26: S1 widened, new S5b, same FORBIDDEN for S3 and S4, WC narrowed, W6 and W7 outside touches
 
 - **S1, checks 4 and 5 (new):** `listSessions` sends `meetingUrl` as null to a family whose status isn't ACTIVE
   (its sessions are still listed). `joinCall` calls `requireActive` before any lookup, and gives the same
