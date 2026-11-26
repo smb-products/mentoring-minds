@@ -40,11 +40,16 @@ describe('S1 holdouts', () => {
   it('a paused or preview parent gets the video link from nothing they can ask for, inside the join window', async () => {
     await db.session.update({ where: { id: 'ses_live' }, data: { meetingUrl: LINK, startsAt: new Date(Date.now() + 5 * 60000), endsAt: new Date(Date.now() + 50 * 60000), status: 'CONFIRMED' } });
     await db.settings.update({ where: { id: 1 }, data: { defaultMeetingUrl: LINK } });
+    // The same reads do carry the link for an active family, so the check below isn't vacuous.
+    as('u_grace');
+    expect(JSON.stringify(await scheduling.listSessions())).toContain(LINK);
+    expect(JSON.stringify(await families.getFamily({ parentId: 'u_grace' }))).toContain(LINK);
     for (const status of ['PAUSED', 'PREVIEW'] as const) {
       await db.user.update({ where: { id: 'u_grace' }, data: { status } });
       const sent = await everythingGraceAsksFor();
       const leaking = Object.entries(sent).filter(([, r]) => JSON.stringify(r).includes(LINK)).map(([name]) => name);
       expect(leaking, `${status}: reads that sent the link`).toEqual([]);
+      expect(ok(await scheduling.listSessions()).map((s) => s.id), `${status}: still sees its sessions`).toContain('ses_live');
     }
   });
 
@@ -52,7 +57,17 @@ describe('S1 holdouts', () => {
     await db.timeOff.deleteMany();
     as('u_admin');
     expect(ok(await scheduling.listTimeOff())).toEqual([]);
-    const off = await db.timeOff.create({ data: { startsAt: new Date(Date.now() + 3 * DAY), endsAt: new Date(Date.now() + 9 * DAY), reason: REASON } });
+    // A family's open times lose what falls inside the time off.
+    const startsAt = new Date(Date.now() + 3 * DAY);
+    const endsAt = new Date(Date.now() + 9 * DAY);
+    const openInside = async () => {
+      as('u_grace');
+      const sent = JSON.stringify(ok(await scheduling.getOpenSlots({ durationMin: 45, mode: 'VIDEO', ...range() })));
+      return (sent.match(/\d{4}-\d\d-\d\dT[\d:.]+Z/g) ?? []).filter((t) => new Date(t) >= startsAt && new Date(t) < endsAt);
+    };
+    expect((await openInside()).length).toBeGreaterThan(0);
+    const off = await db.timeOff.create({ data: { startsAt, endsAt, reason: REASON } });
+    expect(await openInside()).toEqual([]);
     expect(JSON.stringify(await everythingGraceAsksFor())).not.toContain(REASON);
     for (const [who, code] of [['u_ana', 'FORBIDDEN'], ['u_grace', 'FORBIDDEN'], ['u_tom', 'FORBIDDEN'], [null, 'UNAUTHENTICATED']] as const) {
       as(who);
