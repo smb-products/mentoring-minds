@@ -791,12 +791,13 @@
       "checks": [
         "cleanUp (src/lib/jobs.ts) removes a finished upload that nothing uses (no resource, no submission fileId, no photo inside a submission or an answer draft, nothing else that stores a file id) once it is older than ORPHAN_FILE_DAYS (a new constant), both the row and the stored object. A replaced work photo becomes unused and goes the same way.",
         "A file still used anywhere is never removed, including one used only as a photo inside a submission. This also fixes the resource bin's in-use check, which misses photos today.",
-        "A parent can reserve at most MAX_UPLOADS_PER_DAY (a new constant in src/lib/storage.ts) uploads in 24 hours; one more gets a plain message saying to try again tomorrow or message Vienne, and reserves nothing. The report gives the value and why: at least the most photos one answer sheet can take. Vienne has no cap.",
-        "tests/integration/s17-file-cleanup.test.ts covers each case. tests/integration/jobs-ai.test.ts, npm test and the p-product phone upload tests pass."
+        "A parent can reserve at most MAX_UPLOADS_PER_DAY (a new constant in src/lib/storage.ts) uploads in 24 hours; one more gets a plain message saying to try again tomorrow or message Vienne, and reserves nothing. The report gives the value and why: at least the most photos one answer sheet can take. Vienne has no cap. Every reservation counts toward the 24 hours, whatever happens to it next: one whose bytes finishUpload rejects as not a real photo (code INVALID) and one never finished still use their slot. Removing a rejected or abandoned upload never gives the slot back, so a parent at the cap can't reserve again by sending a file that fails the check.",
+        "tests/integration/s17-file-cleanup.test.ts covers each case, including a rejected upload at the cap. plan/holdouts/S17.test.ts passes (it is Rigg's: don't edit it). tests/integration/jobs-ai.test.ts, npm test and the p-product phone upload tests pass."
       ],
       "hints": [
         "From the P-review (plan/reports/P-review.md), finding 4.",
-        "Held for Zero (src/lib, src/server). After S15 (content.ts). Find every place a file id is stored (prisma/schema.prisma and the Json columns) before deciding a file is unused."
+        "Held for Zero (src/lib, src/server). After S15 (content.ts). Find every place a file id is stored (prisma/schema.prisma and the Json columns) before deciding a file is unused.",
+        "Reopened by the S17 holdout (plan/holdouts/S17.test.ts, third test): finishUpload deletes a rejected file's row, and createUpload counts rows, so the slot comes back. One way: keep the row with uploadedAt null and the stored object removed, so the cap still counts it and cleanUp's day-old sweep of unfinished uploads removes it. A rejected file must still never be attachable or openable."
       ],
       "held": "zero"
     },
