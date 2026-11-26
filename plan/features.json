@@ -313,7 +313,7 @@
       ],
       "checks": [
         "An edit keeps the row's enteredById and enteredAt. After Vienne edits a result Ana entered, it still says 'Entered by Ana', and Ana can still edit it.",
-        "fast.deleteResult runs its guard before any database lookup. A family gets the same NOT_FOUND for another family's result id as for a missing one.",
+        "fast.deleteResult runs its guard before any database lookup. A family gets the same FORBIDDEN for another family's result id as for a missing one (tests/integration/permissions.test.ts expects FORBIDDEN); Vienne still gets NOT_FOUND for a missing id.",
         "Permission tests for both in tests/integration/s2-fast-edit.test.ts. The w1 spec and npm run test:contract stay green."
       ],
       "hints": [

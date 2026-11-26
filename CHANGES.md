@@ -3,6 +3,29 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: W3 spec amend, W4 browser, holdout specs, lane drafts
+
+- **S2, check 2:** a family gets the same `FORBIDDEN` (not `NOT_FOUND`) for another family's result id as
+  for a missing one. Why: `tests/integration/permissions.test.ts` (locked) expects `FORBIDDEN`, and one
+  uniform answer still hides which results exist. Vienne keeps `NOT_FOUND` for a missing id. From the amend on
+  #15. Approved: Zero.
+
+- **W3, `tests/e2e/w3-messages-notifications.spec.ts` (locked):** test 1's two lookups in Vienne's thread are
+  scoped to the thread (`getByRole('log', { name: 'Messages' })`), not all of `main`. Why: on desktop the inbox
+  row beside the open thread previews the same message, so the lookup matched 2 elements (strict mode). PR #11's
+  CI shows it at line 23, flaky and passing only on retry. Same behaviour checked, narrower locator. From
+  Soap's amend on #11. Approved: Axis.
+- **W4, `playwright.config.ts`:** without `E2E_CHROME_PATH`, the browser tests run full Chromium
+  (`channel: 'chromium'`), not the headless shell. Why: the shell has no PDF viewer and downloads PDFs, so W4
+  check 4 (a worksheet opens in a new tab) can't pass. It merged in #10 outside W4's touches; approved after the
+  fact: Axis.
+- **Holdouts, `playwright.config.ts`:** the `holdout` project matches `**/*.spec.ts` only. Why: it also loaded
+  the vitest files in `tests/holdout/`, which broke the whole browser run (0 tests listed). Found by Rigg on #14.
+  Approved: Axis.
+- **RULES, Ownership; `kit/lane.py`:** lanes never open drafts, and the lane marks its PR ready before queuing.
+  A lane PR that mustn't merge yet ends `status: blocked` and says why. Why: Rigg's #14 opened as a draft, so
+  auto-merge failed. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: W2 real sign-ups, red builder PRs
 
 - **W2, WIRING Step 2:** while areas are on the mock, a signed-in user the mock doesn't know gets every area
@@ -15,7 +38,6 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   Approved: Axis (W2's owner, per OSA).
 - **Kit:** `kit/plan.py refresh` tells OSA and the feature's `held` lead when a builder's PR is red in CI, once
   per head commit. Why: PR #9 sat in `review` with nobody told. Approved: Axis; Zero reviews.
-
 ## 2026-11-26: S5 lock rows, WC touches, held PRs
 
 - **S5:** a refusal while locked (global or per-account) adds no `RedeemFailure` row, and
