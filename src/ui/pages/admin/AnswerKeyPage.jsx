@@ -13,6 +13,10 @@ import { shrinkPhoto } from '../../lib/shrinkPhoto';
 import { cn } from '../../lib/cn';
 import { gradeLabel } from '../../lib/format';
 
+// next.config.ts caps a server action's body at 4 MB, and the photo goes as base64 (4 characters per 3 bytes).
+const MAX_PHOTO = 4_000_000;
+const TOO_BIG = 'That photo is too big to send. Take it a little closer to the page, or use a smaller photo.';
+
 const FORMATS = [
   { value: 'MC', label: 'One letter' },
   { value: 'MULTI', label: 'Several letters' },
@@ -147,6 +151,8 @@ function PhotoSetup({ data, onClose, onSaved, saveRows }) {
   const onFile = async (file) => {
     if (!file) return;
     const { base64, mediaType } = await shrinkPhoto(file);
+    // Still too big after shrinking, or one the browser can't shrink: say so here, not after a failed send.
+    if ((base64?.length ?? Math.ceil(file.size / 3) * 4) > MAX_PHOTO) return show({ ok: false, error: TOO_BIG });
     const res = show(await read({ bookId: data.book.id, test: data.test.key, fromNumber: from, photoName: file.name, image: base64 && { mediaType, base64 } }));
     if (!res) return;
     setDraft(res);
