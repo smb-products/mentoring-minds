@@ -1014,17 +1014,24 @@
       ],
       "touches": [
         "src/lib/notify.ts",
+        "src/server/assignments.ts",
+        "src/server/scheduling.ts",
+        "src/server/reports.ts",
+        "src/server/invites.ts",
+        "src/server/messages.ts",
+        "src/lib/jobs.ts",
         "tests/integration/s26-push-tag.test.ts",
         "plan/reports/S26.md"
       ],
       "checks": [
-        "A push's tag names what it is about, not only its type. A message push is tagged by its thread. Every other push is tagged by its type and the item it opens (its href), and one without an href keeps its type alone. So on Vienne's phone, a second family's message, handed-in work or session request shows next to the first family's, instead of replacing it.",
+        "A push's tag names the record it is about, never words two families can share. A message push is tagged by its thread. Every other push is tagged by its type and the id of the record it is about: that child's homework (the submission), the session, the report or the invite. The caller passes that id to notify, for example in a new optional field on NewNotification. Two pushes about different records never share a tag, even when their titles match, as with two children called Mateo. So on Vienne's phone, a second family's message, handed-in work, session request or cancellation shows next to the first family's, and a parent's two children's homework shows side by side. A push about no record keeps its type alone.",
         "A newer push about the same thread or item still replaces the older one. tests/s16-push-payload.test.ts and tests/holdout/S16.test.ts pass unchanged. The in-app feed doesn't change.",
-        "tests/integration/s26-push-tag.test.ts covers three cases: two families' messages give two tags, two messages in one thread give one tag, and two families' handed-in work gives two tags."
+        "tests/integration/s26-push-tag.test.ts covers three cases: two families' messages give two tags, two messages in one thread give one tag, and two families' handed-in work gives two tags. plan/holdouts/S26.test.ts passes (it is Rigg's: don't edit it)."
       ],
       "hints": [
         "From Rigg's S16 FYI and Zero: notify.ts passes `tag: n.type` today, so every push of one type shares a tag.",
-        "Held for Zero (src/lib)."
+        "Held for Zero (src/lib).",
+        "Reopened by the S26 holdout (plan/holdouts/S26.test.ts, third test): attempt 1 tags by type, href and title, and two families' children called Mateo give the same title, so the second family's handed-in work replaces the first's. The callers are in the touches: assignments.ts, scheduling.ts, reports.ts, invites.ts, messages.ts and jobs.ts (SESSION_REMINDER). Keep the in-app feed and its schema as they are."
       ],
       "held": "zero"
     },
