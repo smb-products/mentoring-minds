@@ -5,7 +5,7 @@ import { ApiError } from './result';
 
 /**
  * Every server function starts with one of these (same names as the prototype's
- * src/mock/core.js). They read the user fresh from the database.
+ * core.js, frozen in tests/contract/mock/). They read the user fresh from the database.
  */
 export async function requireUser() {
   const session = await auth();

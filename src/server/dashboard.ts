@@ -2,7 +2,7 @@
 /**
  * server/dashboard — one call per home screen. "Today" is Vienne's day in her time
  * zone (Settings.timezone), wherever the server runs.
- * Contract: src/mock/server/dashboard.js
+ * Contract: tests/contract/mock/server/dashboard.js (the frozen mock)
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';

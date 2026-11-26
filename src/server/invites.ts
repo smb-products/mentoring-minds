@@ -2,7 +2,7 @@
 /**
  * server/invites — single-use family invite codes. Only a peppered hash of each
  * code is stored; the plain code is returned once, to Vienne, when it's made.
- * Contract: src/mock/server/invites.js
+ * Contract: tests/contract/mock/server/invites.js (the frozen mock)
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';

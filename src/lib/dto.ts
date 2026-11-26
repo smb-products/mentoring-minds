@@ -5,7 +5,7 @@ import { areaFor, skillArea } from './best';
 import type { AppSettings } from './settings';
 
 /**
- * Shapes returned to the screens — the same fields as src/mock/dto.js
+ * Shapes returned to the screens — the same fields as tests/contract/mock/dto.js
  * (docs/CONTRACT.md). Every server function returns these, never raw rows, so
  * secrets (password hashes, invite hashes, answer keys) can't slip out.
  *

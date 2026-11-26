@@ -4,7 +4,7 @@
  * lifecycle (request → confirm/decline → complete/no-show, cancel, reschedule),
  * plus video calls. All times are UTC instants; "Monday 3:00 PM" is worked out in
  * Settings.timezone (lib/time.ts), wherever the server runs.
- * Contract: src/mock/server/scheduling.js
+ * Contract: tests/contract/mock/server/scheduling.js (the frozen mock)
  */
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';

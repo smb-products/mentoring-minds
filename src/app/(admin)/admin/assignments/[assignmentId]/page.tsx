@@ -3,7 +3,7 @@ import AssignmentPage from '@/ui/pages/admin/AssignmentPage';
 
 export const metadata: Metadata = { title: 'Assignment' };
 
-/** /admin/assignments/[assignmentId] — screen: src/ui/pages/admin/AssignmentPage.jsx (runs on the mock data in src/mock for now). */
+/** /admin/assignments/[assignmentId] — screen: src/ui/pages/admin/AssignmentPage.jsx. */
 export default async function Page(props: PageProps<'/admin/assignments/[assignmentId]'>) {
   return <AssignmentPage params={await props.params} />;
 }
