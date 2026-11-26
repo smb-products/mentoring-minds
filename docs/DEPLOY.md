@@ -167,6 +167,10 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit). **Javaris**; P-ops rehearses one restore into a new branch.
 - [ ] "Auto-assign Custom Production Domains" is off (D5); a merge to main shows up **Staged**, and `PROD_URL` keeps the old build until Promote. **Javaris** sets it (setup Part 2); **Atlas** (P-ops) checks the next merge.
 - [ ] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). **Lanes**; `p-product.spec.ts` runs it once S8 removes its two `fixme`s.
+- [ ] Real locations decided. The production seed (`PRODUCTION_SETUP.md` Part 6) waits on it, so the demo locations never reach production. **Javaris**.
+- [ ] The library sends families no other family's children (S15) and Vienne's email can't be squatted before the seed (S19). **Lanes**; both before the production seed.
+- [ ] Deleting a family or a child on request (S23). **Lanes**; **Axis** writes the runbook here once it merges. Deleting real data stays Javaris's call.
+- [x] Firewall rate limit on sign-up and sign-in: **after launch** (Javaris, 2026-11-26). Accepted risk: throwaway accounts can pause invite codes for everyone for up to an hour (`GLOBAL_REDEEM_FAILURES_PER_HOUR`).
 
 ## Limits
 

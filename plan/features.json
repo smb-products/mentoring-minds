@@ -725,6 +725,228 @@
       "held": "zero"
     },
     {
+      "id": "S15",
+      "title": "The family library sends no other family's children and no raw file row",
+      "spec": "tests/integration/s15-library-dto.test.ts (new)",
+      "deps": [
+        "S13"
+      ],
+      "touches": [
+        "src/server/content.ts",
+        "src/lib/dto.ts",
+        "tests/integration/s15-library-dto.test.ts",
+        "tests/integration/leaks.test.ts",
+        "tests/contract/contract.test.ts",
+        "plan/reports/S15.md"
+      ],
+      "checks": [
+        "content.listResourcesForStudent, and every other read a family can call that returns a resource, sends a family DTO: no sharedWith, no shares, and no raw file row (at most the file's id, filename, mimeType and sizeBytes, as S13's file DTO). Vienne's reads keep sharedWith.",
+        "As Ana, with a resource shared with Ana's child and another family's child, the response contains neither the other child's name nor any parentId but Ana's. tests/integration/leaks.test.ts gains that case, so the leak sweep catches it from now on.",
+        "Every field the parent screens read from a resource still arrives (src/ui/pages/parent/). The whole browser suite, npm test and npm run test:contract pass; if the contract compares keys with the frozen mock, add one exception for the family resource shape and say why in the report (the frozen mock is never edited)."
+      ],
+      "hints": [
+        "From the P-review (plan/reports/P-review.md), finding 1. A launch blocker. resourceDTO (src/lib/dto.ts) is Vienne's shape; families need their own.",
+        "Held for Zero (src/server, src/lib). After S13, which also edits content.ts and dto.ts."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S16",
+      "title": "Tapping a push opens its link, and repeats replace each other",
+      "spec": "tests/s16-push-payload.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/lib/push.ts",
+        "public/sw.js",
+        "tests/s16-push-payload.test.ts",
+        "plan/reports/S16.md"
+      ],
+      "checks": [
+        "The payload pushToUser sends and the field public/sw.js reads for the link are the same, so tapping a notification opens its href (for example /admin/messages/<id>), not /. A notification without one still opens /.",
+        "The tag is passed to showNotification, so a newer notification with the same tag replaces the older one.",
+        "A unit test checks the payload shape against what sw.js reads (both from their source). npm test passes."
+      ],
+      "hints": [
+        "From the P-review (plan/reports/P-review.md), finding 3. push.ts sends `url`; sw.js reads `href`.",
+        "Held for Zero (src/lib). Keep push sending after the response (AGENTS rule 12)."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S17",
+      "title": "Unused files are deleted, files in use never are, and uploads per parent are capped",
+      "spec": "tests/integration/s17-file-cleanup.test.ts (new)",
+      "deps": [
+        "S15"
+      ],
+      "touches": [
+        "src/lib/jobs.ts",
+        "src/lib/files.ts",
+        "src/lib/storage.ts",
+        "src/server/content.ts",
+        "tests/integration/s17-file-cleanup.test.ts",
+        "plan/reports/S17.md"
+      ],
+      "checks": [
+        "cleanUp (src/lib/jobs.ts) removes a finished upload that nothing uses (no resource, no submission fileId, no photo inside a submission or an answer draft, nothing else that stores a file id) once it is older than ORPHAN_FILE_DAYS (a new constant), both the row and the stored object. A replaced work photo becomes unused and goes the same way.",
+        "A file still used anywhere is never removed, including one used only as a photo inside a submission. This also fixes the resource bin's in-use check, which misses photos today.",
+        "A parent can reserve at most MAX_UPLOADS_PER_DAY (a new constant in src/lib/storage.ts) uploads in 24 hours; one more gets a plain message saying to try again tomorrow or message Vienne, and reserves nothing. The report gives the value and why: at least the most photos one answer sheet can take. Vienne has no cap.",
+        "tests/integration/s17-file-cleanup.test.ts covers each case. tests/integration/jobs-ai.test.ts, npm test and the p-product phone upload tests pass."
+      ],
+      "hints": [
+        "From the P-review (plan/reports/P-review.md), finding 4.",
+        "Held for Zero (src/lib, src/server). After S15 (content.ts). Find every place a file id is stored (prisma/schema.prisma and the Json columns) before deciding a file is unused."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S18",
+      "title": "A practice assignment only uses a resource its students can see",
+      "spec": "tests/integration/s18-practice-visibility.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/server/assignments.ts",
+        "tests/integration/s18-practice-visibility.test.ts",
+        "plan/reports/S18.md"
+      ],
+      "checks": [
+        "createPracticeAssignment refuses, with a plain message naming the students, a resource that isn't PUBLISHED or that any chosen student can't see (visibleTo in src/lib/files.ts). Nothing is created and nobody is notified on a refusal.",
+        "A resource every chosen student can see works as before, and the family opens it from the assignment without \"Forbidden\".",
+        "tests/integration/s18-practice-visibility.test.ts covers both. tests/holdout/W5.test.ts, the w5 spec and npm test pass."
+      ],
+      "hints": [
+        "From the P-review (plan/reports/P-review.md), finding 5.",
+        "Held for Zero (src/server)."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S19",
+      "title": "Seeding the admin takes the account back from anyone who signed up with Vienne's email",
+      "spec": "tests/integration/s19-ensure-admin.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "prisma/data.ts",
+        "tests/integration/s19-ensure-admin.test.ts",
+        "plan/reports/S19.md"
+      ],
+      "checks": [
+        "When ensureAdmin (prisma/data.ts) promotes an existing account, the old password stops working (passwordHash cleared, or replaced by ADMIN_PASSWORD when one is given), every session of that account is signed out (sessionVersion moves on), failedLogins and lockedUntil reset, and any children, conversations or invites hanging off it are reported in the seed's output so Javaris sees them.",
+        "Running the seed twice for the same admin changes nothing the second time, and never touches Vienne's own password once she has one.",
+        "tests/integration/s19-ensure-admin.test.ts covers a squatter, a re-run and a fresh database. npm test passes."
+      ],
+      "hints": [
+        "From the P-review (plan/reports/P-review.md), finding 6. Someone could sign up with Vienne's address before the production seed runs.",
+        "Held for Zero (prisma/). The production seed is on hold until Javaris decides locations, so this lands before it runs."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S20",
+      "title": "Every AI call counts toward AI_DAILY_LIMIT, failed ones too",
+      "spec": "tests/integration/s20-ai-cap.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/server/ai.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "tests/integration/s20-ai-cap.test.ts",
+        "plan/reports/S20.md"
+      ],
+      "checks": [
+        "Each call to Claude counts toward AI_DAILY_LIMIT (src/lib/ai/prompts.ts) before it's made, whether it then succeeds, is refused, runs out of tokens, comes back garbled or errors. At the limit, the next call gets the existing \"most drafts for today\" message and Claude isn't called.",
+        "Saving or discarding a draft works as before, and discardDraft doesn't give a call back.",
+        "Any schema change has its migration, adds only (no drop), and npm test (with p-sec's migration checks) passes. Tests in tests/integration/s20-ai-cap.test.ts, with Claude stubbed as the existing AI tests do."
+      ],
+      "hints": [
+        "From the P-review (plan/reports/P-review.md), finding 8. Today only saved drafts are counted.",
+        "Held for Zero (src/server, prisma)."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S21",
+      "title": "A parent who must change their password can do nothing else on the server",
+      "spec": "tests/integration/s21-must-change-password.test.ts (new)",
+      "deps": [
+        "S14"
+      ],
+      "touches": [
+        "src/lib/guards.ts",
+        "src/server/families.ts",
+        "tests/integration/s21-must-change-password.test.ts",
+        "plan/reports/S21.md"
+      ],
+      "checks": [
+        "While mustChangePassword is true, every server function refuses with a plain message saying to choose a new password, except families.changePassword and what the change-password screen itself needs to load. After the change, everything works again without signing in again.",
+        "Vienne and every parent without the flag see no change. tests/e2e/change-password.spec.ts, the S9 tests and npm test pass.",
+        "tests/integration/s21-must-change-password.test.ts calls every export with the flag set (read from src/server, as p-sec.test.ts does), so a new export is covered without editing it."
+      ],
+      "hints": [
+        "From the P-review (plan/reports/P-review.md), finding 10. Today only AppRoot.jsx enforces it, in the browser.",
+        "Held for Zero (src/lib, src/server). After S14, which edits families.ts."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S22",
+      "title": "A large answer-key photo is shrunk or gets a plain message, never a generic error",
+      "spec": "tests/e2e/s22-answer-key-photo.spec.ts (new)",
+      "deps": [
+        "S20"
+      ],
+      "touches": [
+        "src/ui/pages/admin/AnswerKeyPage.jsx",
+        "src/server/ai.ts",
+        "tests/e2e/s22-answer-key-photo.spec.ts",
+        "plan/reports/S22.md"
+      ],
+      "checks": [
+        "First confirm it: send readAnswerKeyPage a phone-sized photo whose base64 is over serverActions.bodySizeLimit (next.config.ts). The report says what Vienne saw.",
+        "If it was a generic error: the photo is shrunk on the device before it's sent (as shrinkPhoto does for parents' photos), so a normal phone photo goes through, and anything still over the limit gets a plain message saying to take the photo closer or use a smaller one. Claude isn't called for a refused photo.",
+        "If it already worked: the report says so, and the spec pins that behaviour. The w4 and w7 specs and npm test pass."
+      ],
+      "hints": [
+        "From the P-review (plan/reports/P-review.md), finding 9. SUSPECT: not confirmed yet.",
+        "Held for Zero (src/server/ai.ts). After S20, which also edits ai.ts. Don't change the page's look."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S23",
+      "title": "Vienne can delete a family or a child on request, with their records and files",
+      "spec": "tests/integration/s23-delete-on-request.test.ts and tests/e2e/s23-delete-on-request.spec.ts (new)",
+      "deps": [
+        "S14",
+        "S17",
+        "S20"
+      ],
+      "touches": [
+        "src/server/families.ts",
+        "src/lib/files.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "src/ui/pages/admin/FamilyPage.jsx",
+        "src/ui/api/live.js",
+        "tests/integration/s23-delete-on-request.test.ts",
+        "tests/e2e/s23-delete-on-request.spec.ts",
+        "tests/contract/contract.test.ts",
+        "plan/reports/S23.md"
+      ],
+      "checks": [
+        "Two admin-only actions: delete a child, and delete a whole family (the parent account and all its children). Each removes every record about them (sessions, notes, homework, answers, FAST results, reports, messages, notifications, invites, push subscriptions, uploads) and the stored files only they used. Anything shared with others stays (a library resource keeps existing, minus the share).",
+        "A parent, a preview or paused account and anyone signed out are refused (FORBIDDEN or UNAUTHENTICATED), whatever the id, and nothing changes. Vienne's own account can't be deleted. A missing id gives Vienne NOT_FOUND.",
+        "On Vienne's family page, deleting asks twice: a first confirm that says what will be removed, then typing the child's or parent's name. After it, the family or child is gone from every screen, and the browser logs no error.",
+        "The integration test checks that no row anywhere still points at a deleted child or parent, and no stored object is left for their files. Any schema change adds only (cascades or a delete in order) and has its migration. npm test, npm run test:contract and the whole browser suite pass."
+      ],
+      "hints": [
+        "Approved by Javaris 2026-11-26 (P-review): delete on request, admin only, records and Blob files, asks twice. Deleting real data in production stays Javaris's call: this gives Vienne the button, it doesn't run it.",
+        "Held for Zero (src/server, src/lib, prisma). After S14 (families.ts), S17 (the file-removal rules) and S20 (schema). The new button follows the page's existing look; this is the one UI addition Javaris approved.",
+        "Axis writes the runbook in docs/DEPLOY.md after it merges."
+      ],
+      "held": "zero"
+    },
+    {
       "id": "C1",
       "title": "Clean-up: no references to the deleted src/mock",
       "spec": "plan/reports/C1.md",

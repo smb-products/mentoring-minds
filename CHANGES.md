@@ -3,6 +3,19 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: P-review: report, S15–S23, Javaris's decisions
+
+- **P-review (OSA):** the report is `plan/reports/P-review.md`. Approved: OSA's review; Axis committed it.
+- **S15 (launch blocker), S16, S17, S18, S19, S20, S21, S22 (new, held zero):** the review's findings 1, 3, 4, 5, 6,
+  8, 10 and 9: the family library's DTO, push links, file clean-up and an upload cap, practice visibility, the
+  admin seed, the AI cap counting failures, `mustChangePassword` on the server, and a large answer-key photo.
+  Why: P-review. Approved: Axis; Zero reviews.
+- **S23 (new, held zero):** Vienne can delete a family or a child on request, with their records and files,
+  and asks twice. Why and approved: Javaris, 2026-11-26.
+- **Not tickets, Javaris 2026-11-26:** locations wait for his decision, and the production seed is on hold until
+  then. Preview accounts keep seeing locations and open times. The Firewall rate limit comes after launch, an
+  accepted risk. DEPLOY → Before launch lists all three.
+
 ## 2026-11-26: docs after S6, S12 touches
 
 - **Docs after S6 (#57):** README, AGENTS, WIRING, `tests/e2e/README.md` and DEPLOY no longer describe
