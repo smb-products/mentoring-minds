@@ -3,6 +3,13 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: leads can read their worktrees in `.wt/`
+
+- **Kit, `.claude/settings.json`:** the `Read(./.wt/**)` deny is narrowed to the `.env` files, `node_modules`
+  and `.next` inside each worktree, the same things the main checkout denies. Why: RULES say leads work in
+  `.wt/`, but the deny (which beats any allow) blocked reading, diffing and editing there, and P-sec and both
+  lead seats were stuck on it. Approved: Javaris (via OSA), 2026-11-26; Zero reviews.
+
 ## 2026-11-26: S8 from the P-product audit
 
 - **S8 (new, after P-product, lanes):** preview and paused parents get their screen on every parent route, not
