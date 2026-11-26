@@ -47,8 +47,8 @@ Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**
    - This first deployment builds without a database, then shows an error page. That's expected: the server
      won't start until Part 5 is done.
 4. Write down the production address, for example `https://mentoring-minds-xxxx.vercel.app`. It's called **PROD_URL** below.
-5. **Settings → Build and Deployment → Node.js Version → 22.x**, then **Save**. CI tests on 22. Without this,
-   Vercel picks the newest version that `"engines": ">=20.9"` allows.
+5. **Settings → Build and Deployment → Node.js Version**: check it says **22.x**. CI tests on 22, and
+   `package.json` pins `"engines": "22.x"` (S12), which Vercel follows.
 6. **Settings → Deployment Protection**: leave **Vercel Authentication** on for Preview. Only your team can
    open previews.
 7. **Settings → Functions → Region**: check it's **Washington, D.C. (iad1)**, next to Neon.
@@ -132,6 +132,14 @@ printf '' | clip.exe                              # clear the clipboard when you
 
 ## Part 6. Migrate and seed production, about 10 min
 
+> **HOLD: don't run the `npm run db:seed` line yet** (P-review, 2026-11-26). Today the seed would add the
+> prototype's demo locations (a studio and Coral Pines Library) to production, and nothing in the app can
+> edit or remove them. The demo locations aren't real and must not reach production; the real locations
+> are set at seed time, not in the repo. The fix waits on your go. Until then, run the lines down to `migrate deploy`, skip the seed, and run the `unset`.
+> Part 7 works without the seed, as far as the sign-in screen. Don't sign in or create accounts on
+> production until the seed has run: it also loads the settings (Miami time) the screens need. Part 9's
+> hand checks wait too. This note goes once the fix merges.
+
 Do this in a **fresh clone**, not the lanes' checkout. Paste the URL at the hidden prompt, so it isn't saved
 in your shell history.
 
@@ -140,17 +148,19 @@ git clone https://github.com/smb-products/mentoring-minds.git ~/mm-prod-ops && c
 read -rsp 'Neon main (production) DIRECT url: ' DIRECT_URL && echo && export DIRECT_URL DATABASE_URL="$DIRECT_URL"
 npx prisma migrate status     # expect: the database is empty, and every migration is "not yet applied"
 npx prisma migrate deploy     # creates the tables
-ADMIN_EMAIL="<Vienne's Google address>" ADMIN_NAME="Vienne Elliott" npm run db:seed
+ADMIN_EMAIL="<Vienne's Google address>" ADMIN_NAME="Vienne Elliott" npm run db:seed   # ON HOLD, see above
 unset DIRECT_URL DATABASE_URL
 ```
 
-- **Never run `npm run db:seed:demo` in this shell.** It only refuses when `VERCEL_ENV` or `NODE_ENV` says
-  production, not because of the URL, so with the production URL in your shell it would load the demo families.
+- **Never run `npm run db:seed:demo` in this shell, and never add `--force` to it here.** Since S11 it
+  refuses a database that isn't local and whose name lacks test, dev, demo or preview. Production's Neon
+  database is called `neondb`, so it's refused. `--force` skips every check.
 - For your click-through on previews, load the demo families into the **`preview`** branch, in a new
-  terminal:
+  terminal. Neon names that branch's database `neondb` too, so the seed refuses it unless you add `--force`.
+  Before you press Enter, check that the URL you pasted came from the **`preview`** branch's Connect box.
   ```bash
   cd ~/mm-prod-ops && read -rsp 'Neon preview DIRECT url: ' DATABASE_URL && echo && export DATABASE_URL DIRECT_URL="$DATABASE_URL"
-  npx prisma migrate deploy && npm run db:seed:demo; unset DATABASE_URL DIRECT_URL
+  npx prisma migrate deploy && npm run db:seed:demo -- --force; unset DATABASE_URL DIRECT_URL
   ```
 
 ## Part 7. Deploy production, about 5 min

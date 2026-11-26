@@ -98,7 +98,7 @@ jobs:
           FILES: ${{ steps.scope.outputs.holdout_tests }}
         run: npx vitest run --project holdout $FILES
 
-      # A production build with sign-in on (DEMO_MODE not "true"), for the browser tests.
+      # A production build for the browser tests.
       - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != ''
         run: npm run build:e2e
       - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != ''

@@ -77,6 +77,10 @@ else
   bad "Ops issue #$OPS_ISSUE isn't an open issue"
 fi
 
+if [ "${LANES_ON:-local}" = miosa ] && [ "${MSG_BACKEND:-}" = fs ]; then
+  bad "MSG_BACKEND=fs but LANES_ON=miosa: lanes on another host can't see laptop messages. Set MSG_BACKEND=both"
+fi
+
 if [ -e "$(git rev-parse --path-format=absolute --git-common-dir)/avel/drain" ] && [ "$skip_db" != 1 ]; then
   bad "this host is drained: its lanes moved to another host (rm .git/avel/drain to run lanes here again)"
 fi
