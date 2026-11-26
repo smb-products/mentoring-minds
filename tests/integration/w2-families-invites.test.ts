@@ -9,7 +9,8 @@ import { as, db, freshDemo } from './helpers';
  * W2, src/ui/api/index.js: families and invites are live, and an area still on the mock
  * answers from live when the mock doesn't know the signed-in user (a real sign-up, like Rosa).
  * Decided per call, so seeded families keep the mix.
- * The area on the mock here is `reports` (live from W7); it was `scheduling` until W6.
+ * From W7 every area is live, so none is left on the mock and seeded families read the database too.
+ * (The area on the mock here was `scheduling` until W6, then `reports` until W7.) Retired at W8.
  */
 freshDemo();
 
@@ -44,13 +45,12 @@ describe('W2: the api switch', () => {
     expect(api.invites).toBe(live.invites);
   });
 
-  it('a seeded family still gets an area on the mock from the mock', async () => {
+  it('from W7 every area is live: a seeded family reads the database too', async () => {
+    for (const k of Object.keys(live)) expect(api[k as keyof typeof api], k).toBe(live[k as keyof typeof live]);
     await liveOnlyReport('s_lucia');
     setSessionUser('u_ana', { silent: true });
     as('u_ana');
-    const reports = await api.reports.listForStudent({ studentId: 's_lucia' });
-    expect(summaries(reports)).toEqual(summaries(await mockReports.listForStudent({ studentId: 's_lucia' })));
-    expect(summaries(reports)).not.toContain(LIVE_ONLY);
+    expect(summaries(await api.reports.listForStudent({ studentId: 's_lucia' }))).toContain(LIVE_ONLY);
   });
 
   it('a real sign-up the mock doesn’t know gets an area on the mock from live', async () => {
@@ -63,7 +63,7 @@ describe('W2: the api switch', () => {
     expect(summaries(await api.reports.listForStudent({ studentId: kid }))).toContain(LIVE_ONLY);
   });
 
-  it('is decided at call time: the same api object switches with the signed-in user', async () => {
+  it('the same api object serves every signed-in user from live', async () => {
     const id = await rosa();
     const kid = await rosaKid(id);
     await liveOnlyReport('s_noah');
@@ -75,11 +75,7 @@ describe('W2: the api switch', () => {
 
     setSessionUser('u_grace', { silent: true });
     as('u_grace');
-    expect(summaries(await listForStudent({ studentId: 's_noah' }))).not.toContain(LIVE_ONLY);
-
-    setSessionUser(id, { silent: true });
-    as(id);
-    expect(summaries(await listForStudent({ studentId: kid }))).toContain(LIVE_ONLY);
+    expect(summaries(await listForStudent({ studentId: 's_noah' }))).toContain(LIVE_ONLY);
   });
 
   it('the live fallback keeps the server’s guards: signed out on the server is refused', async () => {
