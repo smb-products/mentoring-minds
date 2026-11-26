@@ -35,3 +35,11 @@ describe('S19 holdouts', () => {
     expect(sendNotification.mock.calls.map((c) => c[0].endpoint)).not.toContain(device('early'));
   });
 });
+
+describe('S19 holdouts: wrong input', () => {
+  it('a too-short ADMIN_PASSWORD is refused and the early account is left exactly as it was', async () => {
+    const before = await db.user.create({ data: { id: 'u_s19_short', email: 'vienne.short@example.com', name: 'Early Signup', passwordHash: 'x' } });
+    await expect(ensureAdmin(db as never, { email: 'vienne.short@example.com', name: 'Vienne Elliott', password: 'short' })).rejects.toThrow(/at least 8/);
+    expect(await db.user.findUniqueOrThrow({ where: { id: before.id } })).toEqual(before);
+  });
+});
