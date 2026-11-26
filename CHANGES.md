@@ -13,6 +13,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   `plan/holdouts/S23.test.ts`. Why: S23 was reopened twice. Round 2 found that an email match acting as a
   wildcard let a family delete remove another family's code. The name and email matching came from the S23
   checks I wrote in #93, and that was the plan's error. Zero wrote the data rules.
+  The code that creates an alert passes its child or family id, so the touches add those files (Zero's review).
   **Approved by Javaris, 2026-11-26.**
 - **S27 (new, not held):** hides Delete family and Delete child on main until S23b lands. It runs ahead of
   S23b. **Approved by Javaris, 2026-11-26.**
