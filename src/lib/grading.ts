@@ -1,5 +1,5 @@
 /**
- * Answer-sheet checking (same rules as src/mock/server/assignments.js).
+ * Answer-sheet checking (same rules as tests/contract/mock/server/assignments.js).
  * The key never leaves the server; families only send { number, value }.
  */
 export type ItemFormat = 'MC' | 'MULTI' | 'NUMERIC' | 'OPEN';

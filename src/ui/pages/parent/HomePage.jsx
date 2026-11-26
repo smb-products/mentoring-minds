@@ -9,6 +9,7 @@ import { joinOpen, Place } from '../../components/sessions/SessionParts';
 import { GetTheBook } from '../../components/learning/GetTheBook';
 import { InstallPrompt } from '../../../components/pwa/InstallPrompt';
 import { ChildSwitcher } from '../../components/shell/ChildSwitcher';
+import { LockedPage, useGreeting, useLocked } from '../../components/shell/Locked';
 import { useShell } from '../../components/shell/ShellContext';
 import { Button } from '../../components/ui/Button';
 import { useResultToast } from '../../components/ui/Toast';
@@ -20,6 +21,12 @@ import { Link, useRouter } from '../../lib/router';
 
 /** /parent/home — data: dashboard.getParentOverview({ studentId }) */
 export default function ParentHomePage() {
+  const locked = useLocked();
+  const title = useGreeting();
+  return locked ? <LockedPage title={title} /> : <ParentHome />;
+}
+
+function ParentHome() {
   const { user, activeStudent: kid } = useShell();
   const { navigate } = useRouter();
   const { data } = useQuery(() => (kid ? api.dashboard.getParentOverview({ studentId: kid.id }) : null), [kid?.id]);

@@ -4,7 +4,7 @@
  * key, and each student's redo list. The app stores where a question is, what it
  * tests and its answer — never the question text or page images. The answer key
  * only ever goes to Vienne.
- * Contract: src/mock/server/books.js
+ * Contract: tests/contract/mock/server/books.js (the frozen mock)
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';

@@ -47,7 +47,8 @@ export function useQuery(fn, deps = []) {
   }, deps);
 
   // No data yet: the page's ErrorBoundary shows the problem. With data on screen, a failed
-  // refetch (a paused parent's badges getting NOT_ACTIVE, say) keeps it and sets state.error.
+  // refetch keeps it and sets state.error. Reads outside a page (the shell's) catch NOT_ACTIVE
+  // themselves (unlessLocked in ShellContext), since no boundary is above them.
   if (state.error && !state.hasData) throw state.error;
   return state;
 }

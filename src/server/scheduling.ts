@@ -4,7 +4,7 @@
  * lifecycle (request → confirm/decline → complete/no-show, cancel, reschedule),
  * plus video calls. All times are UTC instants; "Monday 3:00 PM" is worked out in
  * Settings.timezone (lib/time.ts), wherever the server runs.
- * Contract: src/mock/server/scheduling.js
+ * Contract: tests/contract/mock/server/scheduling.js (the frozen mock)
  */
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
@@ -204,6 +204,13 @@ async function loadSession(sessionId: string, tx: Tx | typeof db = db) {
   return found(await tx.session.findUnique({ where: { id: sessionId }, include: sessionInclude }), 'Session');
 }
 
+/** A family's own session. A missing one and another family's look the same, so ids can't be probed. */
+async function ownSession(sessionId: string, parentId: string) {
+  const row = await db.session.findUnique({ where: { id: sessionId }, include: sessionInclude });
+  if (row?.student.parentId !== parentId) throw new ApiError('FORBIDDEN', 'You don’t have access to this student.');
+  return row;
+}
+
 /** Runs `fn` in a transaction holding the calendar lock. */
 function withCalendar<T>(fn: (tx: Tx) => Promise<T>) {
   return db.$transaction(async (tx) => {
@@ -272,11 +279,10 @@ export const declineSession = action(async (input: { sessionId: string; reason?:
 });
 
 export const cancelSession = action(async (input: { sessionId: string; reason?: string }) => {
-  const user = await requireUser();
+  const user = await requireActive();
   const v = parse(z.object({ sessionId: id, reason: optText(300) }), input);
-  const cur = await loadSession(v.sessionId);
   const admin = user.role === 'ADMIN';
-  if (!admin) await requireStudentAccess(cur.studentId);
+  const cur = admin ? await loadSession(v.sessionId) : await ownSession(v.sessionId, user.id);
   need((HOLDS_SLOT as readonly string[]).includes(cur.status), 'This session can’t be cancelled');
   const settings = await loadSettings();
   if (!admin && Date.now() > cur.startsAt.getTime() - settings.cancelCutoffHours * 3600000) {
@@ -412,12 +418,7 @@ export const joinCall = action(async (input: { sessionId: string }) => {
   const { sessionId } = parse(z.object({ sessionId: id }), input);
   let s: SessionRow;
   if (user.role === 'ADMIN') s = await loadSession(sessionId);
-  else {
-    // A missing session and another family's look the same, so ids can't be probed.
-    const row = await db.session.findUnique({ where: { id: sessionId }, include: sessionInclude });
-    if (row?.student.parentId !== user.id) throw new ApiError('FORBIDDEN', 'You don’t have access to this student.');
-    s = row;
-  }
+  else s = await ownSession(sessionId, user.id);
   need(s.mode === 'VIDEO' && s.status === 'CONFIRMED', 'This isn’t a video session');
   const settings = await loadSettings();
   const opens = s.startsAt.getTime() - settings.joinOpensMin * MIN;

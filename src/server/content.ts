@@ -9,7 +9,7 @@
  *   finishUpload({ fileId }) → the file, once its size and real type are checked
  * src/lib/upload-client.ts does all three; it's what the screens call as uploadFile.
  *
- * Contract: src/mock/server/content.js
+ * Contract: tests/contract/mock/server/content.js (the frozen mock)
  */
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';

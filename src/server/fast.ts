@@ -3,7 +3,7 @@
  * server/fast — FAST (grades 3–6) and Star Math (K–2) results, and the testing
  * windows. Vienne or the student's parent can enter a result; every row records
  * who entered it, and only Vienne can change one someone else entered.
- * Contract: src/mock/server/fast.js
+ * Contract: tests/contract/mock/server/fast.js (the frozen mock)
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';

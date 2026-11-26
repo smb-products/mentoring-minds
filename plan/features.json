@@ -517,6 +517,32 @@
       "held": "zero"
     },
     {
+      "id": "S8",
+      "title": "Preview and paused parents see their screen, not an endless skeleton or an uncaught error",
+      "spec": "tests/e2e/p-product.spec.ts (its two test.fixme)",
+      "deps": [
+        "P-product"
+      ],
+      "touches": [
+        "src/ui/pages/parent/",
+        "src/ui/components/shell/",
+        "src/ui/api/live-hooks.js",
+        "tests/e2e/p-product.spec.ts",
+        "plan/reports/S8.md"
+      ],
+      "checks": [
+        "A PREVIEW parent on every parent route sees the invite-code screen (\"Enter your invite code\"). The page finishes loading, and the browser logs no error.",
+        "A PAUSED parent on every parent route sees \"Your account is paused. Message Vienne to turn it back on.\" (the wording in src/server/invites.ts). The page finishes loading, and the browser logs no error.",
+        "A read refused with NOT_ACTIVE never throws outside a page's error boundary: the shell's own reads (getFamily, notifications, nav badges) handle it. Vienne and an ACTIVE parent see no change.",
+        "The two test.fixme in tests/e2e/p-product.spec.ts become plain tests (nothing else in that file changes) and pass on desktop and phone. The w0 preview test, the whole browser suite, npm test and npm run typecheck pass."
+      ],
+      "hints": [
+        "From the P-product audit (plan/reports/P-product.md). The PAUSED Home waits on dashboard.getParentOverview, which answers NOT_ACTIVE. The preview parent's page error comes from useQuery rethrowing during render (src/ui/api/live-hooks.js) in a shell read.",
+        "Server guards don't change: src/server is outside touches. A paused parent still can't open Messages until Javaris decides.",
+        "tests/e2e/p-product.spec.ts is outside touches except for the two .fixme words. Don't change the look for an ACTIVE parent."
+      ]
+    },
+    {
       "id": "C1",
       "title": "Clean-up: no references to the deleted src/mock",
       "spec": "plan/reports/C1.md",

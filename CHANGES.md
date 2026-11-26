@@ -8,6 +8,13 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **Kit, `kit/watch.py`:** a green held PR that's already in the merge queue no longer wakes a lead. Why: a
   queued PR's `autoMergeRequest` is null, so #39 and #40 pinged Axis while they waited on the queue's own CI.
   The queue is read with one GraphQL query (`gh pr list` can't show it). Approved: Axis; Zero reviews.
+## 2026-11-26: S8 from the P-product audit
+
+- **S8 (new, after P-product, lanes):** preview and paused parents get their screen on every parent route, not
+  an endless loading skeleton or an uncaught page error. It's done when the two `test.fixme`s in
+  `tests/e2e/p-product.spec.ts` pass. Why: the P-product audit (#43). Home never finishes loading for either
+  parent, and a preview parent's shell throws "Enter your invite code to unlock this." outside the page's error
+  boundary (also Rigg's #23 FYI). No server guard changes. Approved: Axis; Zero reviews.
 
 ## 2026-11-26: S1 touches, new S7 and C1, after-the-fact edits in WC, W8 and S5b, AGENTS after W8
 

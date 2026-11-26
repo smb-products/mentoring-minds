@@ -2,7 +2,7 @@
 /**
  * server/reports — progress reports, published whenever Vienne chooses.
  * Parents only ever see published reports of their own children.
- * Contract: src/mock/server/reports.js
+ * Contract: tests/contract/mock/server/reports.js (the frozen mock)
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';

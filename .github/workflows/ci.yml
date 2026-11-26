@@ -7,9 +7,11 @@ on:
   # The merge queue tests each PR on the main it lands on (RULES.md, The loop).
   merge_group:
 
-# A newer push to a PR replaces its run. Main and the merge queue are never cancelled.
+# A newer push to a PR replaces its run. Main and the merge queue are never cancelled: each of their runs has
+# its own group (the commit). A shared group isn't enough even without cancel-in-progress, because GitHub
+# keeps one pending run per group and cancels the one waiting when a third arrives (W8's main run, 8e57942).
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.ref) || format('ci-{0}-{1}', github.event_name, github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:

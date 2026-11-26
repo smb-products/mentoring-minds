@@ -8,7 +8,7 @@
  *             never reaches a family's device.
  *   PRACTICE  A link or resource. The family taps Done.
  *
- * Contract: src/mock/server/assignments.js
+ * Contract: tests/contract/mock/server/assignments.js (the frozen mock)
  */
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
