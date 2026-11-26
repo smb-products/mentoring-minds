@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { api, useQuery } from '../../api';
+import { onLocked, refused } from '../../api/live-hooks';
 
 /**
  * Signed-in user, their children (parents), the selected child and the layout mode.
@@ -13,7 +15,10 @@ const ShellContext = createContext(null);
  * Use as `.catch(unlessLocked([]))`.
  */
 export const unlessLocked = (fallback = null) => (error) => {
-  if (error?.code === 'NOT_ACTIVE') return fallback;
+  if (error?.code === 'NOT_ACTIVE') {
+    refused(error);
+    return fallback;
+  }
   throw error;
 };
 const LayoutContext = createContext('desktop');
@@ -25,6 +30,7 @@ export function ShellProvider({ sessionUser, children }) {
     if (root) root.dataset.text = user.textSize || 'NORMAL';
   }, [user.textSize]);
   const role = user.role === 'ADMIN' ? 'admin' : 'parent';
+  useRefreshWhenPaused(role === 'parent' && user.status === 'ACTIVE');
   // The shell's own reads (family, badges, the bell).
   const source = api;
   const families = api.families;
@@ -48,6 +54,26 @@ export function ShellProvider({ sessionUser, children }) {
     [user, role, source, students, activeStudentId],
   );
   return <ShellContext.Provider value={value}>{children}</ShellContext.Provider>;
+}
+
+/**
+ * The layout reads the parent's status once per full load. If Vienne pauses them while signed in,
+ * the first refused read or write re-renders the layout (router.refresh, no reload), which brings the
+ * new status: the paused notice and the locked pages. Nothing runs until the server refuses, so Vienne
+ * and active parents make no extra requests.
+ */
+function useRefreshWhenPaused(listening) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!listening) return undefined;
+    let last = 0;
+    return onLocked(() => {
+      // Several reads are often refused at once: one refresh for all of them.
+      if (Date.now() - last < 2000) return;
+      last = Date.now();
+      router.refresh();
+    });
+  }, [listening, router]);
 }
 
 export const LayoutProvider = LayoutContext.Provider;
