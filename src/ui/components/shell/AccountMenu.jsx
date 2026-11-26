@@ -5,6 +5,7 @@ import { signOutNow } from '@/app/(auth)/sign-in/actions';
 import { ChangePasswordForm } from '@/components/family/ChangePasswordForm';
 import { api, useAction } from '../../api';
 import { live } from '../../api/live';
+import { forgetPush } from '../messages/push';
 import { useResultToast, useToast } from '../ui/Toast';
 import { Avatar } from '../ui/Display';
 import { Segmented } from '../ui/Form';
@@ -118,6 +119,8 @@ export function AccountPanel({ onDone }) {
               toast({ title: 'Sign-out is off in the demo', description: 'It returns to the sign-in screen when sign-in is on.' });
               return;
             }
+            // A shared family phone stops getting this parent's alerts. Never blocks signing out.
+            await forgetPush({ remove: live.notifications.removePushSubscription });
             await signOutNow();
           }}
           className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[14px] font-bold text-foreground hover:bg-muted"

@@ -1,9 +1,52 @@
-import { BellOff, CalendarCheck, CalendarClock, CalendarX, ClipboardCheck, FileBarChart, MessageSquare, RotateCcw, UserRoundCheck, Inbox } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BellOff, BellRing, CalendarCheck, CalendarClock, CalendarX, ClipboardCheck, FileBarChart, MessageSquare, RotateCcw, UserRoundCheck, Inbox } from 'lucide-react';
 import { useQuery } from '../../api';
 import { cn } from '../../lib/cn';
 import { fmtAgo } from '../../lib/format';
 import { useRouter } from '../../lib/router';
+import { useResultToast } from '../ui/Toast';
+import { needsHomeScreen, pushOffer, turnOnPush } from '../messages/push';
 import { useShell } from './ShellContext';
+
+const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+const HOME_SCREEN = 'On iPhone, alerts only work once the app is added to your Home Screen (Share, then Add to Home Screen) and opened from there.';
+
+/** "Turn on notifications" for this device. Hidden when push can't work here or is already on; asks only after a tap. */
+function PushOptIn() {
+  const { source: api } = useShell();
+  const show = useResultToast();
+  const save = api.notifications.savePushSubscription; // the demo's mock has no push
+  const [state, setState] = useState('hidden'); // hidden | offer | iphone | busy
+  useEffect(() => {
+    let live = true;
+    if (!save || !VAPID_KEY) return;
+    pushOffer({ key: VAPID_KEY }).then((offer) => live && setState(offer === 'offer' ? 'offer' : needsHomeScreen() ? 'iphone' : 'hidden'));
+    return () => {
+      live = false;
+    };
+  }, [save]);
+
+  if (state === 'hidden') return null;
+  return (
+    <div className="border-t border-border px-4 py-3">
+      {state !== 'iphone' && (
+        <button
+          type="button"
+          disabled={state === 'busy'}
+          onClick={async () => {
+            setState('busy');
+            const ok = show(await turnOnPush({ key: VAPID_KEY, save }), 'Notifications are on', 'This device will show new alerts.');
+            setState(ok ? 'hidden' : 'offer');
+          }}
+          className="flex items-center gap-2 text-[14px] hit-area font-bold text-brand hover:underline disabled:opacity-60"
+        >
+          <BellRing size={16} strokeWidth={2.2} aria-hidden /> Turn on notifications
+        </button>
+      )}
+      <p className="mt-1 text-[12.5px] text-muted-foreground">{HOME_SCREEN}</p>
+    </div>
+  );
+}
 
 const ICONS = {
   SESSION_REQUESTED: Inbox,
@@ -78,6 +121,7 @@ export function NotificationsPanel({ onDone }) {
           })}
         </ul>
       )}
+      <PushOptIn />
     </div>
   );
 }
