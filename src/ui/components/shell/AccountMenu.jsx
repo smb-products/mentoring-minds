@@ -3,23 +3,21 @@ import { useRouter } from 'next/navigation';
 import { KeyRound, LogOut, Moon, Sun } from 'lucide-react';
 import { signOutNow } from '@/app/(auth)/sign-in/actions';
 import { ChangePasswordForm } from '@/components/family/ChangePasswordForm';
-import { api, useAction } from '../../api';
+import { useAction } from '../../api';
 import { live } from '../../api/live';
 import { forgetPush } from '../messages/push';
-import { useResultToast, useToast } from '../ui/Toast';
+import { useResultToast } from '../ui/Toast';
 import { Avatar } from '../ui/Display';
 import { Segmented } from '../ui/Form';
-import { useDemo, useShell } from './ShellContext';
+import { useShell, useTheme } from './ShellContext';
 
 /** Account panel content (popover on desktop, sheet section on phone). */
-export function AccountPanel({ onDone }) {
+export function AccountPanel() {
   const { user } = useShell();
-  const { isDemo, userId, setUserId, theme, setTheme } = useDemo();
+  const { theme, setTheme } = useTheme();
   const router = useRouter();
-  const toast = useToast();
   const show = useResultToast();
-  // The account's own setting: real even while `families` is on the mock (demo mode keeps the mock).
-  const [setTextSize] = useAction(isDemo ? api.families.setTextSize : live.families.setTextSize);
+  const [setTextSize] = useAction(live.families.setTextSize);
   const [changingPassword, setChangingPassword] = useState(false);
   return (
     <div className="w-full">
@@ -31,34 +29,6 @@ export function AccountPanel({ onDone }) {
         </div>
       </div>
       <div className="space-y-3 border-t border-border px-4 py-3">
-        {isDemo && (
-          <div>
-            <p className="mb-1.5 text-[13px] font-bold text-muted-foreground">Demo account</p>
-            <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Demo account">
-              {[
-                ['u_admin', 'Vienne', 'Tutor'],
-                ['u_ana', 'Ana', 'Book homework'],
-                ['u_grace', 'Grace', 'Video calls'],
-                ['u_monique', 'Monique', 'K–2, no book'],
-              ].map(([id, name, hint]) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="radio"
-                  aria-checked={userId === id}
-                  onClick={() => {
-                    setUserId(id);
-                    onDone?.();
-                  }}
-                  className={`rounded-[10px] border px-2.5 py-2 text-left ${userId === id ? 'border-primary bg-brand-soft/50' : 'border-border hover:bg-muted'}`}
-                >
-                  <span className="block text-[14px] font-extrabold">{name}</span>
-                  <span className="block text-[12px] font-semibold text-muted-foreground">{hint}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         <div>
           <p className="mb-1.5 text-[13px] font-bold text-muted-foreground">Appearance</p>
           <Segmented
@@ -82,7 +52,7 @@ export function AccountPanel({ onDone }) {
             value={user.textSize || 'NORMAL'}
             onChange={async (textSize) => {
               // The layout passes the saved size down again from the session.
-              if (show(await setTextSize({ textSize })) && !isDemo) router.refresh();
+              if (show(await setTextSize({ textSize }))) router.refresh();
             }}
             options={[
               { value: 'NORMAL', label: 'Normal' },
@@ -93,32 +63,23 @@ export function AccountPanel({ onDone }) {
         </div>
       </div>
       <div className="border-t border-border p-1.5">
-        {!isDemo && (
-          <>
-            <button
-              type="button"
-              aria-expanded={changingPassword}
-              onClick={() => setChangingPassword((open) => !open)}
-              className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[14px] font-bold text-foreground hover:bg-muted"
-            >
-              <KeyRound size={16} strokeWidth={2.2} className="text-muted-foreground" aria-hidden />
-              Change password
-            </button>
-            {changingPassword && (
-              <div className="px-2.5 pb-2.5 pt-1">
-                <ChangePasswordForm />
-              </div>
-            )}
-          </>
+        <button
+          type="button"
+          aria-expanded={changingPassword}
+          onClick={() => setChangingPassword((open) => !open)}
+          className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[14px] font-bold text-foreground hover:bg-muted"
+        >
+          <KeyRound size={16} strokeWidth={2.2} className="text-muted-foreground" aria-hidden />
+          Change password
+        </button>
+        {changingPassword && (
+          <div className="px-2.5 pb-2.5 pt-1">
+            <ChangePasswordForm />
+          </div>
         )}
         <button
           type="button"
           onClick={async () => {
-            if (isDemo) {
-              onDone?.();
-              toast({ title: 'Sign-out is off in the demo', description: 'It returns to the sign-in screen when sign-in is on.' });
-              return;
-            }
             // A shared family phone stops getting this parent's alerts. Never blocks signing out.
             await forgetPush({ remove: live.notifications.removePushSubscription });
             await signOutNow();
