@@ -135,5 +135,6 @@ export const discardDraft = action(async (input: { draftId: string }) => {
   await requireAdmin();
   const { draftId } = parse(z.object({ draftId: id }), input);
   await db.aiDraft.updateMany({ where: { id: draftId, status: 'DRAFT' }, data: { status: 'DISCARDED', decidedAt: new Date() } });
-  return null;
+  // The draft as it now stands, like the mock (a missing id stays a quiet no-op). Vienne-only data.
+  return db.aiDraft.findUnique({ where: { id: draftId }, select: { id: true, kind: true, model: true, effort: true, refId: true, status: true, input: true, output: true, createdAt: true, decidedAt: true } });
 });

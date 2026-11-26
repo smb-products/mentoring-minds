@@ -39,7 +39,7 @@ export const READS = {
   fast: ['listResults', 'nextWindow'],
   invites: ['listInvites'],
   messages: ['listThreads', 'getThread', 'unreadCount'],
-  notifications: ['listForUser', 'runDailyReminders'],
+  notifications: ['listForUser'],
   reports: ['listForStudent', 'getReport'],
   scheduling: ['getSettings', 'getAvailability', 'listTimeOff', 'listLocations', 'getOpenSlots', 'listSessions'],
   taxonomy: ['listSubjects'],
