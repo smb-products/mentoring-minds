@@ -9,8 +9,8 @@ const LIVE = new Set([
   // 'taxonomy',
   // 'fast',
   // W2
-  // 'families',
-  // 'invites',
+  'families',
+  'invites',
   // W3
   // 'messages',
   // 'notifications',
