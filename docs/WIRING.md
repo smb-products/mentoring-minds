@@ -41,18 +41,39 @@ Demo sign-in: `vienne@example.com` or any demo parent (for example `ana.mendoza@
    - **New password after a reset:** when `session.user.mustChangePassword` is true (Vienne used "Reset password"), ask for a new one before anything else. Call `families.changePassword({ currentPassword, newPassword })`; it needs the temporary password as `currentPassword`. It signs the parent out on their other devices and keeps this one signed in; if it returns `signInAgain: true`, send them to `/sign-in`. Any parent can also use it from the account panel (a "Change password" row there is part of this step).
 3. **Preview parents** (`status: 'PREVIEW'`) see `InviteCodeForm` (`src/components/family`) until they redeem a code. `invites.redeemInvite` does the rest, and the form reloads the app so every screen fetches the unlocked data.
 
-Test: `npm run test:e2e -- w0` (runs once any area is live).
+Test: `npm run test:e2e -- w0` (runs once any area is live). W0 itself ships with no area live, so prove it by uncommenting one area locally, running the spec, and commenting it back before you commit.
 
 ## Step 2: switch areas, one at a time
 
-Replace `src/ui/api/index.js` with:
+W0 replaces `src/ui/api/index.js` with this. Every area has its own line under its ticket's header, so tickets running side by side each uncomment only their own lines and git merges them cleanly:
 
 ```js
 import { api as mock } from '../../mock';
 import { live } from './live';
 
-/** Areas running on the real backend. Add one, test it, commit. */
-const LIVE = new Set(['fast']);
+/** Areas running on the real backend. Uncomment your ticket's lines, test, commit. */
+const LIVE = new Set([
+  // W1
+  // 'taxonomy',
+  // 'fast',
+  // W2
+  // 'families',
+  // 'invites',
+  // W3
+  // 'messages',
+  // 'notifications',
+  // W4
+  // 'books',
+  // 'content',
+  // W5
+  // 'assignments',
+  // W6
+  // 'scheduling',
+  // 'dashboard',
+  // W7
+  // 'reports',
+  // 'ai',
+]);
 
 export const api = Object.fromEntries(Object.entries(mock).map(([k, v]) => [k, LIVE.has(k) ? live[k] : v]));
 export { useQuery, useAction } from './live-hooks';
@@ -68,9 +89,9 @@ A suggested order, from least to most connected. Each is one ticket:
 | W3 | `messages`, `notifications` | Messages both sides; Alerts | Push: add a "Turn on notifications" button that calls `PushManager.subscribe` with `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and sends `subscription.toJSON()` (plus `navigator.userAgent`) to `notifications.savePushSubscription`. On iPhone it only works once the app is added to the Home Screen. |
 | W4 | `books`, `content` | Content → Book → Answer key; Library; upload a worksheet; parent opens it | Vercel Blob (`BLOB_READ_WRITE_TOKEN` via `vercel env pull`), or the local `./uploads` folder in dev. **Opening a file:** in `ResourceViewer` (`pages/parent/LearningPage.jsx`), replace the "File viewing isn’t part of the prototype" toast with `` window.open(`/api/files/${r.file.id}`, '_blank', 'noopener') ``. |
 | W5 | `assignments` | New assignment; parent answer sheet with a photo; Work → check written answers | **Opening a photo:** in `pages/admin/AssignmentPage.jsx`, replace the "Photo viewing isn’t part of the prototype" toast with `` window.open(`/api/files/${photo.file.id}`, '_blank', 'noopener') ``. |
-| W6 | `scheduling` | Request, confirm, decline, cancel, reschedule; Join call; complete with a note | |
-| W7 | `reports`, `dashboard`, `ai` | Report page; Today; parent Home; "Talk about it" and "Set up from photos" | Needs `ANTHROPIC_API_KEY` |
-| W8 | delete `src/mock` | Everything | Then `LIVE` goes away and `index.js` exports `live` directly |
+| W6 | `scheduling`, `dashboard` | Request, confirm, decline, cancel, reschedule; Join call; complete with a note; Today; parent Home | The w6 spec confirms from Today and joins from Home, so `dashboard` goes live here |
+| W7 | `reports`, `ai` | Report page; Today updating live; "Talk about it" and "Set up from photos" | Needs `ANTHROPIC_API_KEY` |
+| W8 | delete `src/mock` | Everything | Then `LIVE` goes away and `index.js` exports `live` directly. The B.E.S.T. data moves to `src/ui/api/best.js`, the demo seed under `prisma/demo/`, and the mock the contract check compares against under `tests/contract/mock/` |
 
 **Done for each area means:**
 - [ ] Its browser test passes: `npm run build:e2e && npm run test:e2e -- w4` (W1 → `w1`, and so on), and so do the earlier tickets' tests.

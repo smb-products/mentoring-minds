@@ -76,6 +76,7 @@ class Kit(unittest.TestCase):
             LANES_ON=
             CHECK_MIN=1
             CHECK_WAIT_MIN=30
+            SHARED_TOUCHES=
             """))
         (self.repo / "plan").mkdir()
         (self.repo / "plan" / "features.json").write_text(json.dumps(FEATURES))
@@ -109,6 +110,17 @@ class Kit(unittest.TestCase):
         self.kit("plan.py", "set", "B", "ready")
         self.kit("plan.py", "claim", "--agent", "fantem")
         self.assertIn("B          stuck", self.kit("plan.py", "board").stdout)
+
+    def test_shared_touches_never_block_a_claim(self):
+        (self.repo / "plan" / "features.json").write_text(json.dumps({"features": [
+            {"id": "P", "title": "one", "deps": [], "touches": ["src/hot.js", "src/p.ts"], "checks": []},
+            {"id": "Q", "title": "two", "deps": [], "touches": ["src/hot.js", "src/q.ts"], "checks": []},
+            {"id": "R", "title": "clash", "deps": [], "touches": ["src/hot.js", "src/p.ts"], "checks": []},
+        ]}))
+        env = {"SHARED_TOUCHES": "src/hot.js"}
+        self.assertEqual(self.kit("plan.py", "claim", "--agent", "soap", env=env).stdout.strip(), "P")
+        self.assertEqual(self.kit("plan.py", "claim", "--agent", "fantem", env=env).stdout.strip(), "Q")
+        self.assertEqual(self.kit("plan.py", "claim", "--agent", "kade", env=env).returncode, 1)  # R shares p.ts
 
     def test_real_data_feature_never_claimed_on_miosa(self):
         for i in "ABC":
