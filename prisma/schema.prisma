@@ -695,9 +695,16 @@ model Notification {
   readAt    DateTime?
   sentAt    DateTime?
   createdAt DateTime  @default(now())
+  /// S23b: the child or family the alert is about, set by the code that creates it. Deleting a child or a
+  /// family removes alerts only through these ids, never by the names in the text. No foreign key: an
+  /// alert is never refused because its child was just deleted.
+  studentId String?
+  parentId  String?
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt])
+  @@index([studentId])
+  @@index([parentId])
 }
 
 /// PWA push (phase 2). One row per device that allowed notifications.

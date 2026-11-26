@@ -19,7 +19,6 @@ import { bookResultsFor } from '@/lib/book-results';
 import { loadSettings, schoolYearOf } from '@/lib/settings';
 
 const MATH = 'sub_math';
-const fullName = (s: { firstName: string; lastName: string }) => `${s.firstName} ${s.lastName}`.trim();
 const resultOrder = (r: { schoolYear: string; window: string }) => `${r.schoolYear}${r.window}`;
 const newest = <T extends { schoolYear: string; window: string }>(rows: T[]) => [...rows].sort((a, b) => resultOrder(b).localeCompare(resultOrder(a)))[0] ?? null;
 
@@ -222,26 +221,18 @@ export const archiveStudent = action(async (input: { studentId: string }) => {
 
 /* ── Delete on request (S23): admin only, asks twice on the family page ── */
 
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-/** Does this alert name one of these people? (Alerts have no link to a child or parent, only their names.) */
-const names = (who: string[]) => {
-  const res = who.map((w) => w.trim()).filter(Boolean).map((w) => new RegExp(`(^|[^\\p{L}])${escapeRe(w)}($|[^\\p{L}])`, 'u'));
-  return (n: { title: string; body: string | null }) => res.some((re) => re.test(`${n.title} ${n.body ?? ''}`));
-};
-
-/** Deletes the alerts of these users that name one of `who` (or link to `href`). */
-async function dropAlerts(tx: Tx, userIds: string[], who: string[], href?: string) {
-  const mentions = names(who);
-  const rows = await tx.notification.findMany({ where: { userId: { in: userIds } }, select: { id: true, title: true, body: true, href: true } });
-  const ids = rows.filter((n) => mentions(n) || (href && n.href === href)).map((n) => n.id);
-  if (ids.length) await tx.notification.deleteMany({ where: { id: { in: ids } } });
-}
+/*
+ * S23b: what to remove is found only through ids and foreign keys: the parent's user id, the child's
+ * student id, Invite.usedById, the studentId redeemInvite stores on each planned entry, and an alert's
+ * studentId / parentId link (set by the code that creates it). Never by a name or an email, so another
+ * family whose names or address look alike is never touched. An alert with no link stays.
+ */
 
 /**
  * Every record about these children, in an order the foreign keys allow: sessions (notes cascade),
  * Vienne's AI note drafts for them, homework and answers, assignments only they had, reports
- * (ratings cascade), then the child (FAST results, redo list, shares and subjects cascade).
- * Returns the ids of the files their work used, for dropUnusedFiles.
+ * (ratings cascade), the alerts linked to them, then the child (FAST results, redo list, shares and
+ * subjects cascade). Returns the ids of the files their work used, for dropUnusedFiles.
  */
 async function removeChildren(tx: Tx, studentIds: string[]) {
   const subs = await tx.submission.findMany({ where: { studentId: { in: studentIds } }, select: { assignmentId: true, fileId: true, photos: true, draft: true, answers: true } });
@@ -252,42 +243,26 @@ async function removeChildren(tx: Tx, studentIds: string[]) {
   await tx.submission.deleteMany({ where: { studentId: { in: studentIds } } });
   await tx.assignment.deleteMany({ where: { id: { in: [...new Set(subs.map((s) => s.assignmentId))] }, submissions: { none: {} } } });
   await tx.progressReport.deleteMany({ where: { studentId: { in: studentIds } } });
+  await tx.notification.deleteMany({ where: { studentId: { in: studentIds } } });
   await tx.student.deleteMany({ where: { id: { in: studentIds } } });
   return fileIdsOf(subs);
 }
 
 const DELETE_TIMEOUT = { timeout: 30000, maxWait: 10000 };
 
-/**
- * A family's invite codes, in any state (unused, used, expired, revoked): every code the parent
- * used, every code addressed to their email (any case), and every unused code with no email made
- * out to their full name (any case). A wrong name match only costs Vienne a new code.
- */
-const familyInvites = (parent: { id: string; email: string; name: string }) => ({
-  OR: [
-    { usedById: parent.id },
-    { parentEmail: { equals: parent.email, mode: 'insensitive' as const } },
-    { usedById: null, usedAt: null, OR: [{ parentEmail: null }, { parentEmail: '' }], parentName: { equals: parent.name.trim(), mode: 'insensitive' as const } },
-  ],
-});
-
 /** Deletes a child and everything about them, and the stored files only they used. Can't be undone. */
 export const deleteStudent = action(async (input: { studentId: string }) => {
   await requireAdmin();
   const { studentId } = parse(z.object({ studentId: id }), input);
   const student = found(await db.student.findUnique({ where: { id: studentId } }), 'Student');
-  const admins = (await db.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } })).map((u) => u.id);
   const keys = await db.$transaction(async (tx) => {
     const files = await removeChildren(tx, [student.id]);
-    await dropAlerts(tx, [student.parentId, ...admins], [fullName(student), student.firstName]);
-    // The family's codes listed them by name: each code stays, with its other children.
-    const parent = found(await tx.user.findUnique({ where: { id: student.parentId }, select: { id: true, email: true, name: true } }), 'Family');
-    const codes = await tx.invite.findMany({ where: familyInvites(parent), select: { id: true, plannedStudents: true } });
-    for (const invite of codes) {
-      const planned = Array.isArray(invite.plannedStudents) ? (invite.plannedStudents as { firstName?: string; lastName?: string }[]) : [];
-      const rest = planned.filter((p) => `${p?.firstName ?? ''} ${p?.lastName ?? ''}`.trim() !== fullName(student) && (p?.firstName ?? '') !== student.firstName);
-      if (rest.length !== planned.length) await tx.invite.update({ where: { id: invite.id }, data: { plannedStudents: rest } });
-    }
+    // The code their parent redeemed: the child comes off it by the id stored at redemption; the code
+    // stays with its other children. Codes nobody redeemed aren't the family's, so they stay as they are.
+    const code = await tx.invite.findUnique({ where: { usedById: student.parentId }, select: { id: true, plannedStudents: true } });
+    const planned = Array.isArray(code?.plannedStudents) ? (code.plannedStudents as { studentId?: unknown }[]) : [];
+    const rest = planned.filter((p) => p?.studentId !== student.id);
+    if (code && rest.length !== planned.length) await tx.invite.update({ where: { id: code.id }, data: { plannedStudents: rest as object[] } });
     return dropUnusedFiles(tx, files);
   }, DELETE_TIMEOUT);
   for (const key of keys) await removeObject(key);
@@ -296,18 +271,17 @@ export const deleteStudent = action(async (input: { studentId: string }) => {
 
 /**
  * Deletes a parent's account and the whole family: every child (as deleteStudent), their thread
- * and messages, alerts, invites, push devices, sign-in links, uploads, and the stored files only
- * they used. Vienne's own account can't be deleted. Can't be undone.
+ * and messages, the code they redeemed (usedById), the alerts linked to them by id, push devices,
+ * sign-in links, uploads, and the stored files only they used. Codes they never redeemed stay,
+ * even ones sent to their email. Vienne's own account can't be deleted. Can't be undone.
  */
 export const deleteFamily = action(async (input: { parentId: string }) => {
   const admin = await requireAdmin();
   const { parentId } = parse(z.object({ parentId: id }), input);
   const parent = found(await db.user.findUnique({ where: { id: parentId } }), 'Family');
   need(parent.role !== 'ADMIN', 'Vienne’s own account can’t be deleted.', 'FORBIDDEN');
-  const admins = (await db.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } })).map((u) => u.id);
   const keys = await db.$transaction(async (tx) => {
-    const students = await tx.student.findMany({ where: { parentId }, select: { id: true, firstName: true, lastName: true } });
-    const conversation = await tx.conversation.findUnique({ where: { parentId }, select: { id: true } });
+    const students = await tx.student.findMany({ where: { parentId }, select: { id: true } });
     const files = await removeChildren(tx, students.map((s) => s.id));
     const uploads = await tx.fileAsset.findMany({ where: { uploadedById: parentId }, select: { id: true } });
     uploads.forEach((f) => files.add(f.id));
@@ -320,8 +294,8 @@ export const deleteFamily = action(async (input: { parentId: string }) => {
 
     await tx.conversation.deleteMany({ where: { parentId } }); // messages cascade
     await tx.message.deleteMany({ where: { senderId: parentId } });
-    await tx.invite.deleteMany({ where: familyInvites(parent) });
-    await dropAlerts(tx, admins, [parent.name, ...students.map(fullName), ...students.map((s) => s.firstName)], conversation ? `/admin/messages/${conversation.id}` : undefined);
+    await tx.invite.deleteMany({ where: { usedById: parentId } });
+    await tx.notification.deleteMany({ where: { parentId } }); // their own alerts cascade with the account
 
     const keys = await dropUnusedFiles(tx, files);
     // An upload of theirs something else still uses stays, as Vienne's.

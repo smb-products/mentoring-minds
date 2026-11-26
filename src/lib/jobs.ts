@@ -30,7 +30,7 @@ export async function sendSessionReminders(now = new Date()) {
     const when = s.startsAt < startOfTomorrow ? 'today' : 'tomorrow';
     const time = new Intl.DateTimeFormat('en-US', { timeZone: timezone, hour: 'numeric', minute: '2-digit' }).format(s.startsAt);
     const where = s.mode === 'VIDEO' ? 'video call' : s.location?.kind === 'HOME' ? 'at your home' : `at ${s.location?.name ?? 'the studio'}`;
-    await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_REMINDER', title: `Reminder: ${s.student.firstName}’s session ${when}`, body: `${time}, ${where}`, href: '/parent/sessions', about: s.id });
+    await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_REMINDER', title: `Reminder: ${s.student.firstName}’s session ${when}`, body: `${time}, ${where}`, href: '/parent/sessions', about: s.id, studentId: s.studentId });
     sent += 1;
   }
   return sent;

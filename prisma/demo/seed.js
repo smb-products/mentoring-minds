@@ -460,30 +460,32 @@ export function createSeed() {
 
   /* ── Notifications ──────────────────────────────────────── */
   const notifications = [];
-  const N = (userId, type, title, body, href, hoursAgo, read = false) =>
-    notifications.push({ id: `n${notifications.length + 1}`, userId, audience: userId === 'u_admin' ? 'ADMIN' : 'PARENT', type, title, body, href, channel: 'IN_APP', readAt: read ? ago((hoursAgo - 1) * H) : null, sentAt: ago(hoursAgo * H), createdAt: ago(hoursAgo * H) });
-  N('u_admin', 'SESSION_REQUESTED', 'New request from Keisha Brooks', 'Jordan, video call, 45 min', '/admin/schedule', 1);
-  N('u_admin', 'MESSAGE_RECEIVED', 'Daniel Reyes sent a message', 'Sofia’s soccer practice moved to Wednesdays…', '/admin/messages', 2);
-  N('u_admin', 'SESSION_REQUESTED', 'New request from Ana Mendoza', 'Lucia, 45 min, Studio', '/admin/schedule', 3);
-  N('u_admin', 'SUBMISSION_RECEIVED', 'Arjun finished Test 1, #1–20', '16 of 20 right. 1 written answer to check.', '/admin/assignments', 3);
-  N('u_admin', 'SUBMISSION_RECEIVED', 'Lucia finished Test 1, #1–20', '17 of 20 right. 1 written answer to check.', '/admin/assignments', 5);
-  N('u_admin', 'MESSAGE_RECEIVED', 'Fatima Ali sent a message', 'Amir has a dentist appointment Wednesday…', '/admin/messages', 6);
-  N('u_admin', 'SESSION_CANCELLED_BY_PARENT', 'Priya Patel cancelled a session', 'Arjun, School event ran late.', '/admin/schedule', 24, true);
-  N('u_admin', 'INVITE_REDEEMED', 'Keisha Brooks joined', 'Invite code used. Jordan added.', '/admin/families', 6 * 24, true);
-  N('u_monique', 'SESSION_REMINDER', 'Reminder: Ava’s session today', '3:30 PM at your home', '/parent/sessions', 20);
-  N('u_monique', 'SESSION_CONFIRMED', 'Vienne confirmed Ava’s session', '60 min at your home', '/parent/sessions', 20);
-  N('u_monique', 'REPORT_PUBLISHED', 'New progress report for Ava', 'Vienne shared Ava’s latest progress.', '/parent/progress', 14 * 24, true);
-  N('u_grace', 'SESSION_CONFIRMED', 'Vienne confirmed Noah’s video session', 'The Join call button appears 15 minutes before.', '/parent/sessions', 30);
+  // `link`: the child (studentId) and family (parentId) the alert is about, as the app stores them (S23b).
+  const N = (userId, type, title, body, href, hoursAgo, read = false, link = {}) =>
+    notifications.push({ id: `n${notifications.length + 1}`, userId, audience: userId === 'u_admin' ? 'ADMIN' : 'PARENT', type, title, body, href, channel: 'IN_APP', readAt: read ? ago((hoursAgo - 1) * H) : null, sentAt: ago(hoursAgo * H), createdAt: ago(hoursAgo * H), studentId: link.studentId ?? null, parentId: link.parentId ?? null });
+  N('u_admin', 'SESSION_REQUESTED', 'New request from Keisha Brooks', 'Jordan, video call, 45 min', '/admin/schedule', 1, false, { studentId: 's_jordan', parentId: 'u_keisha' });
+  N('u_admin', 'MESSAGE_RECEIVED', 'Daniel Reyes sent a message', 'Sofia’s soccer practice moved to Wednesdays…', '/admin/messages', 2, false, { parentId: 'u_daniel' });
+  N('u_admin', 'SESSION_REQUESTED', 'New request from Ana Mendoza', 'Lucia, 45 min, Studio', '/admin/schedule', 3, false, { studentId: 's_lucia', parentId: 'u_ana' });
+  N('u_admin', 'SUBMISSION_RECEIVED', 'Arjun finished Test 1, #1–20', '16 of 20 right. 1 written answer to check.', '/admin/assignments', 3, false, { studentId: 's_arjun', parentId: 'u_priya' });
+  N('u_admin', 'SUBMISSION_RECEIVED', 'Lucia finished Test 1, #1–20', '17 of 20 right. 1 written answer to check.', '/admin/assignments', 5, false, { studentId: 's_lucia', parentId: 'u_ana' });
+  N('u_admin', 'MESSAGE_RECEIVED', 'Fatima Ali sent a message', 'Amir has a dentist appointment Wednesday…', '/admin/messages', 6, false, { parentId: 'u_fatima' });
+  N('u_admin', 'SESSION_CANCELLED_BY_PARENT', 'Priya Patel cancelled a session', 'Arjun, School event ran late.', '/admin/schedule', 24, true, { studentId: 's_arjun', parentId: 'u_priya' });
+  N('u_admin', 'INVITE_REDEEMED', 'Keisha Brooks joined', 'Invite code used. Jordan added.', '/admin/families', 6 * 24, true, { parentId: 'u_keisha' });
+  N('u_monique', 'SESSION_REMINDER', 'Reminder: Ava’s session today', '3:30 PM at your home', '/parent/sessions', 20, false, { studentId: 's_ava' });
+  N('u_monique', 'SESSION_CONFIRMED', 'Vienne confirmed Ava’s session', '60 min at your home', '/parent/sessions', 20, false, { studentId: 's_ava' });
+  N('u_monique', 'REPORT_PUBLISHED', 'New progress report for Ava', 'Vienne shared Ava’s latest progress.', '/parent/progress', 14 * 24, true, { studentId: 's_ava' });
+  N('u_grace', 'SESSION_CONFIRMED', 'Vienne confirmed Noah’s video session', 'The Join call button appears 15 minutes before.', '/parent/sessions', 30, false, { studentId: 's_noah' });
 
   /* ── Invites ────────────────────────────────────────────── */
+  // A redeemed code's planned entry keeps the id of the child it became, as redeemInvite stores it (S23b).
   const I = (id, code, parentName, parentEmail, planned, expiresDays, extra = {}) => ({
-    id, codeHash: hashCode(code), codeHint: `MM-••${code.slice(-2)}`, parentName, parentEmail, plannedStudents: planned.map(([firstName, lastName, grade]) => ({ firstName, lastName, grade, subjectIds: ['sub_math'] })),
+    id, codeHash: hashCode(code), codeHint: `MM-••${code.slice(-2)}`, parentName, parentEmail, plannedStudents: planned.map(([firstName, lastName, grade, studentId]) => ({ firstName, lastName, grade, subjectIds: ['sub_math'], ...(studentId && { studentId }) })),
     expiresAt: ago(-expiresDays * DAY), usedAt: null, usedById: null, revokedAt: null, createdAt: ago(4 * DAY), ...extra,
   });
   const invites = [
     I('inv_carmen', 'MM-4D8F', 'Carmen Diaz', 'carmen.diaz@example.com', [['Lucas', 'Diaz', 3]], 10),
     I('inv_greg', 'MM-7K4Q', 'Greg Wilson', null, [['Emma', 'Wilson', 1]], 3, { createdAt: ago(11 * DAY) }),
-    I('inv_keisha', 'MM-2B9X', 'Keisha Brooks', 'keisha.brooks@example.com', [['Jordan', 'Brooks', 3]], 4, { usedAt: ago(6 * DAY), usedById: 'u_keisha', createdAt: ago(10 * DAY) }),
+    I('inv_keisha', 'MM-2B9X', 'Keisha Brooks', 'keisha.brooks@example.com', [['Jordan', 'Brooks', 3, 's_jordan']], 4, { usedAt: ago(6 * DAY), usedById: 'u_keisha', createdAt: ago(10 * DAY) }),
     I('inv_rachel', 'MM-6P3T', 'Rachel Kim', null, [['Noa', 'Kim', 5]], -2, { createdAt: ago(16 * DAY) }),
     I('inv_sam', 'MM-9RT2', 'Sam Rivera', 'sam.rivera@example.com', [['Mia', 'Rivera', 2]], 12, { createdAt: ago(2 * DAY) }),
   ];
