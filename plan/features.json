@@ -543,6 +543,136 @@
       ]
     },
     {
+      "id": "S6",
+      "title": "Retire DEMO_MODE: sign-in is always on, dev uses the seeded demo accounts",
+      "spec": "tests/e2e/auth.spec.ts and the whole browser suite (no new spec)",
+      "deps": [],
+      "touches": [
+        "src/lib/demo.ts",
+        "src/lib/env-check.ts",
+        "src/proxy.ts",
+        "src/app/page.tsx",
+        "src/app/(admin)/admin/layout.tsx",
+        "src/app/(parent)/parent/layout.tsx",
+        "src/app/(auth)/sign-in/",
+        "src/ui/AppRoot.jsx",
+        "src/ui/components/shell/ShellContext.jsx",
+        "src/ui/components/shell/AccountMenu.jsx",
+        ".env.example",
+        "scripts/build-e2e.mjs",
+        "playwright.config.ts",
+        "tests/env-check.test.ts",
+        "plan/reports/S6.md"
+      ],
+      "checks": [
+        "src/lib/demo.ts is deleted, and `git grep -n -e DEMO_MODE -e isDemo -- src scripts playwright.config.ts tests .env.example ':!*.md'` finds nothing (docs, including tests/e2e/README.md, are the leads').",
+        "Sign-in is always on, exactly as in a build without DEMO_MODE today: signed out, every /admin and /parent page and / go to /sign-in; the Google button shows only when Google sign-in is configured; the email form signs in. Nothing in the app behaves differently for a build that never set DEMO_MODE.",
+        "The account menu keeps theme, text size and sign-out for a signed-in user and loses the demo user switch. No other change to how anything looks.",
+        "src/lib/env-check.ts no longer mentions DEMO_MODE, and tests/env-check.test.ts matches it. .env.example drops DEMO_MODE and says to sign in with the demo accounts after `npm run db:seed:demo`.",
+        "npm run typecheck, npm test, npm run test:contract and the whole browser suite pass."
+      ],
+      "hints": [
+        "Approved by Javaris 2026-11-26, as Zero specced it after W8: with src/mock gone, DEMO_MODE gives a persona with no data, because every screen calls the server, which needs a session.",
+        "Held for Zero (src/lib). Docs (AGENTS, README, WIRING, DEPLOY, tests/e2e/README.md) are the leads': Axis updates them after S6 merges. Leave the comment in .github/workflows/ci.yml for Atlas.",
+        "ShellContext's DemoContext also carries the theme: keep the theme, drop the demo user. Don't print the demo password anywhere new; prisma/seed.ts already prints it after a demo seed."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S9",
+      "title": "A paused parent can open Messages and message Vienne; everything else stays locked",
+      "spec": "tests/integration/s9-paused-messages.test.ts and tests/e2e/s9-paused-messages.spec.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/lib/guards.ts",
+        "src/server/messages.ts",
+        "src/ui/pages/parent/MessagesPage.jsx",
+        "tests/integration/permissions.test.ts",
+        "tests/integration/s9-paused-messages.test.ts",
+        "tests/e2e/s9-paused-messages.spec.ts",
+        "plan/reports/S9.md"
+      ],
+      "checks": [
+        "A PAUSED parent can call messages.getThread and messages.sendMessage for their own thread only, and Vienne gets the message and the MESSAGE_RECEIVED notification as she does from an active parent. A conversationId that isn't theirs gives them their own thread, as it does today for an active parent.",
+        "A PREVIEW parent still gets NOT_ACTIVE from both, and signed out gets UNAUTHENTICATED. Every other function a PAUSED parent calls answers as before (NOT_ACTIVE where it did).",
+        "On /parent/messages a PAUSED parent sees the paused notice (\"Your account is paused. Message Vienne to turn it back on.\") above the thread with Vienne, and can send a message; the browser logs no error. Every other parent route still shows the locked page, and a PREVIEW parent's Messages still asks for the invite code.",
+        "Tests in the two new files. The one line in tests/integration/permissions.test.ts that expects a locked account to be refused the thread stays true for PREVIEW (change it only if it uses a PAUSED parent). tests/holdout/S1.test.ts (no video link to a paused parent), tests/holdout/S8.spec.ts, tests/holdout/W3.test.ts, tests/e2e/p-product.spec.ts, the w3 spec and npm run test:contract stay green."
+      ],
+      "hints": [
+        "Approved by Javaris 2026-11-26, from the P-product audit: the paused wording tells the parent to message Vienne, so Messages has to work for them.",
+        "Held for Zero (src/lib, src/server). One small guard in src/lib/guards.ts (signed in, and an admin or a parent who isn't PREVIEW) is enough; requireActive itself doesn't change. markThreadRead and unreadCount already use requireUser.",
+        "MessagesPage.jsx shows LockedPage when useLocked() is set: show the thread for 'PAUSED'. AppShell already puts the paused notice above every page. Don't change the look for an active parent."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S10",
+      "title": "A parent paused while signed in sees the paused screen without a reload",
+      "spec": "tests/e2e/s10-paused-while-signed-in.spec.ts (new)",
+      "deps": [
+        "S6",
+        "S9"
+      ],
+      "touches": [
+        "src/ui/api/live-hooks.js",
+        "src/ui/components/shell/",
+        "src/ui/AppRoot.jsx",
+        "tests/e2e/s10-paused-while-signed-in.spec.ts",
+        "plan/reports/S10.md"
+      ],
+      "checks": [
+        "When Vienne pauses a parent who is signed in, the next in-app navigation or refused read or write shows the paused notice and the locked pages, with no full reload: no Sessions list, no \"Request a session\", no \"Fill in answers\".",
+        "Un-pausing works the same way back: the next refused-free load shows the normal pages again (a reload is fine here).",
+        "No uncaught page error and no error screen on the way. Vienne and an ACTIVE parent see no change and make no extra requests on every navigation.",
+        "tests/holdout/S8.spec.ts, tests/e2e/p-product.spec.ts, the S9 spec and the whole browser suite pass."
+      ],
+      "hints": [
+        "From Rigg's FYI on S8 (#50): the shell reads the parent's status once per full load, so after a pause in-app navigation keeps the active screens until a reload. The server already refuses everything, so this is about what the parent sees.",
+        "One way: when a read or write answers NOT_ACTIVE while the shell thinks the parent is ACTIVE, refresh the user (router.refresh()) so the layout re-reads the status. src/server is outside touches."
+      ]
+    },
+    {
+      "id": "S11",
+      "title": "The demo seed refuses a database that doesn't look like dev, test or preview",
+      "spec": "tests/seed-guard.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "prisma/seed.ts",
+        "tests/seed-guard.test.ts",
+        "plan/reports/S11.md"
+      ],
+      "checks": [
+        "`npm run db:seed:demo` refuses, before connecting, unless the DATABASE_URL host is local (localhost, 127.0.0.1 or ::1) or the database name contains test, dev, demo or preview. VERCEL_ENV or NODE_ENV set to production still refuses. `--force` still overrides, and the refusal says so in plain words.",
+        "`npm run db:seed` (no --demo) is unchanged.",
+        "tests/seed-guard.test.ts covers a local URL, a test-named URL, a remote production-looking URL with and without --force, and VERCEL_ENV=production, without touching any real database. npm test passes."
+      ],
+      "hints": [
+        "Finding S-ops2 from the P-ops audit (#42): a laptop shell holding the production URL would load the demo families into production. Matters more after S6, since dev then always uses the demo seed.",
+        "Held for Zero (prisma/). Put the decision in a small pure function so the test needn't run the seed. If docs/PRODUCTION_SETUP.md's preview seed step then needs --force, say so in the report: docs are Atlas's and the leads'."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S12",
+      "title": "Pin Node 22.x in engines, the version CI tests on",
+      "spec": "plan/reports/S12.md",
+      "deps": [],
+      "touches": [
+        "package.json",
+        "package-lock.json",
+        "plan/reports/S12.md"
+      ],
+      "checks": [
+        "package.json `engines.node` is \"22.x\", the major CI tests on (.github/workflows/ci.yml), so Vercel builds on the same Node.",
+        "Nothing else in package.json changes, and package-lock.json changes only in its engines field if npm writes one. npm ci, npm run typecheck and npm test pass."
+      ],
+      "hints": [
+        "Finding S-ops3 from the P-ops audit (#42): \">=20.9\" lets Vercel pick its newest Node while CI tests on 22. Moving CI and engines to a newer major together is a later ops decision.",
+        "Held for Zero (package.json)."
+      ],
+      "held": "zero"
+    },
+    {
       "id": "C1",
       "title": "Clean-up: no references to the deleted src/mock",
       "spec": "plan/reports/C1.md",
@@ -638,7 +768,10 @@
         "vercel.json",
         "docs/DEPLOY.md",
         "docs/COSTS.md",
-        "plan/reports/P-ops.md"
+        "plan/reports/P-ops.md",
+        "scripts/vercel-build.mjs",
+        "tests/vercel-build.test.ts",
+        "docs/PRODUCTION_SETUP.md"
       ],
       "checks": [
         "Env check: productionProblems (src/lib/env-check.ts) reports nothing for the production environment's variable names (values are never printed or pasted), and DEMO_MODE isn't set in any Vercel environment.",
@@ -646,12 +779,14 @@
         "Blob: the store is private. A stored file's raw Blob URL doesn't open without a token, and files reach people only through /api/files.",
         "Neon: the point-in-time restore window is on, and one restore into a new branch (never over main) is rehearsed and timed in docs/DEPLOY.md.",
         "Spend caps: a Vercel spend limit, the Neon plan's limit and a Claude Console limit are set, and AI_DAILY_LIMIT (src/lib/ai/prompts.ts) is noted in docs/COSTS.md beside them.",
-        "Rollback: an instant rollback to the previous deployment is rehearsed on a preview, not production, and the steps are in docs/DEPLOY.md."
+        "Rollback: an instant rollback to the previous deployment is rehearsed on a preview, not production, and the steps are in docs/DEPLOY.md.",
+        "Migrations (D5, manual): a production build runs no `prisma migrate deploy`, only a read-only status check that warns when production is behind; previews still migrate their own database. Production domains aren't auto-assigned, so a merge builds a Staged deployment, and docs/DEPLOY.md → Releasing says Javaris migrates production, then promotes. tests/vercel-build.test.ts covers production, preview and no database."
       ],
       "hints": [
         "Run by its owner, not a lane (role audit). The owner works on f/P-ops in .wt/ and runs kit/plan.py set P-ops doing when it starts. The audit writes tests, docs and its report. A finding that needs app code becomes an S ticket for the lanes, listed in the report; it isn't fixed in the audit PR.",
         "Production setup (Vercel Pro, Neon, Blob, Google OAuth on Vienne's account) waits until W8, and Javaris does every click. Atlas prepares the steps and checks the result.",
-        "Held for Axis (docs): Axis merges Atlas's audit PR."
+        "Held for Axis (docs): Axis merges Atlas's audit PR.",
+        "D5 decided by Javaris 2026-11-26: production migrations are manual, and Atlas implements it in this audit (finding S-ops1)."
       ],
       "held": "axis"
     },
