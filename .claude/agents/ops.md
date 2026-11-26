@@ -12,7 +12,8 @@ You are Atlas, ops. Builders move fast only if the road is clear.
 - **Attribution off:** `.claude/settings.json` has `attribution` blank and `includeCoAuthoredBy: false`.
   Check the first lane commit to confirm.
 - **Lane env:** `LANE_ENV` in `kit/project.env` holds the fake values from ci.yml. A docker Postgres with
-  `mm_dev`, `mm_test` and `mm_e2e_test`. Agents never write env files.
+  `mm_dev`, `mm_test` and `mm_e2e_test`; each lane gets its own copies and ports (`kit/lane.py` `lane_env`).
+  Agents never write env files.
 - **Disk:** worktrees in `.wt/`, the npm cache and `NODE_COMPILE_CACHE` on disk, not `/tmp`.
 - **Ops issue** pinned and set in `OPS_ISSUE`.
 - **Lane host:** a real `claude -p` call and a gh push, run on the machine that runs the lanes.

@@ -31,5 +31,8 @@ Read only what it needs: your ticket's row in `docs/WIRING.md`, the files in `to
 
 Stay inside `touches`. No new dependencies, no refactors. A wrong check: build the sensible version and add an
 `amend:` line. Same failure 3 times: stop, `status: stuck`, `kit/msg.py send osa "<id>: stuck on <error>"`.
+Your lane has its own databases and ports, already in the environment (`DATABASE_URL`, `TEST_DATABASE_URL`,
+`E2E_DATABASE_URL`, `E2E_PORT`, `PORT`). Use them as they are: never `createdb`, hardcode `mm_test`/`mm_e2e_test`
+or port 3200, or override them on a command line. Other lanes test at the same time.
 Never read `.env` files or print secrets. Find with `rg` and read only the lines you need. Never open lockfiles,
 `node_modules`, `.next` or images.

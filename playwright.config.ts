@@ -54,7 +54,8 @@ export default defineConfig({
     : {
         command: `npx next start -p ${PORT}`,
         url: `${baseURL}/sign-in`,
-        reuseExistingServer: !process.env.CI,
+        // Lanes set E2E_REUSE_SERVER=0: a server already on the port may be another build.
+        reuseExistingServer: !process.env.CI && process.env.E2E_REUSE_SERVER !== '0',
         timeout: 60_000,
         env: {
           DATABASE_URL: E2E_DATABASE_URL,
