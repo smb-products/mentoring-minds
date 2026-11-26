@@ -51,6 +51,9 @@ Javaris clicked it through as Vienne and as a parent.
   mustn't merge yet (it needs a lead's fix first) ends the run `status: blocked` and tells `leads` why.
 - A feature whose `touches` hit `PROTECT_MERGE` names the lead who merges it (`"held"` in the plan), so that lead
   expects it. `kit/plan.py lint` fails a plan that leaves it out.
+- An audit ticket (`"role": "audit"`, the production phase after W8) is run by the seat in its `"owner"`, not a
+  lane, and gets no holdouts. It writes tests, docs and its report. A finding that needs app code becomes an S
+  ticket for the lanes.
 - Worktrees and caches live on disk, never in `/tmp`.
 
 ## When a check is wrong

@@ -489,6 +489,114 @@
         "prisma/ is Zero's path, so this PR is held for Zero to merge. That's expected. Leave docs/ alone: a lead updates WIRING.md after."
       ],
       "held": "zero"
+    },
+    {
+      "id": "P-sec",
+      "title": "Production audit, security (Zero): guards, leaks, files, limits, migrations, dependencies",
+      "role": "audit",
+      "owner": "zero",
+      "spec": "tests/integration/p-sec.test.ts (new), plan/reports/P-sec.md",
+      "deps": [
+        "W8"
+      ],
+      "touches": [
+        "tests/integration/p-sec.test.ts",
+        "docs/DEPLOY.md",
+        "plan/reports/P-sec.md"
+      ],
+      "checks": [
+        "tests/integration/p-sec.test.ts calls every export of every src/server/*.ts signed out and gets UNAUTHENTICATED, except the exports it lists as public, each with its reason. A new export without a guard fails CI. Every export also parse()s its input with zod before any lookup: a wrong-typed input gets INVALID, not a crash.",
+        "Leak sweep: every family-facing read is in tests/integration/leaks.test.ts or p-sec.test.ts. No family response carries passwordHash, codeHash, an answer key, adminNotes, a time-off reason, or meetingUrl outside the join window.",
+        "File access: /api/files/<id> and every other route under src/app/api check the session or a secret themselves (AGENTS rule 11). Another family's file and a signed-out request are refused, with a test for each route.",
+        "Rate limits: each limit is a named constant with a test that reaches it: MAX_FAILED_LOGINS (src/lib/auth.ts), MAX_FAILURES and GLOBAL_REDEEM_FAILURES_PER_HOUR (src/server/invites.ts), AI_DAILY_LIMIT (src/lib/ai/prompts.ts), MAX_BYTES (src/lib/storage.ts). Anything with no limit (sign-up, sign-in by IP) is listed in docs/DEPLOY.md with what covers it (Vercel Firewall rule, or \"Hardening later\").",
+        "Migrations: prisma/migrations applied to an empty database match prisma/schema.prisma with no drift, and no migration drops a table or column that holds data. Production migrate waits for Javaris.",
+        "npm audit --omit=dev reports no high or critical issue. Any moderate one is in docs/DEPLOY.md → Dependency notes with its reason. pg stays on 8.x, and npm audit fix --force is never run."
+      ],
+      "hints": [
+        "Run by its owner, not a lane (role audit). The owner works on f/P-sec in .wt/ and runs kit/plan.py set P-sec doing when it starts. The audit writes tests, docs and its report. A finding that needs app code becomes an S ticket for the lanes, listed in the report; it isn't fixed in the audit PR.",
+        "Held for Axis (docs/DEPLOY.md): Axis merges Zero's audit PR."
+      ],
+      "held": "axis"
+    },
+    {
+      "id": "P-product",
+      "title": "Production audit, product (Axis): every screen live on a production build, console clean, phone uploads",
+      "role": "audit",
+      "owner": "axis",
+      "spec": "tests/e2e/p-product.spec.ts (new), plan/reports/P-product.md",
+      "deps": [
+        "W8"
+      ],
+      "touches": [
+        "tests/e2e/p-product.spec.ts",
+        "docs/DEPLOY.md",
+        "plan/reports/P-product.md"
+      ],
+      "checks": [
+        "On a production build (npm run build:e2e) with src/mock gone, tests/e2e/p-product.spec.ts opens every route in src/ui as Vienne and as an ACTIVE parent, on desktop and phone. It fails on any console error, any failed request and any page that never finishes loading.",
+        "A PREVIEW parent and a PAUSED parent open every parent route and see the invite-code or paused screen with no console error. Rigg's #23 FYI found /parent/messages logging 'Enter your invite code' for a PREVIEW parent.",
+        "Phone uploads (phone project): a parent sends a work photo as JPEG and as HEIC, and Vienne opens it. A file over MAX_BYTES (src/lib/storage.ts) gets the plain-language message and nothing is saved.",
+        "The whole browser suite (auth, w0–w8, holdouts), npm test and npm run test:contract pass on that build.",
+        "docs/DEPLOY.md → Before launch: each item is ticked, or has who does it (Javaris for the clicks) and what it waits on. Nothing is left without an owner."
+      ],
+      "hints": [
+        "Run by its owner, not a lane (role audit). The owner works on f/P-product in .wt/ and runs kit/plan.py set P-product doing when it starts. The audit writes tests, docs and its report. A finding that needs app code becomes an S ticket for the lanes, listed in the report; it isn't fixed in the audit PR.",
+        "Held for Zero (docs/DEPLOY.md): Zero merges Axis's audit PR.",
+        "The real-phone uploads (a real iPhone and Android) stay on the Before launch list for Javaris; check 3 is the emulated part."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "P-ops",
+      "title": "Production audit, ops (Atlas): env check, cron secret, private Blob, backups, spend caps, rollback",
+      "role": "audit",
+      "owner": "atlas",
+      "spec": "plan/reports/P-ops.md",
+      "deps": [
+        "W8"
+      ],
+      "touches": [
+        "vercel.json",
+        "docs/DEPLOY.md",
+        "docs/COSTS.md",
+        "plan/reports/P-ops.md"
+      ],
+      "checks": [
+        "Env check: productionProblems (src/lib/env-check.ts) reports nothing for the production environment's variable names (values are never printed or pasted), and DEMO_MODE isn't set in any Vercel environment.",
+        "Cron: /api/cron/daily refuses a request without CRON_SECRET, and the job runs once a day in production. vercel.json still uses legacy `crons`: the report decides whether to move it to Vercel Schedules (`schedules`), with the reason. If it moves, the route's secret check still holds.",
+        "Blob: the store is private. A stored file's raw Blob URL doesn't open without a token, and files reach people only through /api/files.",
+        "Neon: the point-in-time restore window is on, and one restore into a new branch (never over main) is rehearsed and timed in docs/DEPLOY.md.",
+        "Spend caps: a Vercel spend limit, the Neon plan's limit and a Claude Console limit are set, and AI_DAILY_LIMIT (src/lib/ai/prompts.ts) is noted in docs/COSTS.md beside them.",
+        "Rollback: an instant rollback to the previous deployment is rehearsed on a preview, not production, and the steps are in docs/DEPLOY.md."
+      ],
+      "hints": [
+        "Run by its owner, not a lane (role audit). The owner works on f/P-ops in .wt/ and runs kit/plan.py set P-ops doing when it starts. The audit writes tests, docs and its report. A finding that needs app code becomes an S ticket for the lanes, listed in the report; it isn't fixed in the audit PR.",
+        "Production setup (Vercel Pro, Neon, Blob, Google OAuth on Vienne's account) waits until W8, and Javaris does every click. Atlas prepares the steps and checks the result.",
+        "Held for Axis (docs): Axis merges Atlas's audit PR."
+      ],
+      "held": "axis"
+    },
+    {
+      "id": "P-review",
+      "title": "Production audit, independent review (OSA) of P-sec, P-product and P-ops",
+      "role": "audit",
+      "owner": "osa",
+      "spec": "plan/reports/P-review.md",
+      "deps": [
+        "P-sec",
+        "P-product",
+        "P-ops"
+      ],
+      "touches": [
+        "plan/reports/P-review.md"
+      ],
+      "checks": [
+        "OSA reads the three audit reports and the app, not the auditors' conclusions, and lists anything they missed. Each finding becomes an S ticket, or a Before launch item for Javaris.",
+        "Launch waits until every S ticket from the audit has merged and P-review says so."
+      ],
+      "hints": [
+        "OSA sets the review's scope. This ticket only puts it on the board, after the three audits."
+      ]
     }
   ]
 }

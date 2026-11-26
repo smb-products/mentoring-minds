@@ -239,6 +239,12 @@ class Kit(unittest.TestCase):
         self.assertNotIn("PR #14", zero)  # claimed by axis: zero isn't woken for it
         self.assertIn("PR #15", zero)     # unclaimed and not in the plan: HELD_OWNER
 
+    def test_checker_skips_tickets_a_seat_runs_itself(self):
+        self.kit("plan.py", "set", "E", "merged")  # role ops: no holdouts
+        self.assertEqual(self.kit("plan.py", "claim", "--agent", "rigg", "--role", "check").returncode, 1)
+        self.kit("plan.py", "set", "A", "merged")
+        self.assertEqual(self.kit("plan.py", "claim", "--agent", "rigg", "--role", "check").stdout.split(), ["A"])
+
     def test_check_batch_and_reopen(self):
         self.kit("plan.py", "set", "A", "merged")
         self.assertEqual(self.kit("plan.py", "claim", "--agent", "rigg", "--role", "check").stdout.strip(), "A")

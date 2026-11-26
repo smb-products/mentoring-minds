@@ -90,8 +90,9 @@ def claim_build(agent):
 
 
 def waiting_checks(st):
-    """Merged features no checker holds, if there are enough of them (or one has waited long enough)."""
-    ids = [f["id"] for f in features() if status_of(f, st) == "merged"
+    """Merged features no checker holds, if there are enough of them (or one has waited long enough).
+    Only lane builds get holdouts: a ticket a seat runs itself (role ops, audit) is reviewed another way."""
+    ids = [f["id"] for f in features() if status_of(f, st) == "merged" and f.get("role", "build") == "build"
            and not st["features"].get(f["id"], {}).get("checker")]
     if not ids or len(ids) >= int(ENV.get("CHECK_MIN", "3")):
         return ids
