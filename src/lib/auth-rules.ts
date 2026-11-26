@@ -1,6 +1,9 @@
 import type { JWT } from '@auth/core/jwt';
 import { db } from './db';
 
+/** The longest password anyone can set or sign in with: sign-up, sign-in and changePassword all use it. */
+export const MAX_PASSWORD = 200;
+
 /**
  * The session check on every request. Copies the account's role, status and text size
  * into the session. Returns null (signs the session out) when the account is gone, or

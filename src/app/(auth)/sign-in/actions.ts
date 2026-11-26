@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { AuthError } from 'next-auth';
 import { z } from 'zod';
 import { signIn, signOut } from '@/lib/auth';
+import { MAX_PASSWORD } from '@/lib/auth-rules';
 import { db } from '@/lib/db';
 
 export type FormState = { error?: string } | undefined;
@@ -31,7 +32,7 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
 const createSchema = z.object({
   name: z.string().trim().min(2, 'Enter your name'),
   email: z.email('Enter your email'),
-  password: z.string().min(8, 'Use at least 8 characters'),
+  password: z.string().min(8, 'Use at least 8 characters').max(MAX_PASSWORD, 'That password is too long'),
 });
 
 /** New parents start as PREVIEW: they see a locked app until they enter Vienne's invite code. */

@@ -7,6 +7,7 @@ import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { signIn } from '@/lib/auth';
+import { MAX_PASSWORD } from '@/lib/auth-rules';
 import { db } from '@/lib/db';
 import { requireAdmin, requireStudentAccess, requireUser } from '@/lib/guards';
 import { ApiError, action, found, need, query } from '@/lib/result';
@@ -225,7 +226,7 @@ export const archiveStudent = action(async (input: { studentId: string }) => {
 export const changePassword = action(async (input: { currentPassword?: string; newPassword: string }) => {
   const user = await requireUser();
   const v = parse(
-    z.object({ currentPassword: z.string().max(200).optional(), newPassword: z.string().min(8, 'Use at least 8 characters').max(200, 'That password is too long') }),
+    z.object({ currentPassword: z.string().max(MAX_PASSWORD).optional(), newPassword: z.string().min(8, 'Use at least 8 characters').max(MAX_PASSWORD, 'That password is too long') }),
     input,
   );
   const row = found(await db.user.findUnique({ where: { id: user.id } }), 'Account');
