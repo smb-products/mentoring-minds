@@ -46,6 +46,7 @@ case "$1 $2" in
   "pr list") case "$*" in *open*) echo "${GH_OPEN:-[]}";; *) echo "${GH_MERGED:-[]}";; esac;;
   "issue comment") echo "comment $*" >> "$GH_LOG";;
   "pr ready") echo "ready $3" >> "$GH_LOG";;
+  "api graphql") echo "${GH_QUEUE:-null}";;
   "issue view") case "$*" in *state*) echo OPEN; exit 0;; esac; echo '{"comments":[{"createdAt":"2026-11-22T10:00:00Z","body":"[to:osa][from:soap][id:abc123] hi from miosa"}]}';;
 esac
 """
@@ -59,6 +60,8 @@ KIT_KEYS = {line.split("=", 1)[0].strip() for line in (KIT / "project.env").read
 FAKE_TMUX = """#!/usr/bin/env bash
 [ "$1" = info ] && exit 1   # no server running yet
 env > "$TMUX_ENV_LOG"
+[ -n "${TMUX_ARGS_LOG:-}" ] && printf '%s\n' "$@" > "$TMUX_ARGS_LOG"
+exit 0
 """
 
 
@@ -227,17 +230,20 @@ class Kit(unittest.TestCase):
 
     def test_watch_wakes_the_seat_that_claimed_a_held_pr(self):
         old = "2026-01-01T00:00:00Z"
-        pr = lambda n, labels: {"number": n, "headRefName": f"h/rigg-{n}", "headRefOid": f"sha{n}", "isDraft": False,
+        pr = lambda n, labels, mergeable="MERGEABLE": {"number": n, "headRefName": f"h/rigg-{n}", "headRefOid": f"sha{n}", "isDraft": False, "mergeable": mergeable,
                                 "autoMergeRequest": None, "labels": [{"name": l} for l in labels],
                                 "statusCheckRollup": [{"name": "check", "conclusion": "SUCCESS", "completedAt": old}]}
-        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, [])])
+        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, []), pr(16, ["owner:axis"]), pr(17, ["owner:axis"], "CONFLICTING")])
+        queue = json.dumps({"data": {"repository": {"mergeQueue": {"entries": {"nodes": [{"pullRequest": {"number": 16}}]}}}}})
         (self.tmp / "bin" / "tmux").write_text("#!/usr/bin/env bash\nexit 0\n")  # every seat is up; never the real tmux
         (self.tmp / "bin" / "tmux").chmod(0o755)
-        self.kit("watch.py", "--seats", env={"GH_OPEN": prs})
+        self.kit("watch.py", "--seats", env={"GH_OPEN": prs, "GH_QUEUE": queue})
         axis, zero = self.kit("msg.py", "inbox", "axis").stdout, self.kit("msg.py", "inbox", "zero").stdout
         self.assertIn("PR #14", axis)
         self.assertNotIn("PR #14", zero)  # claimed by axis: zero isn't woken for it
         self.assertIn("PR #15", zero)     # unclaimed and not in the plan: HELD_OWNER
+        self.assertNotIn("PR #16", axis + zero)  # already in the merge queue: waiting on CI, not on a lead
+        self.assertNotIn("PR #17", axis + zero)  # conflicts with main: waiting on its author, not a lead to merge
 
     def test_checker_skips_tickets_a_seat_runs_itself(self):
         self.kit("plan.py", "set", "E", "merged")  # role ops: no holdouts
@@ -399,6 +405,31 @@ class Kit(unittest.TestCase):
         seen = {line.split("=", 1)[0] for line in log.read_text().splitlines()}
         self.assertTrue(seen & {"PATH", "HOME"}, seen)  # the fake tmux ran
         self.assertFalse(seen & {"OPS_ISSUE", "PROJECT", "LEADS", "CHECK_MIN"}, "project.env reached tmux")
+
+    def test_seat_panes_unset_project_keys_whatever_the_server_holds(self):
+        (self.tmp / "bin" / "tmux").write_text(FAKE_TMUX)
+        (self.tmp / "bin" / "tmux").chmod(0o755)
+        args = self.tmp / "tmux.args"
+        env = {k: v for k, v in self.env.items() if k != "TMUX"}
+        r = run(["bash", "kit/seat.sh", "board"], self.repo,
+                {**env, "TMUX_ENV_LOG": str(self.tmp / "tmux.env"), "TMUX_ARGS_LOG": str(args)})
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        cmd = args.read_text().splitlines()[-1]  # the pane's command, tmux's last argument
+        self.assertTrue(cmd.startswith("unset "), cmd)
+        unset = cmd.split(";", 1)[0].split()[1:]
+        self.assertTrue({"PROJECT", "OPS_ISSUE", "LEADS", "CHECK_MIN"} <= set(unset), unset)
+        self.assertIn("kit/plan.py board", cmd)
+
+    def test_another_projects_environment_is_ignored(self):
+        probe = ("import json, sys; sys.path.insert(0, 'kit'); import lib; e = lib.load_env(); "
+                 "print(json.dumps([e['PROJECT'], e['OPS_ISSUE'], e.get('AVEL_AGENT')]))")
+        mine = json.loads(run([sys.executable, "-c", probe], self.repo, {**self.env}).stdout)
+        foreign = run([sys.executable, "-c", probe], self.repo,
+                      {**self.env, "PROJECT": "midwest-motion", "OPS_ISSUE": "2", "AVEL_AGENT": "osa"})
+        self.assertEqual(json.loads(foreign.stdout), [mine[0], mine[1], "osa"])
+        self.assertIn("ignoring midwest-motion", foreign.stderr)
+        same = run([sys.executable, "-c", probe], self.repo, {**self.env, "PROJECT": mine[0], "OPS_ISSUE": "99"})
+        self.assertEqual(json.loads(same.stdout)[1], "99")  # this project's own override still works
 
     def test_lanes_get_their_own_databases_and_ports(self):
         made = self.tmp / "created.txt"

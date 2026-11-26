@@ -5,7 +5,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { db } from './db';
-import { refreshToken, secureLinkedAccount } from './auth-rules';
+import { MAX_PASSWORD, refreshToken, secureLinkedAccount } from './auth-rules';
 
 /**
  * One sign-in screen: Google, or email + password. New accounts start as PREVIEW
@@ -13,7 +13,7 @@ import { refreshToken, secureLinkedAccount } from './auth-rules';
  * Kids never have their own login: they use the parent's account.
  */
 // Any length is checked (and counted toward the lockout); the 8-character minimum applies when a password is set.
-const credentialsSchema = z.object({ email: z.email(), password: z.string().min(1).max(200) });
+const credentialsSchema = z.object({ email: z.email(), password: z.string().min(1).max(MAX_PASSWORD) });
 const MAX_FAILED_LOGINS = 5;
 const LOCK_MINUTES = 15;
 const DUMMY_HASH = '$2b$12$C6UzMDM.H6dfI/f/IKcEeO5O7pZcRcbxTdsHpEJnPdA6O38D4ZGXy';

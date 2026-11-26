@@ -17,6 +17,13 @@ describe('demo seed guard', () => {
     expect(demoSeedRefusal('postgresql:///mm?host=/var/run/postgresql', {}, DEMO)).toBeNull();
   });
 
+  it('judges ?host=, the host pg really connects to, over the one before the path', () => {
+    expect(demoSeedRefusal('postgresql://u:p@localhost:5432/neondb?host=db.example.invalid', {}, DEMO)).toMatch(/on db\.example\.invalid/);
+    expect(demoSeedRefusal('postgresql://u:p@localhost/neondb?host=localhost&host=db.example.invalid', {}, DEMO)).toMatch(/^Refusing/);
+    expect(demoSeedRefusal('postgresql://u:p@db.example.invalid/neondb?host=127.0.0.1', {}, DEMO)).toBeNull();
+    expect(demoSeedRefusal('postgresql://u:p@localhost/neondb?host=', {}, DEMO)).toBeNull();
+  });
+
   it('allows a remote database whose name says test, dev, demo or preview', () => {
     for (const name of ['mm_test', 'mm_dev', 'mm-demo', 'Preview'])
       expect(demoSeedRefusal(`postgresql://u:p@db.example.com:5432/${name}`, {}, DEMO)).toBeNull();

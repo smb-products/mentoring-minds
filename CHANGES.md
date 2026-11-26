@@ -12,6 +12,20 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   Approved: Axis; Zero reviews.
 - **S12 (#58), touches:** add `tests/engines.test.ts`. It fails if `engines.node` stops matching the Node
   major in CI. Why: the amend line in S12's report. Approved after the fact: Axis; Zero reviews.
+## 2026-11-26: P-sec's "only a guard before parse()" reads the guard list from guards.ts
+
+- **P-sec, `tests/integration/p-sec.test.ts`:** the check that only a guard runs before `parse()` takes the guard
+  names from `src/lib/guards.ts`, not a fixed list of three. Why: S9's new `requireCanMessage` is a guard, and the
+  fixed list failed S9 in the merge queue (#56). Nothing else in the test changes. Approved: Zero (the test's
+  author); Axis reviews.
+
+## 2026-11-26: the guard skips PRs already in the merge queue
+
+- **Kit, `kit/watch.py`:** a green held PR that's already in the merge queue no longer wakes a lead. Why: a
+  queued PR's `autoMergeRequest` is null, so #39 and #40 pinged Axis while they waited on the queue's own CI.
+  The queue is read with one GraphQL query (`gh pr list` can't show it). It also skips a PR that conflicts
+  with main: its green check is stale and it waits on its author's merge, not a lead (Zero, on #46).
+  Approved: Axis; Zero reviews.
 
 ## 2026-11-26: S13 and S14 from the P-sec audit
 
@@ -22,7 +36,6 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   `src/lib/auth-rules.ts`), as sign-in and change-password do. Why: finding S-sec2 (P-sec, #54):
   a longer one made an account that could never sign in by password. Approved: Axis; Zero reviews.
 
-
 ## 2026-11-26: D5, production migrations are manual (P-ops)
 
 - **Deploy (`scripts/vercel-build.mjs`, `docs/DEPLOY.md` → Releasing, `docs/PRODUCTION_SETUP.md`):** production
@@ -30,6 +43,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   migrate their own database. Auto-assignment of production domains is off, so merges build Staged
   deployments, and Javaris migrates production and then promotes. Why: RULES.md (production migrations are
   Javaris's); finding S-ops1. Approved: Javaris (D5, via OSA).
+
 ## 2026-11-26: Javaris's decisions (S6, S9, D5) and new S10, S11, S12
 
 - **S6 (new, held zero):** retire `DEMO_MODE`. Sign-in is always on, and dev signs in with the demo accounts
@@ -174,6 +188,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   Approved: Axis (W2's owner, per OSA).
 - **Kit:** `kit/plan.py refresh` tells OSA and the feature's `held` lead when a builder's PR is red in CI, once
   per head commit. Why: PR #9 sat in `review` with nobody told. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: S5 lock rows, WC touches, held PRs
 
 - **S5:** a refusal while locked (global or per-account) adds no `RedeemFailure` row, and

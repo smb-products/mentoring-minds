@@ -123,7 +123,9 @@ function sourceExports() {
   return out;
 }
 
-const GUARD = /^(const \w+ = )?await require(User|Active|Admin)\(\);$/;
+/** Every guard in src/lib/guards.ts, read from the file, so a new guard (S9's requireCanMessage) counts as one. */
+const GUARDS = [...read('src/lib/guards.ts').matchAll(/^export async function (require\w+)\(/gm)].map((m) => m[1]);
+const GUARD = new RegExp(`^(const \\w+ = )?await (${GUARDS.join('|')})\\(\\);$`);
 
 describe('endpoints: every src/server export', () => {
   it('is found in the source and at runtime, wrapped in action() or query()', async () => {
@@ -187,7 +189,7 @@ describe('endpoints: every src/server export', () => {
 /* ── 2. Leaks ───────────────────────────────────────────── */
 
 /** Keys no family response may carry (answer keys, hashes, Vienne's notes, lockout state, her room link). */
-const SECRET_KEYS = ['answer', 'passwordHash', 'codeHash', 'adminNotes', 'failedLogins', 'lockedUntil', 'sessionVersion', 'redeemFailures', 'redeemLockedUntil'];
+const SECRET_KEYS = ['answer', 'passwordHash', 'codeHash', 'adminNotes', 'failedLogins', 'lockedUntil', 'sessionVersion', 'redeemFailures', 'redeemLockedUntil', 'storageKey', 'uploadedById'];
 
 /** Every object (at any depth) that has `key` with a truthy value. */
 function holders(obj: unknown, key: string, out: Record<string, unknown>[] = []): Record<string, unknown>[] {

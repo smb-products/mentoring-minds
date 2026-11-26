@@ -21,6 +21,16 @@ export async function requireActive() {
   return user;
 }
 
+/**
+ * Vienne, or a parent who isn't PREVIEW: an ACTIVE or a PAUSED family. Only for messaging Vienne, since the
+ * paused notice tells the parent to message her (S9). Everything else stays on requireActive.
+ */
+export async function requireCanMessage() {
+  const user = await requireUser();
+  if (user.role !== 'ADMIN' && user.status === 'PREVIEW') throw new ApiError('NOT_ACTIVE', 'Enter your invite code to unlock this.');
+  return user;
+}
+
 export async function requireAdmin() {
   const user = await requireUser();
   if (user.role !== 'ADMIN') throw new ApiError('FORBIDDEN', 'Only Vienne can do that.');

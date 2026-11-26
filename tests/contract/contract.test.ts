@@ -96,6 +96,8 @@ const ALLOWED_EXTRA = [
  */
 const ALLOWED_MISSING: { path: RegExp; when: (user: string) => boolean; why: string }[] = [
   { path: /(^|\.)adminNotes$/, when: (u) => u !== 'u_admin', why: 'Vienne’s private notes never go to parents' },
+  // S13: files are a DTO (src/lib/dto.ts fileDTO); the mock returned the whole FileAsset row.
+  { path: /(^content\.getFileForUser|\.file)\.(storageKey|uploadedById|createdAt)$/, when: () => true, why: 'Files go out as a DTO: no storage key, uploader or other columns' },
 ];
 
 /** Error codes: the mock's need() always says INVALID; the real backend says NOT_FOUND for missing rows. */
@@ -193,7 +195,7 @@ async function check(ns: string, fn: string, input: unknown, user: string, realI
     return r;
   }
   const diff = compare(shapeOf(m.data), shapeOf(r.data));
-  diff.missing = diff.missing.filter((x) => !ALLOWED_MISSING.some((a) => a.path.test(x) && a.when(user)));
+  diff.missing = diff.missing.filter((x) => !ALLOWED_MISSING.some((a) => (a.path.test(x) || a.path.test(`${ns}.${fn}${x}`)) && a.when(user)));
   diff.extra.forEach((x) => extras.add(`${ns}.${fn}${x}`));
   const problems = [...diff.missing.map((x) => `missing in real: ${x}`), ...diff.type.map((x) => `different type: ${x}`), ...diff.empty.map((x) => `different list: ${x}`)];
   if (problems.length) report.push(`${label}\n    ${problems.join('\n    ')}`);
