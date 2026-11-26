@@ -13,7 +13,7 @@
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireAdmin, requireStudentAccess } from '@/lib/guards';
+import { requireActive, requireAdmin, requireStudentAccess } from '@/lib/guards';
 import { action, ApiError, found, need, query } from '@/lib/result';
 import { id, ids, instant, optText, parse, testKey, text } from '@/lib/validate';
 import { bookItemDTO, bookSummary, photoFiles, submissionDTO, submissionDTOs, submissionInclude, testsOf, type Photo, type ScoredAnswer } from '@/lib/dto';
@@ -171,13 +171,27 @@ export const listForStudent = query(async (input: { studentId: string }) => {
   return out.sort((a, b) => (a.assignment.dueAt?.toISOString() ?? '').localeCompare(b.assignment.dueAt?.toISOString() ?? ''));
 });
 
+type Caller = { id: string; role: string };
+
+/** A family looks only among its own children's work, so nothing says which other ids exist. */
+function workOf(user: Caller, submissionId: string): Prisma.SubmissionWhereInput {
+  return user.role === 'ADMIN' ? { id: submissionId } : { id: submissionId, student: { parentId: user.id } };
+}
+
+/** Another family's submission and a missing one get the same answer. */
+function ownWork<T>(user: Caller, sub: T | null): T {
+  if (user.role === 'ADMIN') return found(sub, 'Assignment');
+  if (!sub) throw new ApiError('FORBIDDEN', 'You don’t have access to this student.');
+  return sub;
+}
+
 const answerList = z.array(z.object({ number: z.number().int().min(1).max(200), value: z.string().max(40).nullable() })).max(200);
 
 /** Progress is saved as the child goes, so closing the app loses nothing. */
 export const saveAnswerDraft = action(async (input: { submissionId: string; answers: { number: number; value: string | null }[] }) => {
+  const user = await requireActive();
   const v = parse(z.object({ submissionId: id, answers: answerList }), input);
-  const sub = found(await db.submission.findUnique({ where: { id: v.submissionId } }), 'Assignment');
-  await requireStudentAccess(sub.studentId);
+  const sub = ownWork(user, await db.submission.findFirst({ where: workOf(user, v.submissionId) }));
   const n = await db.submission.updateMany({ where: { id: sub.id, status: { in: [...OPEN_FOR_WORK] } }, data: { draft: v.answers } });
   need(n.count, 'This was already handed in');
   return true;
@@ -210,9 +224,9 @@ async function addMissesToRedo(tx: Tx, studentId: string, submissionId: string, 
  * Waits for Vienne only when there are written (OPEN) answers to look at.
  */
 export const submitAnswerSheet = action(async (input: { submissionId: string; answers?: { number: number; value: string | null }[]; photos?: Photo[] }) => {
+  const user = await requireActive();
   const v = parse(z.object({ submissionId: id, answers: answerList.default([]), photos: z.array(z.object({ number: z.number().int(), fileId: id })).max(200).default([]) }), input);
-  const sub = found(await db.submission.findUnique({ where: { id: v.submissionId }, include: { assignment: true, student: true } }), 'Assignment');
-  const user = await requireStudentAccess(sub.studentId);
+  const sub = ownWork(user, await db.submission.findFirst({ where: workOf(user, v.submissionId), include: { assignment: true, student: true } }));
   need((OPEN_FOR_WORK as readonly string[]).includes(sub.status), 'This was already handed in');
   need(sub.assignment.kind === 'BOOK', 'This isn’t a book assignment');
   const items = await itemsFor(sub.assignment);
@@ -262,9 +276,9 @@ export const submitAnswerSheet = action(async (input: { submissionId: string; an
 
 /** PRACTICE: the family taps Done. */
 export const markPracticeDone = action(async (input: { submissionId: string }) => {
+  const user = await requireActive();
   const { submissionId } = parse(z.object({ submissionId: id }), input);
-  const sub = found(await db.submission.findUnique({ where: { id: submissionId }, include: { assignment: true } }), 'Assignment');
-  const user = await requireStudentAccess(sub.studentId);
+  const sub = ownWork(user, await db.submission.findFirst({ where: workOf(user, submissionId), include: { assignment: true } }));
   need(sub.assignment.kind === 'PRACTICE', 'This one has an answer sheet');
   const now = new Date();
   const n = await db.submission.updateMany({
