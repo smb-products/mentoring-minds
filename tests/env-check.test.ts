@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { productionProblems } from '@/lib/env-check';
 
 const good = {
@@ -15,9 +17,12 @@ describe('production settings check', () => {
     expect(productionProblems(good)).toEqual([]);
   });
 
-  it('refuses demo mode on the production deployment, allows it elsewhere', () => {
-    expect(productionProblems({ ...good, DEMO_MODE: 'true' })).toEqual([expect.stringMatching(/turns sign-in off/)]);
-    expect(productionProblems({ DEMO_MODE: 'true', VERCEL_ENV: 'preview' })).toEqual([]);
+  it('has no switch that skips the checks: sign-in is always on', () => {
+    // The retired scaffold switch (S6) no longer changes anything, even if an old .env still sets it.
+    const retired = { ['DEMO' + '_MODE']: 'true' };
+    expect(productionProblems({ ...good, ...retired })).toEqual([]);
+    expect(productionProblems({ ...retired, VERCEL_ENV: 'preview' }).join('\n')).toMatch(/DATABASE_URL[\s\S]*AUTH_SECRET[\s\S]*INVITE_PEPPER/);
+    expect(readFileSync('src/lib/env-check.ts', 'utf8')).not.toMatch(/DEMO/);
   });
 
   it('names each missing or weak secret', () => {
@@ -33,5 +38,22 @@ describe('production settings check', () => {
 
   it('outside Vercel production (CI, a local production build) only the core secrets are required', () => {
     expect(productionProblems({ DATABASE_URL: 'x', AUTH_SECRET: 'x'.repeat(32), INVITE_PEPPER: 'p' })).toEqual([]);
+  });
+});
+
+describe('the scaffold switch is retired (S6)', () => {
+  const flag = ['DEMO', 'MODE'].join('_');
+
+  it('src/lib/demo.ts is gone and nothing in the app, scripts or tests reads the switch', () => {
+    expect(existsSync('src/lib/demo.ts')).toBe(false);
+    const args = ['grep', '-n', '-e', flag, '-e', 'is' + 'Demo', '--', 'src', 'scripts', 'playwright.config.ts', 'tests', '.env.example', ':!*.md'];
+    const found = spawnSync('git', args, { encoding: 'utf8' });
+    expect(found.stdout).toBe('');
+  });
+
+  it('.env.example drops the switch and points to the seeded demo accounts', () => {
+    const example = readFileSync('.env.example', 'utf8');
+    expect(example).not.toMatch(new RegExp(flag));
+    expect(example).toMatch(/npm run db:seed:demo[\s\S]*sign in with[\s\S]*demo accounts/);
   });
 });

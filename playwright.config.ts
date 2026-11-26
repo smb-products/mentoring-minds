@@ -61,7 +61,6 @@ export default defineConfig({
         env: {
           DATABASE_URL: E2E_DATABASE_URL,
           DIRECT_URL: E2E_DATABASE_URL,
-          DEMO_MODE: 'false',
           ALLOW_LOCAL_UPLOADS: 'true',
           BLOB_READ_WRITE_TOKEN: '',
           AUTH_TRUST_HOST: 'true',

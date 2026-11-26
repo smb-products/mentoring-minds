@@ -5,23 +5,16 @@ import { AuthError } from 'next-auth';
 import { z } from 'zod';
 import { signIn, signOut } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { DEMO_MODE } from '@/lib/demo';
-import { redirect } from 'next/navigation';
 
 export type FormState = { error?: string } | undefined;
 
-/** The scaffold has no sign-in: the screen can be viewed, but Google goes straight to the demo and the email form explains. */
-const DEMO_OFF: FormState = { error: 'Sign-in is off in the demo. Open the app at /admin/today or /parent/home.' };
-
 export async function signInWithGoogle() {
-  if (DEMO_MODE) redirect('/admin/today');
   await signIn('google', { redirectTo: '/' });
 }
 
 const signInSchema = z.object({ email: z.email('Enter your email'), password: z.string().min(1, 'Enter your password') });
 
 export async function signInWithPassword(_: FormState, form: FormData): Promise<FormState> {
-  if (DEMO_MODE) return DEMO_OFF;
   const parsed = signInSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   // Go straight to the right home: a second redirect from "/" would leave the address bar on "/".
@@ -43,7 +36,6 @@ const createSchema = z.object({
 
 /** New parents start as PREVIEW: they see a locked app until they enter Vienne's invite code. */
 export async function createAccount(_: FormState, form: FormData): Promise<FormState> {
-  if (DEMO_MODE) return DEMO_OFF;
   const parsed = createSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const email = parsed.data.email.toLowerCase();
@@ -59,6 +51,5 @@ export async function createAccount(_: FormState, form: FormData): Promise<FormS
 
 /** The account menu's "Sign out". Ends the session and goes back to the sign-in screen. */
 export async function signOutNow() {
-  if (DEMO_MODE) redirect('/admin/today');
   await signOut({ redirectTo: '/sign-in' });
 }

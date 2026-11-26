@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { googleEnabled } from '@/lib/auth';
-import { DEMO_MODE } from '@/lib/demo';
 import { SignInForm } from './SignInForm';
 
 export const metadata: Metadata = { title: 'Sign in' };
@@ -26,7 +25,7 @@ export default async function SignInPage({ searchParams }: PageProps<'/sign-in'>
           <h1 className="font-display mt-4 text-[30px] font-semibold text-ink-foreground">Mentoring Minds</h1>
           <p className="mt-1 text-ink-muted">Math tutoring with Vienne Elliott</p>
         </div>
-        <SignInForm google={googleEnabled || DEMO_MODE} problem={problem} />
+        <SignInForm google={googleEnabled} problem={problem} />
       </div>
     </main>
   );

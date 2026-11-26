@@ -6,12 +6,6 @@ export function productionProblems(env: Record<string, string | undefined>): str
   const problems: string[] = [];
   const onVercelProduction = env.VERCEL_ENV === 'production';
 
-  if (env.DEMO_MODE === 'true') {
-    // A throwaway demo deploy is fine; the real site never runs without sign-in.
-    if (onVercelProduction) problems.push('DEMO_MODE is "true" on the production deployment: that turns sign-in off. Remove it.');
-    return problems;
-  }
-
   if (!env.DATABASE_URL) problems.push('DATABASE_URL is not set (Neon’s pooled connection string).');
   if (!env.AUTH_SECRET) problems.push('AUTH_SECRET is not set (make one with `npx auth secret`).');
   else if (env.AUTH_SECRET.length < 32) problems.push('AUTH_SECRET is too short: use at least 32 random characters (`npx auth secret`).');
