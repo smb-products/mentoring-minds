@@ -3,6 +3,16 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: AGENTS.md keeps Next's agent-rules block; S29
+
+- **AGENTS.md:** commits the `nextjs-agent-rules` block that `next dev` 16.4 appends on every start. It tells
+  agents to read `node_modules/next/dist/docs/`, as CLAUDE.md already does. Committing it keeps the main checkout
+  clean, so lane pulls never stop on a dirty AGENTS.md. Turning it off instead would mean a config option in
+  next.config.ts, which isn't the plan's file. Why: OSA found the main checkout dirtied by it. Approved: Axis;
+  Zero reviews.
+- **S29 (new, not held):** the sign-in screen hydrates without a mismatch. First it reproduces the warning in a
+  clean browser, on dev and on a production build, and fixes it only if it shows. Why: OSA's dev screenshots
+  showed a mismatch on /sign-in. Approved: Axis.
 ## 2026-11-26: two S27 holdout cases retired by S23b
 
 - **`tests/holdout/S27.spec.ts`, first two cases (lead edit):** now `test.skip`, with a comment. They assert

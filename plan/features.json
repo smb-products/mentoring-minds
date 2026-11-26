@@ -1042,6 +1042,26 @@
       "held": "zero"
     },
     {
+      "id": "S29",
+      "title": "The sign-in screen hydrates without a mismatch",
+      "spec": "plan/reports/S29.md (the reproduction), plus a test if code changes",
+      "deps": [],
+      "touches": [
+        "src/app/(auth)/sign-in/",
+        "tests/e2e/auth-hydration.spec.ts",
+        "plan/reports/S29.md"
+      ],
+      "checks": [
+        "Open /sign-in in a clean browser (Playwright's Chromium, no extensions), both on `npm run dev` and on a production build (`npm run build:e2e`). The report says whether React logs a hydration mismatch ('server rendered HTML didn't match the client') in each, and pastes the warning's diff if it does.",
+        "If it reproduces, the cause is fixed in src/app/(auth)/sign-in/ without changing how the screen looks. tests/e2e/auth-hydration.spec.ts (new) opens /sign-in with the console-error fixture and passes. tests/e2e/auth.spec.ts and the whole browser suite pass.",
+        "If it doesn't reproduce in a clean browser, nothing in the app changes. The report says so and names the likely source, such as a browser extension that edits the page. That ends the ticket with status: done."
+      ],
+      "hints": [
+        "From OSA's dev-server screenshots (2026-11-26): /sign-in logged a hydration mismatch in dev. The e2e fixture fails on console errors, and auth.spec.ts passes in CI on production builds, so production is probably clean. Extensions that edit the page (password managers, translators) often cause this warning in dev only.",
+        "Not held. Read node_modules/next/dist/docs/ on hydration first."
+      ]
+    },
+    {
       "id": "S24",
       "title": "Signing out never shows or logs an error",
       "spec": "tests/s24-sign-out.test.ts or tests/e2e/s24-sign-out.spec.ts (new)",
