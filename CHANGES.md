@@ -9,6 +9,11 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   only its type and href. Why: every session request opens `/admin/schedule`, and two families' work on one
   assignment opens the same page. With type and href alone, one family's push would still replace another's.
   The title names the family or child. Approved after the fact: Axis; Zero reviewed #94.
+- **S26 reopened, check 1 rewritten:** the tag names the record a push is about (the thread, or the type and the
+  submission, session, report or invite id, passed by the caller), never the title. Check 3 adds the holdout
+  `plan/holdouts/S26.test.ts`. The touches add the callers (`assignments`, `scheduling`, `reports`, `invites`,
+  `messages`, `jobs`). Why: Rigg's holdout reopened S26 because two families' children called Mateo produce the
+  same title, so type, href and title still collide. This replaces the amend above. Approved: Axis; Zero reviews.
 
 ## 2026-11-26: S23 reopened, invite codes; reopen notices go to both leads
 
