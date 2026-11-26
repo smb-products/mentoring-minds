@@ -61,3 +61,14 @@ describe('demo seed guard', () => {
     await expect(run).rejects.toMatchObject({ code: 1, stderr: expect.stringMatching(/Refusing to load the demo families: the database "neondb" on db\.example\.invalid/) });
   }, 30000);
 });
+
+describe('production seed locations file (S28)', () => {
+  it('npm run db:seed refuses a SEED_LOCATIONS_FILE inside the repo before connecting', async () => {
+    // .invalid never resolves, so reaching the database would fail with a different error.
+    const tsx = path.resolve('node_modules/.bin/tsx');
+    const { SEED_LOCATIONS_FILE: _f, ADMIN_EMAIL: _e, ...rest } = process.env;
+    const env = { ...rest, DATABASE_URL: 'postgresql://u:p@db.example.invalid:5432/neondb', SEED_LOCATIONS_FILE: path.resolve('package.json') };
+    const run = promisify(execFile)(tsx, ['prisma/seed.ts'], { env });
+    await expect(run).rejects.toMatchObject({ code: 1, stderr: expect.stringMatching(/Refusing the locations file: SEED_LOCATIONS_FILE points inside the app’s folder/) });
+  }, 30000);
+});

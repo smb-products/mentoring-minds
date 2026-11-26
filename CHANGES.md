@@ -13,6 +13,13 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **S29 (new, not held):** the sign-in screen hydrates without a mismatch. First it reproduces the warning in a
   clean browser, on dev and on a production build, and fixes it only if it shows. Why: OSA's dev screenshots
   showed a mismatch on /sign-in. Approved: Axis.
+## 2026-11-26: two S27 holdout cases retired by S23b
+
+- **`tests/holdout/S27.spec.ts`, first two cases (lead edit):** now `test.skip`, with a comment. They assert
+  that Vienne's family page has no Delete button, while S23b check 7 brings Delete family and Delete child back.
+  They failed S23b (#107) in the merge queue. The third case (other people never reach her family page) stays.
+  Why: S23b replaces S27, which was only an interim. Approved: Javaris (S23b and S27, 2026-11-26); Zero made the
+  edit; Axis reviews.
 
 ## 2026-11-26: S28, locations at seed time; an S23 holdout case retired
 

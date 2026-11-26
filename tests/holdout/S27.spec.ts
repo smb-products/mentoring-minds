@@ -17,7 +17,9 @@ async function noDelete(page: Page, where: string) {
   await expect(page.getByRole('dialog', { name: /delete/i }), where).toHaveCount(0);
 }
 
-test('every demo family, whatever its status or number of children: no Delete, and the other buttons stay', async ({ page, as, db }) => {
+// Retired by S23b (approved by Javaris, 2026-11-26): S23b check 7 brings Delete family and Delete child back for
+// Vienne, so "no Delete" on her family page stops being true when it lands. Lead edit, see CHANGES.md.
+test.skip('every demo family, whatever its status or number of children: no Delete, and the other buttons stay', async ({ page, as, db }) => {
   test.setTimeout(150_000);
   await db.user.update({ where: { id: 'u_daniel' }, data: { status: 'PAUSED' } });
   const families = await db.user.findMany({ where: { role: 'PARENT' }, include: { students: true }, orderBy: { id: 'asc' } });
@@ -39,7 +41,9 @@ test('every demo family, whatever its status or number of children: no Delete, a
   }
 });
 
-test('on a phone-sized screen, and after pausing and reactivating, Delete never comes back', async ({ page, as }) => {
+// Retired by S23b (approved by Javaris, 2026-11-26): S23b check 7 brings Delete family and Delete child back for
+// Vienne, so "no Delete" on her family page stops being true when it lands. Lead edit, see CHANGES.md.
+test.skip('on a phone-sized screen, and after pausing and reactivating, Delete never comes back', async ({ page, as }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await as('vienne');
   await page.goto('/admin/families/u_ana');
