@@ -291,6 +291,7 @@
       ],
       "touches": [
         "src/server/scheduling.ts",
+        "src/server/families.ts",
         "tests/integration/s1-timeoff.test.ts",
         "plan/reports/S1.md"
       ],
@@ -298,14 +299,15 @@
         "scheduling.listTimeOff starts with requireAdmin and returns DTOs, not raw rows. Only the admin SchedulePage reads it.",
         "A parent calling listTimeOff gets code FORBIDDEN, and never sees a time-off reason.",
         "getOpenSlots still leaves out times inside Vienne's time off for families, without sending the time off itself.",
-        "listSessions still lists a family's sessions when the parent's status isn't ACTIVE (PAUSED or PREVIEW), but meetingUrl is null in every one of them, even inside the join window. An ACTIVE family and Vienne get it as before.",
+        "listSessions still lists a family's sessions when the parent's status isn't ACTIVE (PAUSED or PREVIEW), but meetingUrl is null in every one of them, even inside the join window, and so is every session families.getFamily sends that parent. An ACTIVE family and Vienne get it as before.",
         "joinCall calls requireActive before any database lookup. A family gets the same FORBIDDEN for a missing session id as for another family's session, so ids can't be probed. A PAUSED or PREVIEW parent gets NOT_ACTIVE and signed out gets UNAUTHENTICATED, whatever the id. Vienne still gets NOT_FOUND for a missing id.",
         "Permission tests for each of the above in tests/integration/s1-timeoff.test.ts. tests/holdout/W6.test.ts, the w6 spec and npm run test:contract stay green."
       ],
       "hints": [
         "Held for Zero (src/server).",
         "sessionForParent is in src/lib/dto.ts, outside touches: null meetingUrl in listSessions in scheduling.ts, after it.",
-        "Checks 4 and 5 are from Rigg's W6 holdout review (#23), confirmed by Zero."
+        "Checks 4 and 5 are from Rigg's W6 holdout review (#23), confirmed by Zero.",
+        "getFamily (src/server/families.ts) is from Rigg's S1 holdout (#37): the parent shell calls it."
       ],
       "held": "zero"
     },
@@ -430,6 +432,30 @@
       "held": "zero"
     },
     {
+      "id": "S7",
+      "title": "Session writes guard before any lookup (cancelSession)",
+      "spec": "tests/integration/s7-session-guard.test.ts (new)",
+      "deps": [
+        "S1"
+      ],
+      "touches": [
+        "src/server/scheduling.ts",
+        "tests/integration/s7-session-guard.test.ts",
+        "plan/reports/S7.md"
+      ],
+      "checks": [
+        "cancelSession calls requireActive before any database lookup: signed out gets UNAUTHENTICATED and a PAUSED or PREVIEW parent NOT_ACTIVE, whatever the id.",
+        "A family gets the same FORBIDDEN for a missing session id as for another family's session, so ids can't be probed. Vienne still gets NOT_FOUND for a missing id. Nothing changes and nobody is notified on a refusal.",
+        "Every other export in scheduling.ts that a family can call with a session id does the same, or the report says why it doesn't need to.",
+        "Permission tests in tests/integration/s7-session-guard.test.ts. tests/holdout/W6.test.ts, tests/holdout/S1.test.ts, the w6 spec and npm run test:contract stay green."
+      ],
+      "hints": [
+        "Held for Zero (src/server).",
+        "From Rigg's FYI on #37. Same pattern as S2, S3 and S4: guard first, one FORBIDDEN."
+      ],
+      "held": "zero"
+    },
+    {
       "id": "WC",
       "title": "Contract check covers the writes the screens use",
       "spec": "tests/contract/contract.test.ts",
@@ -487,6 +513,33 @@
       ],
       "hints": [
         "prisma/ is Zero's path, so this PR is held for Zero to merge. That's expected. Leave docs/ alone: a lead updates WIRING.md after."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "C1",
+      "title": "Clean-up: no references to the deleted src/mock",
+      "spec": "plan/reports/C1.md",
+      "deps": [
+        "S1",
+        "S7"
+      ],
+      "touches": [
+        "src/server/",
+        "src/lib/",
+        "src/app/(admin)/",
+        "src/app/(parent)/",
+        "tests/live-adapter.test.ts",
+        "plan/reports/C1.md"
+      ],
+      "checks": [
+        "`git grep -n src/mock -- src tests/live-adapter.test.ts` finds nothing. Comments that named a mock file as the contract name tests/contract/mock/ (the frozen copy) or are dropped.",
+        "tests/live-adapter.test.ts no longer mocks ../src/mock/core, and still passes.",
+        "Comments and that one test line only: no behaviour change. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass."
+      ],
+      "hints": [
+        "Held for Zero (src/server, src/lib). Runs after S1 and S7 so it never overlaps a fix in flight.",
+        "Leave tests/contract/ (the frozen mock and w8-no-mock.test.ts) and tests/e2e/support/live.ts: they mention src/mock on purpose. Docs are the leads'."
       ],
       "held": "zero"
     },
