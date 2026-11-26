@@ -53,7 +53,7 @@ Google is optional. Without both keys, the sign-in screen simply doesn't show th
 
 ## 4. Vercel
 
-1. Import the repo. The framework is Next.js. The build command comes from `vercel.json` (`npm run vercel-build`), which applies migrations and then builds.
+1. Import the repo. The framework is Next.js. The build command comes from `vercel.json` (`npm run vercel-build`). On previews it applies migrations to the preview database, then builds. On production it only checks whether the database is up to date, then builds; it never migrates production (see **Releasing**).
 2. Set the environment variables below for **Production**. For **Preview**, use the Neon `dev` branch's URLs.
 3. Deploy, then seed once from your machine, pointed at production:
 
@@ -64,6 +64,64 @@ DATABASE_URL="<neon pooled url>" ADMIN_EMAIL="vienne's google address" ADMIN_NAM
 This loads settings (Miami time, the FAST windows), Math and Vienne's skills, the books, locations and weekly hours, and creates her admin account. Run it again whenever you like: it never overwrites her changes. **Never run `db:seed:demo` against production.** It refuses unless forced.
 
 4. **Cron:** `vercel.json` runs `/api/cron/daily` at 13:00 UTC, which is 8 AM in Miami (9 AM in summer). It sends session reminders for today and tomorrow, empties the 30-day resource bin, and removes unfinished uploads. Crons only run on the production deployment. Vercel sends `CRON_SECRET` as a Bearer token, and the route rejects anything else.
+   - **Why `crons` and not Vercel Schedules (yet):** Schedules would run the job as a private function, with
+     no public route and no secret, and `timezone: "America/New_York"` would keep it at 8 AM all year.
+     But it's in beta (`schedule/v1beta`), it needs `@vercel/schedules` and a route change, and Vercel keeps
+     existing `crons` working. Move it after launch (P-ops report, S ticket), keeping the name `daily`.
+
+## Releasing
+
+Decision D5 (Javaris, 2026-11-26): production migrations are run by Javaris, never by a build.
+
+- "Auto-assign Custom Production Domains" is **off** (`docs/PRODUCTION_SETUP.md`, Part 2, step 8). A merge to
+  main builds a production deployment marked **Staged**. The live site doesn't change.
+- A production build never runs `prisma migrate deploy` (`scripts/vercel-build.mjs`). It runs
+  `prisma migrate status` instead. If the database lacks a migration in the build, the log shows
+  **PRODUCTION DATABASE NOT UP TO DATE**.
+
+To release:
+
+1. Open the Staged deployment's **Build Logs**. If they say the database is up to date, skip to step 3.
+2. If they say **PRODUCTION DATABASE NOT UP TO DATE**, Javaris migrates first, from the fresh clone in
+   `PRODUCTION_SETUP.md` Part 6:
+   ```bash
+   cd ~/mm-prod-ops && git pull && npm ci
+   read -rsp 'Neon main (production) DIRECT url: ' DIRECT_URL && echo && export DIRECT_URL DATABASE_URL="$DIRECT_URL"
+   npx prisma migrate status     # lists the new migration(s) as not yet applied
+   npx prisma migrate deploy
+   unset DIRECT_URL DATABASE_URL
+   ```
+   The live (older) code keeps working, because migrations here only add (see **Changing the database later**).
+3. On the Staged deployment, **⋯ → Promote**, and confirm. Promote doesn't rebuild.
+4. Check **Settings → Environments → Production → Branch Tracking**: auto-assign is still off.
+
+A Staged deployment uses production's variables and database, so opening its own address is a real
+production session. Check it there only as Vienne.
+
+## Rollback
+
+A bad deployment goes back to the previous one in about a minute, without a rebuild.
+
+1. **Vercel → Deployments**, then the last good **Production** deployment, **⋯ → Instant Rollback**, and confirm.
+2. Production now serves that build. Merges to main still build Staged deployments, as always (**Releasing**).
+3. Fix forward on main, then promote the fixed deployment (**Releasing**, step 3). Then check that
+   auto-assign is still off (step 4): Vercel turns it back on when a promote ends a rollback.
+
+A rollback changes code only, never the database. If the bad deployment applied a migration, the old code
+runs against the new schema. Migrations here only add, so that works, but check the migration first (see
+**Changing the database later**). Rehearsal, on a preview: `plan/reports/P-ops.md`.
+
+## Restoring the database
+
+Neon keeps a history window: 6 hours on Free, up to 7 days on Launch. You can restore to any moment inside it.
+
+1. **Neon → Branches → Create branch.** Parent `main`, **from a point in time**, just before the problem.
+   Name it `restore-<date>`. This copies nothing over `main`.
+2. Check the new branch: connect with its URL and look at the rows you lost.
+3. Only then, and only Javaris, either restore `main` to that time (**Branches → `main` → Restore**; Neon
+   keeps the old state as a backup branch) or copy the few rows across. Delete `restore-<date>` afterwards.
+
+Rehearsal timings: `plan/reports/P-ops.md`.
 
 ## Environment variables
 
@@ -90,7 +148,7 @@ npx prisma migrate dev --name what-changed   # writes prisma/migrations/<time>_w
 git add prisma && git commit
 ```
 
-CI fails if `schema.prisma` and the migrations disagree. Vercel applies new migrations on the next deploy (`prisma migrate deploy`).
+CI fails if `schema.prisma` and the migrations disagree. Preview builds apply new migrations to the preview database. Production gets them only when Javaris runs `prisma migrate deploy` before promoting (**Releasing**). So a migration must only add (new tables, new nullable or defaulted columns), and the code already live must keep working with it. Renames and drops take two releases.
 
 ## Before launch
 
@@ -107,7 +165,26 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] Invite code → a test parent redeems it → sees their child. Passes on a production build (`w2-families-invites.spec.ts`). **Javaris** repeats it once on the real site.
 - [ ] A photo upload from a real iPhone and a real Android phone. **Javaris**. The emulated part passes on a production build (`p-product.spec.ts`: JPEG sent and opened by Vienne, HEIC and over-`MAX_BYTES` files refused with a plain message). On the iPhone, try one photo from the camera and one from the library (Safari normally sends JPEG; a HEIC gets "Use a PDF, PNG, JPG or WebP file").
 - [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit). **Javaris**; P-ops rehearses one restore into a new branch.
+- [ ] "Auto-assign Custom Production Domains" is off (D5); a merge to main shows up **Staged**, and `PROD_URL` keeps the old build until Promote. **Javaris** sets it (setup Part 2); **Atlas** (P-ops) checks the next merge.
 - [ ] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). **Lanes**; `p-product.spec.ts` runs it once S8 removes its two `fixme`s.
+
+## Limits
+
+What stops guessing and runaway costs. Each is a named constant, and `tests/integration/p-sec.test.ts` reaches it.
+
+| Limit | Where | What it does |
+|---|---|---|
+| `MAX_FAILED_LOGINS` (5) | `src/lib/auth.ts` | Wrong passwords in a row lock password sign-in on that account for `LOCK_MINUTES` (15), even with the right password. |
+| `MAX_FAILURES` (10) | `src/server/invites.ts` | Wrong invite codes lock code entry on that account for an hour. |
+| `GLOBAL_REDEEM_FAILURES_PER_HOUR` (30) | `src/server/invites.ts` | More wrong codes than this from everyone in an hour pause code entry for everyone, and Vienne is told. |
+| `AI_DAILY_LIMIT` (150) | `src/lib/ai/prompts.ts` | AI drafts per 24 hours (only Vienne can ask), counted before Claude is called. The Claude Console spend limit backs it. |
+| `MAX_BYTES` (25 MB) | `src/lib/storage.ts` | The largest upload. Blob enforces it again on the upload token. |
+
+No limit in the app yet, and what covers it:
+
+- **Sign-up** (`createAccount` in `src/app/(auth)/sign-in/actions.ts`): covered by a Vercel Firewall rate-limit rule on `/sign-in` (Hardening later). A new account is a locked preview that sees teasers only until Vienne's code.
+- **Sign-in by IP**: the lockout is per account, so one address can try a password across many emails. Covered by a Vercel Firewall rate-limit rule on `/sign-in` and `/api/auth/*` (Hardening later). Google sign-in is throttled by Google.
+- **Messages, session requests and uploads** from an active family: only families Vienne gave a code can send them, and abandoned uploads are removed by the daily clean-up. Hardening later, if one is ever abused.
 
 ## Dependency notes
 

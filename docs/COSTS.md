@@ -39,6 +39,17 @@ Guards in the code:
 
 **Also set a monthly spend limit in the Claude Console** (for example $5). It's the backstop if anything above fails.
 
+## Spend caps
+
+Every service either stops at a limit or caps spending. Set these once (`docs/PRODUCTION_SETUP.md`, Part 8):
+
+| Service | Cap | Where | What happens at the cap |
+|---|---|---|---|
+| Vercel | Spend Management amount, for example $50 a month on top of Pro | team Settings → Billing → Spend Management, with **Pause production deployment** on | Production pauses until resumed. Alerts go out before that. |
+| Neon | Free has hard limits (1 GB, 100 compute-hours) | Billing | The database pauses until next month. Free never bills overages. |
+| Claude API | Monthly limit on the `mentoring-minds` workspace, for example $5 | console.anthropic.com → Settings → Limits | Calls fail. The AI buttons say "type it in instead". |
+| Claude API, in the app | `AI_DAILY_LIMIT` = 150 drafts per 24 hours (`src/lib/ai/prompts.ts`), `max_tokens` 4000 a call | code | Vienne sees "That's the most drafts for today". Worst case about $0.35 a day. |
+
 ## Setting it up
 
 All of this is built: Postgres via Neon's pooled URL, private Vercel Blob storage with direct uploads, the Vercel cron. The steps are in `docs/DEPLOY.md`.
