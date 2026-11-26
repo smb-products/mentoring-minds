@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BookCheck, BookX, CalendarCheck, CalendarRange, CalendarX, ClipboardCheck, FileBarChart, KeyRound, Mail, MessageSquare, NotebookText, Pause, Phone, Play, Plus } from 'lucide-react';
+import { BookCheck, BookX, CalendarCheck, CalendarRange, CalendarX, ClipboardCheck, FileBarChart, KeyRound, Mail, MessageSquare, NotebookText, Pause, Phone, Play, Plus, Trash2 } from 'lucide-react';
 import { api, useAction, useQuery } from '../../api';
 import { AdminSessionDrawer } from '../../components/sessions/AdminSessionDrawer';
 import { Button } from '../../components/ui/Button';
@@ -9,7 +9,8 @@ import { FastResults } from '../../components/fast/FastResults';
 import { Place, sessionBg } from '../../components/sessions/SessionParts';
 import { AreaBars, Avatar, Empty, PageHeader, Row, Section, StatusBadge } from '../../components/ui/Display';
 import { PageLoading } from '../../components/ui/Display';
-import { Textarea } from '../../components/ui/Form';
+import { Field, Input, Textarea } from '../../components/ui/Form';
+import { Drawer } from '../../components/ui/Overlay';
 import { useResultToast, useUndoToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/cn';
 import { fmtAgo, fmtDate, fmtDateYear, fmtRelativeDay, fmtTime, fullName, gradeLabel } from '../../lib/format';
@@ -26,6 +27,7 @@ export default function FamilyPage({ params }) {
   const [createDraft] = useAction(api.reports.createDraft);
   const [tempPw, setTempPw] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [deleting, setDeleting] = useState(null); // { kind: 'family' } | { kind: 'child', student }
   if (!data) return <PageLoading />;
 
   const p = data.parent;
@@ -50,6 +52,7 @@ export default function FamilyPage({ params }) {
             ) : (
               <Button variant="glass" icon={Play} onClick={async () => show(await setStatus({ parentId: p.id, status: 'ACTIVE' }), 'Account is active')}>Make active</Button>
             )}
+            <Button variant="glass" icon={Trash2} onClick={() => setDeleting({ kind: 'family' })}>Delete family</Button>
           </>
         }
       >
@@ -74,6 +77,7 @@ export default function FamilyPage({ params }) {
               key={s.id}
               s={s}
               reports={data.reports.filter((r) => r.studentId === s.id)}
+              onDelete={() => setDeleting({ kind: 'child', student: s })}
               onNewReport={async () => {
                 const r = show(await createDraft({ studentId: s.id }));
                 if (r) navigate(`/admin/reports/${r.id}`);
@@ -128,12 +132,84 @@ export default function FamilyPage({ params }) {
         </div>
       </div>
       <AdminSessionDrawer session={selected} onClose={() => setSelected(null)} />
+      {deleting && (
+        <DeleteDrawer
+          key={deleting.kind === 'child' ? deleting.student.id : 'family'}
+          parent={p}
+          kids={data.students}
+          student={deleting.kind === 'child' ? deleting.student : null}
+          onClose={() => setDeleting(null)}
+          onDeleted={() => {
+            setDeleting(null);
+            if (deleting.kind === 'family') navigate('/admin/families');
+          }}
+        />
+      )}
     </>
   );
 }
 
+/**
+ * Delete on request (S23). Asks twice: what will be removed, then the child's or parent's name typed out.
+ * A whole family when `student` is null.
+ */
+function DeleteDrawer({ parent, kids, student, onClose, onDeleted }) {
+  const show = useResultToast();
+  const [deleteStudent, deletingStudent] = useAction(api.families.deleteStudent);
+  const [deleteFamily, deletingFamily] = useAction(api.families.deleteFamily);
+  const [step, setStep] = useState('explain');
+  const [typed, setTyped] = useState('');
+  const name = student ? fullName(student) : parent.name;
+  const matches = typed.trim().toLowerCase() === name.trim().toLowerCase();
+  const saving = deletingStudent || deletingFamily;
+  const who = student ? student.firstName : kids.length ? `${parent.name} and ${kids.map((k) => k.firstName).join(' and ')}` : parent.name;
+  const removed = [
+    'sessions and session notes',
+    'homework, answers and photos of their work',
+    'FAST results and progress reports',
+    ...(student ? [] : ['messages, alerts and invites', 'the parent’s account and sign-in']),
+    'files only they used',
+  ];
+
+  return (
+    <Drawer open onClose={onClose} title={student ? `Delete ${name}?` : `Delete the ${parent.name.split(' ').slice(-1)[0]} family?`} subtitle="This can’t be undone.">
+      {step === 'explain' ? (
+        <div className="space-y-5">
+          <p className="text-[14.5px] leading-relaxed text-muted-foreground">
+            {student ? `This removes ${name} from ${parent.name.split(' ')[0]}’s account, with everything about them:` : `This removes ${who}, with everything about them:`}
+          </p>
+          <ul className="list-disc space-y-1 pl-5 text-[14.5px] font-semibold">
+            {removed.map((r) => <li key={r}>{r}</li>)}
+          </ul>
+          <p className="text-[14px] leading-relaxed text-muted-foreground">Library resources stay. They just stop being shared with {student ? student.firstName : 'this family'}.</p>
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <Button variant="ghost" onClick={onClose}>Keep</Button>
+            <Button variant="destructive" icon={Trash2} onClick={() => setStep('type')}>Continue</Button>
+          </div>
+        </div>
+      ) : (
+        <form
+          className="space-y-5"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!matches) return;
+            const r = student ? await deleteStudent({ studentId: student.id }) : await deleteFamily({ parentId: parent.id });
+            if (show(r, student ? `${name} was deleted` : 'Family deleted', 'Everything about them is gone.')) onDeleted();
+          }}
+        >
+          <Field label={`Type “${name}” to delete for good`}>{(id) => <Input id={id} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" autoFocus />}</Field>
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <Button variant="ghost" onClick={() => setStep('explain')}>Back</Button>
+            <Button variant="destructive" type="submit" icon={Trash2} disabled={!matches || saving}>{student ? `Delete ${student.firstName}` : 'Delete family'}</Button>
+          </div>
+        </form>
+      )}
+    </Drawer>
+  );
+}
+
 /** A child's profile: identity, numbers, goals, private notes, reports. */
-function StudentCard({ s, reports, onNewReport }) {
+function StudentCard({ s, reports, onNewReport, onDelete }) {
   const show = useResultToast();
   const [updateStudent, saving] = useAction(api.families.updateStudent);
   const [setHasBook] = useAction(api.books.setHasBook);
@@ -150,6 +226,7 @@ function StudentCard({ s, reports, onNewReport }) {
             <span className="text-[14px] font-semibold text-muted-foreground">{gradeLabel(s.grade)}{s.school ? `, ${s.school}` : ''}</span>
           </div>
         </div>
+        <Button size="xs" variant="ghost" icon={Trash2} onClick={onDelete} aria-label={`Delete ${fullName(s)}`} className="self-start">Delete</Button>
       </div>
 
       <dl className="mx-5 grid grid-cols-3 overflow-hidden rounded-xl bg-muted/70">

@@ -8,7 +8,9 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { signIn } from '@/lib/auth';
 import { MAX_PASSWORD } from '@/lib/auth-rules';
-import { db } from '@/lib/db';
+import { db, type Tx } from '@/lib/db';
+import { dropUnusedFiles, fileIdsOf } from '@/lib/files';
+import { removeObject } from '@/lib/storage';
 import { requireAdmin, requireSignedIn, requireStudentAccess, requireUser } from '@/lib/guards';
 import { ApiError, action, found, need, query } from '@/lib/result';
 import { grade, id, ids, optText, parse, text } from '@/lib/validate';
@@ -17,6 +19,7 @@ import { bookResultsFor } from '@/lib/book-results';
 import { loadSettings, schoolYearOf } from '@/lib/settings';
 
 const MATH = 'sub_math';
+const fullName = (s: { firstName: string; lastName: string }) => `${s.firstName} ${s.lastName}`.trim();
 const resultOrder = (r: { schoolYear: string; window: string }) => `${r.schoolYear}${r.window}`;
 const newest = <T extends { schoolYear: string; window: string }>(rows: T[]) => [...rows].sort((a, b) => resultOrder(b).localeCompare(resultOrder(a)))[0] ?? null;
 
@@ -215,6 +218,105 @@ export const archiveStudent = action(async (input: { studentId: string }) => {
   const n = await db.student.updateMany({ where: { id: studentId }, data: { status: 'ARCHIVED' } });
   need(n.count, 'Student not found', 'NOT_FOUND');
   return null;
+});
+
+/* ── Delete on request (S23): admin only, asks twice on the family page ── */
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/** Does this alert name one of these people? (Alerts have no link to a child or parent, only their names.) */
+const names = (who: string[]) => {
+  const res = who.map((w) => w.trim()).filter(Boolean).map((w) => new RegExp(`(^|[^\\p{L}])${escapeRe(w)}($|[^\\p{L}])`, 'u'));
+  return (n: { title: string; body: string | null }) => res.some((re) => re.test(`${n.title} ${n.body ?? ''}`));
+};
+
+/** Deletes the alerts of these users that name one of `who` (or link to `href`). */
+async function dropAlerts(tx: Tx, userIds: string[], who: string[], href?: string) {
+  const mentions = names(who);
+  const rows = await tx.notification.findMany({ where: { userId: { in: userIds } }, select: { id: true, title: true, body: true, href: true } });
+  const ids = rows.filter((n) => mentions(n) || (href && n.href === href)).map((n) => n.id);
+  if (ids.length) await tx.notification.deleteMany({ where: { id: { in: ids } } });
+}
+
+/**
+ * Every record about these children, in an order the foreign keys allow: sessions (notes cascade),
+ * Vienne's AI note drafts for them, homework and answers, assignments only they had, reports
+ * (ratings cascade), then the child (FAST results, redo list, shares and subjects cascade).
+ * Returns the ids of the files their work used, for dropUnusedFiles.
+ */
+async function removeChildren(tx: Tx, studentIds: string[]) {
+  const subs = await tx.submission.findMany({ where: { studentId: { in: studentIds } }, select: { assignmentId: true, fileId: true, photos: true, draft: true, answers: true } });
+  const sessions = await tx.session.findMany({ where: { studentId: { in: studentIds } }, select: { id: true } });
+  await tx.aiDraft.deleteMany({ where: { kind: 'SESSION_NOTE', refId: { in: sessions.map((s) => s.id) } } });
+  await tx.session.deleteMany({ where: { studentId: { in: studentIds } } });
+  await tx.redoItem.deleteMany({ where: { studentId: { in: studentIds } } });
+  await tx.submission.deleteMany({ where: { studentId: { in: studentIds } } });
+  await tx.assignment.deleteMany({ where: { id: { in: [...new Set(subs.map((s) => s.assignmentId))] }, submissions: { none: {} } } });
+  await tx.progressReport.deleteMany({ where: { studentId: { in: studentIds } } });
+  await tx.student.deleteMany({ where: { id: { in: studentIds } } });
+  return fileIdsOf(subs);
+}
+
+const DELETE_TIMEOUT = { timeout: 30000, maxWait: 10000 };
+
+/** Deletes a child and everything about them, and the stored files only they used. Can't be undone. */
+export const deleteStudent = action(async (input: { studentId: string }) => {
+  await requireAdmin();
+  const { studentId } = parse(z.object({ studentId: id }), input);
+  const student = found(await db.student.findUnique({ where: { id: studentId } }), 'Student');
+  const admins = (await db.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } })).map((u) => u.id);
+  const keys = await db.$transaction(async (tx) => {
+    const files = await removeChildren(tx, [student.id]);
+    await dropAlerts(tx, [student.parentId, ...admins], [fullName(student), student.firstName]);
+    // The invite that added them listed them by name.
+    const invite = await tx.invite.findUnique({ where: { usedById: student.parentId } });
+    if (invite) {
+      const planned = (invite.plannedStudents as { firstName?: string; lastName?: string }[]) ?? [];
+      const rest = planned.filter((p) => `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim() !== fullName(student) && (p.firstName ?? '') !== student.firstName);
+      if (rest.length !== planned.length) await tx.invite.update({ where: { id: invite.id }, data: { plannedStudents: rest } });
+    }
+    return dropUnusedFiles(tx, files);
+  }, DELETE_TIMEOUT);
+  for (const key of keys) await removeObject(key);
+  return { deleted: true, files: keys.length };
+});
+
+/**
+ * Deletes a parent's account and the whole family: every child (as deleteStudent), their thread
+ * and messages, alerts, invites, push devices, sign-in links, uploads, and the stored files only
+ * they used. Vienne's own account can't be deleted. Can't be undone.
+ */
+export const deleteFamily = action(async (input: { parentId: string }) => {
+  const admin = await requireAdmin();
+  const { parentId } = parse(z.object({ parentId: id }), input);
+  const parent = found(await db.user.findUnique({ where: { id: parentId } }), 'Family');
+  need(parent.role !== 'ADMIN', 'Vienne’s own account can’t be deleted.', 'FORBIDDEN');
+  const admins = (await db.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } })).map((u) => u.id);
+  const keys = await db.$transaction(async (tx) => {
+    const students = await tx.student.findMany({ where: { parentId }, select: { id: true, firstName: true, lastName: true } });
+    const conversation = await tx.conversation.findUnique({ where: { parentId }, select: { id: true } });
+    const files = await removeChildren(tx, students.map((s) => s.id));
+    const uploads = await tx.fileAsset.findMany({ where: { uploadedById: parentId }, select: { id: true } });
+    uploads.forEach((f) => files.add(f.id));
+
+    // Their marks on anyone else's rows (the guards make these rare): kept, without the parent.
+    await tx.session.updateMany({ where: { requestedById: parentId }, data: { requestedById: admin.id } });
+    await tx.session.updateMany({ where: { cancelledById: parentId }, data: { cancelledById: null } });
+    await tx.submission.updateMany({ where: { submittedById: parentId }, data: { submittedById: null } });
+    await tx.fastResult.deleteMany({ where: { enteredById: parentId } });
+
+    await tx.conversation.deleteMany({ where: { parentId } }); // messages cascade
+    await tx.message.deleteMany({ where: { senderId: parentId } });
+    await tx.invite.deleteMany({ where: { OR: [{ usedById: parentId }, { parentEmail: { equals: parent.email, mode: 'insensitive' } }] } });
+    await dropAlerts(tx, admins, [parent.name, ...students.map(fullName), ...students.map((s) => s.firstName)], conversation ? `/admin/messages/${conversation.id}` : undefined);
+
+    const keys = await dropUnusedFiles(tx, files);
+    // An upload of theirs something else still uses stays, as Vienne's.
+    await tx.fileAsset.updateMany({ where: { uploadedById: parentId }, data: { uploadedById: admin.id } });
+    await tx.user.delete({ where: { id: parentId } }); // sign-in links, alerts, push devices and wrong-code rows cascade
+    return keys;
+  }, DELETE_TIMEOUT);
+  for (const key of keys) await removeObject(key);
+  return { deleted: true, files: keys.length };
 });
 
 /** Bigger text and buttons for the signed-in user (applied app-wide). */

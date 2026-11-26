@@ -1,5 +1,5 @@
 import 'server-only';
-import { db } from './db';
+import { db, type Tx } from './db';
 import type { Photo } from './dto';
 
 type Viewer = { id: string; role: string; status: string };
@@ -57,25 +57,50 @@ function collectFileIds(value: unknown, out: Set<string>) {
  * (a submission's photos, draft or answers, a resource's body, an AI draft).
  * The daily clean-up never removes a file in this set.
  */
-export async function fileIdsInUse() {
+export async function fileIdsInUse(client: Tx = db) {
   const used = new Set<string>();
-  const resources = await db.resource.findMany({ select: { fileId: true, thumbnailId: true, body: true } });
+  const resources = await client.resource.findMany({ select: { fileId: true, thumbnailId: true, body: true } });
   for (const r of resources) {
     if (r.fileId) used.add(r.fileId);
     if (r.thumbnailId) used.add(r.thumbnailId);
     collectFileIds(r.body, used);
   }
-  const subs = await db.submission.findMany({ select: { fileId: true, photos: true, draft: true, answers: true } });
-  for (const s of subs) {
-    if (s.fileId) used.add(s.fileId);
-    collectFileIds(s.photos, used);
-    collectFileIds(s.draft, used);
-    collectFileIds(s.answers, used);
-  }
-  const drafts = await db.aiDraft.findMany({ select: { input: true, output: true } });
+  const subs = await client.submission.findMany({ select: { fileId: true, photos: true, draft: true, answers: true } });
+  for (const id of fileIdsOf(subs)) used.add(id);
+  const drafts = await client.aiDraft.findMany({ select: { input: true, output: true } });
   for (const d of drafts) {
     collectFileIds(d.input, used);
     collectFileIds(d.output, used);
   }
   return used;
+}
+
+/** The file ids these submissions point at: the uploaded work, and any in the photos, draft or answers. */
+export function fileIdsOf(subs: { fileId: string | null; photos: unknown; draft: unknown; answers: unknown }[]) {
+  const out = new Set<string>();
+  for (const s of subs) {
+    if (s.fileId) out.add(s.fileId);
+    collectFileIds(s.photos, out);
+    collectFileIds(s.draft, out);
+    collectFileIds(s.answers, out);
+  }
+  return out;
+}
+
+/**
+ * Inside the transaction that has just removed the records pointing at `candidates` (S23):
+ * deletes the rows of the files nothing uses any more and returns their storage keys, for
+ * removeObject once it commits. A file anything else still uses (a library resource, another
+ * child's work) stays.
+ */
+export async function dropUnusedFiles(tx: Tx, candidates: Iterable<string>) {
+  const ids = [...new Set(candidates)];
+  if (!ids.length) return [];
+  const inUse = await fileIdsInUse(tx);
+  const files = await tx.fileAsset.findMany({
+    where: { id: { in: ids.filter((x) => !inUse.has(x)) }, resources: { none: {} }, submissions: { none: {} } },
+    select: { id: true, storageKey: true },
+  });
+  await tx.fileAsset.deleteMany({ where: { id: { in: files.map((f) => f.id) } } });
+  return files.map((f) => f.storageKey);
 }
