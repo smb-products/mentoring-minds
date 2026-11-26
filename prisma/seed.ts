@@ -21,6 +21,7 @@ const SAFE_NAME = /test|dev|demo|preview/i;
 /**
  * Whether the demo seed may load the demo families into `url`. Returns the refusal
  * message, or null when it may go ahead. Pure: it never connects to anything.
+ * The host judged is the one pg really connects to: ?host= when set, else the URL's host.
  * Allowed: a local host (localhost, 127.0.0.1, ::1, a Unix socket) or a database name
  * containing test, dev, demo or preview, unless VERCEL_ENV or NODE_ENV is production.
  * `--force` overrides all of it.
@@ -35,7 +36,9 @@ export function demoSeedRefusal(url: string | undefined, env: Record<string, str
   let name = '';
   try {
     const u = new URL(url ?? '');
-    host = decodeURIComponent(u.hostname || u.searchParams.get('host') || '').toLowerCase();
+    // pg connects to ?host= when it's set (the last one wins), not to the host before the path.
+    const query = u.searchParams.getAll('host').at(-1);
+    host = (query || decodeURIComponent(u.hostname)).toLowerCase();
     name = decodeURIComponent(u.pathname.replace(/^\//, ''));
   } catch {
     return `Refusing to load the demo families: DATABASE_URL isn’t a database address I can read, so I can’t tell it isn’t production. ${force}`;
