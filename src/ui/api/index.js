@@ -12,8 +12,8 @@ const LIVE = new Set([
   // 'families',
   // 'invites',
   // W3
-  // 'messages',
-  // 'notifications',
+  'messages',
+  'notifications',
   // W4
   'books',
   'content',

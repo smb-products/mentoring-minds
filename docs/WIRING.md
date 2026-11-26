@@ -84,6 +84,8 @@ export { useQuery, useAction } from './live-hooks';
 export { auth, setSessionUser } from '../../mock';
 ```
 
+From W2 on, the `export const api` line also sends every area to `live` when the mock doesn't know the signed-in user. The mock only holds the seeded families, so a parent who signs up for real would otherwise get "Please sign in." from any area still on the mock (parent Home reads `scheduling` before W6). It's decided per call, so seeded families keep the mix.
+
 A suggested order, from least to most connected. Each is one ticket:
 
 | # | Area | Screens to click through | Notes |
