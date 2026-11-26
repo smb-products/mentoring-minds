@@ -11,7 +11,6 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   with main: its green check is stale and it waits on its author's merge, not a lead (Zero, on #46).
   Approved: Axis; Zero reviews.
 
-
 ## 2026-11-26: D5, production migrations are manual (P-ops)
 
 - **Deploy (`scripts/vercel-build.mjs`, `docs/DEPLOY.md` → Releasing, `docs/PRODUCTION_SETUP.md`):** production
