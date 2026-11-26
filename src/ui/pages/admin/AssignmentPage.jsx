@@ -142,14 +142,7 @@ function GradeDrawer({ submission, assignment, onClose }) {
               {photo?.file && (
                 <button
                   type="button"
-                  onClick={async () => {
-                    try {
-                      await api.content.getFileForUser({ fileId: photo.file.id });
-                      toast({ title: 'Opens the photo full screen', description: 'Photo viewing isn’t part of the prototype.' });
-                    } catch (e) {
-                      toast({ tone: 'error', title: e.message });
-                    }
-                  }}
+                  onClick={() => window.open(`/api/files/${photo.file.id}`, '_blank', 'noopener')}
                   className="mt-3 flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg bg-muted text-muted-foreground hover:bg-muted/70"
                 >
                   <FileImage size={28} aria-hidden />
