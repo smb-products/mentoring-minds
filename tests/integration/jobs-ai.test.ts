@@ -47,7 +47,7 @@ describe('daily reminders', () => {
     await db.resource.update({ where: { id: 'res_counting' }, data: { deletedAt: new Date(Date.now() - 31 * 86400000) } });
     const stale = await db.fileAsset.create({ data: { storageKey: 'files/stale', filename: 'x.pdf', mimeType: 'application/pdf', sizeBytes: 10, uploadedById: 'u_ana', createdAt: new Date(Date.now() - 2 * 86400000) } });
     const r = await cleanUp();
-    expect(r).toEqual({ purgedResources: 1, abandonedUploads: 1 });
+    expect(r).toEqual({ purgedResources: 1, abandonedUploads: 1, redeemFailures: 0 });
     expect(await db.fileAsset.findUnique({ where: { id: stale.id } })).toBeNull();
   });
 });
