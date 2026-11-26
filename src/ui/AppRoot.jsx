@@ -3,28 +3,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { InviteCodeForm } from '@/components/family/InviteCodeForm';
 import { ChangePasswordForm } from '@/components/family/ChangePasswordForm';
-import { api, setSessionUser } from './api';
-import { live } from './api/live';
 import { NAV } from './config/nav';
 import { usePathname, useRouter } from './lib/router';
 import { useStoredState } from './lib/useStoredState';
 import { AppShell } from './components/shell/AppShell';
 import { DemoContext, ShellProvider } from './components/shell/ShellContext';
 
-/** True while some area still runs on the in-browser mock (until W8). */
-const SOME_ON_MOCK = Object.keys(api).some((k) => api[k] !== live[k]);
+/** Demo mode only (no session): who the shell shows. The data itself comes from the server. */
+const DEMO_NAMES = { u_admin: 'Vienne', u_ana: 'Ana', u_grace: 'Grace', u_monique: 'Monique' };
 
 /**
  * Client root for every signed-in screen (both route groups render it from their layout).
  *
  * Signed in (`user` = the Auth.js session user from the layout): role, text size and the
- * shell's user come from the session. While some areas are still on the mock, the mock is
- * told who is signed in (the demo data uses the same ids).
- * Demo mode (no `user`): a demo account from the mock data — Vienne on /admin, the parent
- * chosen in the account menu on /parent.
+ * shell's user come from the session.
+ * Demo mode (no `user`): a demo account — Vienne on /admin, the parent chosen in the
+ * account menu on /parent. Every area reads the real server, which needs a session.
  *
- * The mock data is created in the browser, so nothing renders on the server
- * (`mounted`): that avoids hydration mismatches from "now"-relative demo dates.
+ * Nothing renders on the server (`mounted`): that avoids hydration mismatches from
+ * "now"-relative dates.
  */
 export function AppRoot({ user, children }) {
   const pathname = usePathname();
@@ -34,7 +31,10 @@ export function AppRoot({ user, children }) {
   const [parentId, setParentId] = useStoredState('mm.demo.parent', 'u_ana');
   const role = user ? (user.role === 'ADMIN' ? 'admin' : 'parent') : pathname.startsWith('/parent') ? 'parent' : 'admin';
   const userId = user ? user.id : role === 'parent' ? parentId : 'u_admin';
-  if (!user || SOME_ON_MOCK) setSessionUser(userId, { silent: true }); // the shell remounts (key) when the user changes
+  const shellUser = useMemo(
+    () => user ?? { id: userId, role: role === 'admin' ? 'ADMIN' : 'PARENT', status: 'ACTIVE', name: DEMO_NAMES[userId] ?? 'Demo parent', email: '', textSize: 'NORMAL' },
+    [user, userId, role],
+  );
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -56,7 +56,7 @@ export function AppRoot({ user, children }) {
   );
 
   let content = (
-    <ShellProvider key={userId} sessionUser={user}>
+    <ShellProvider key={userId} sessionUser={shellUser}>
       <AppShell>
         {user?.status === 'PREVIEW' && (
           <div className="mb-5">

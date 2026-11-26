@@ -1,11 +1,9 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { subscribe as subscribeMock } from '../../mock/core';
 
 /**
- * The same useQuery / useAction as the mock (src/mock/hooks.js), for the live
- * backend. Queries re-run after any successful write — live or mock — so screens
- * stay in step while namespaces are switched over one at a time.
+ * useQuery / useAction for the live backend. Queries re-run after any successful
+ * write, so a change on one screen shows up on the others without a reload.
  */
 const listeners = new Set();
 
@@ -41,11 +39,9 @@ export function useQuery(fn, deps = []) {
     };
     run();
     listeners.add(run);
-    const unsubscribeMock = subscribeMock(run);
     return () => {
       alive = false;
       listeners.delete(run);
-      unsubscribeMock();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
