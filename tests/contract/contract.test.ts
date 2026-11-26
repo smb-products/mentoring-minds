@@ -329,10 +329,11 @@ describe('writes match the mock', () => {
     await check('families', 'updateParent', { parentId: 'u_ana', phone: '(305) 555-0000' }, ADMIN);
     await check('families', 'setTextSize', { textSize: 'LARGE' }, 'u_ana');
     await check('families', 'addStudent', { parentId: 'u_grace', firstName: 'June', grade: 1 }, ADMIN);
+    // Before the reset: after it, Daniel can only choose a new password (S21).
+    await check('fast', 'deleteResult', { id: 'fr_sofia_PM1_2026' }, 'u_daniel');
     await check('families', 'resetParentPassword', { parentId: 'u_daniel' }, ADMIN);
     await check('families', 'setParentStatus', { parentId: 'u_daniel', status: 'PAUSED' }, ADMIN);
     await check('families', 'setParentStatus', { parentId: 'u_daniel', status: 'ACTIVE' }, ADMIN);
-    await check('fast', 'deleteResult', { id: 'fr_sofia_PM1_2026' }, 'u_daniel');
     await check('fast', 'saveResult', { studentId: 's_mateo', schoolYear: '2026–27', window: 'PM2', scaleScore: 300, level: 3 }, 'u_ana');
     await check('fast', 'saveResult', { studentId: 's_ava', schoolYear: '2026–27', window: 'PM2', scaleScore: 600, percentile: 50 }, 'u_monique');
     await check('books', 'setHasBook', { studentId: 's_lucia', hasBook: true }, 'u_ana');

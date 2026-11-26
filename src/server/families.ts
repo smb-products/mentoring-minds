@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { signIn } from '@/lib/auth';
 import { MAX_PASSWORD } from '@/lib/auth-rules';
 import { db } from '@/lib/db';
-import { requireAdmin, requireStudentAccess, requireUser } from '@/lib/guards';
+import { requireAdmin, requireSignedIn, requireStudentAccess, requireUser } from '@/lib/guards';
 import { ApiError, action, found, need, query } from '@/lib/result';
 import { grade, id, ids, optText, parse, text } from '@/lib/validate';
 import { reportDTO, reportInclude, sessionDTO, sessionForParent, sessionInclude, studentDTO, studentInclude, submissionDTOs, submissionInclude, userSummary } from '@/lib/dto';
@@ -222,9 +222,10 @@ export const archiveStudent = action(async (input: { studentId: string }) => {
  * The signed-in person sets a new password. Needs the current one when there is one
  * (after a reset, that's the temporary password). Wrong current passwords count toward
  * the same 5-try lockout as sign-in. Google-only accounts can add a password this way.
+ * requireSignedIn, not requireUser: this is how an account Vienne reset gets past requireUser's refusal (S21).
  */
 export const changePassword = action(async (input: { currentPassword?: string; newPassword: string }) => {
-  const user = await requireUser();
+  const user = await requireSignedIn();
   const v = parse(
     z.object({ currentPassword: z.string().max(MAX_PASSWORD).optional(), newPassword: z.string().min(8, 'Use at least 8 characters').max(MAX_PASSWORD, 'That password is too long') }),
     input,
