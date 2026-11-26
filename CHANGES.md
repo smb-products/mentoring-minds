@@ -9,6 +9,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   no-input guard exported from `src/lib/guards.ts` (`export async function requireX()`), instead of a fixed
   list of three. Why: S9 (#56) adds `requireCanMessage`, so main plus S9 failed the check in the merge queue
   although each passed alone. The check is unchanged otherwise. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: S13 and S14 from the P-sec audit
 
 - **S13 (new, held zero):** `content.getFileForUser` checks the account before the lookup and returns a file
@@ -18,7 +19,6 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   `src/lib/auth-rules.ts`), as sign-in and change-password do. Why: finding S-sec2 (P-sec, #54):
   a longer one made an account that could never sign in by password. Approved: Axis; Zero reviews.
 
-
 ## 2026-11-26: D5, production migrations are manual (P-ops)
 
 - **Deploy (`scripts/vercel-build.mjs`, `docs/DEPLOY.md` → Releasing, `docs/PRODUCTION_SETUP.md`):** production
@@ -26,6 +26,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   migrate their own database. Auto-assignment of production domains is off, so merges build Staged
   deployments, and Javaris migrates production and then promotes. Why: RULES.md (production migrations are
   Javaris's); finding S-ops1. Approved: Javaris (D5, via OSA).
+
 ## 2026-11-26: Javaris's decisions (S6, S9, D5) and new S10, S11, S12
 
 - **S6 (new, held zero):** retire `DEMO_MODE`. Sign-in is always on, and dev signs in with the demo accounts
@@ -170,6 +171,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   Approved: Axis (W2's owner, per OSA).
 - **Kit:** `kit/plan.py refresh` tells OSA and the feature's `held` lead when a builder's PR is red in CI, once
   per head commit. Why: PR #9 sat in `review` with nobody told. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: S5 lock rows, WC touches, held PRs
 
 - **S5:** a refusal while locked (global or per-account) adds no `RedeemFailure` row, and
