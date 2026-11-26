@@ -34,7 +34,7 @@ export async function sendSessionReminders(now = new Date()) {
   return sent;
 }
 
-/** Empties the resource bin after 30 days and removes uploads that were never finished. */
+/** Empties the resource bin after 30 days, removes uploads that were never finished and wrong-code rows over a day old. */
 export async function cleanUp(now = new Date()) {
   const binCutoff = new Date(now.getTime() - 30 * 86400000);
   const binned = await db.resource.findMany({ where: { deletedAt: { lt: binCutoff } }, select: { id: true, fileId: true } });
@@ -54,5 +54,8 @@ export async function cleanUp(now = new Date()) {
     await removeObject(f.storageKey);
     await db.fileAsset.deleteMany({ where: { id: f.id, uploadedAt: null } });
   }
-  return { purgedResources: purged.count, abandonedUploads: stale.length };
+
+  // Wrong invite codes count toward the limit for an hour; after a day they're only clutter.
+  const oldFailures = await db.redeemFailure.deleteMany({ where: { at: { lt: new Date(now.getTime() - 86400000) } } });
+  return { purgedResources: purged.count, abandonedUploads: stale.length, redeemFailures: oldFailures.count };
 }
