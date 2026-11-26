@@ -189,6 +189,16 @@ class Kit(unittest.TestCase):
         lane = json.loads((self.repo / ".git" / "avel" / "lanes" / "soap.json").read_text())
         self.assertEqual(lane["state"], "stopped")
 
+    def test_lane_doesnt_claim_when_the_main_checkout_cant_update(self):
+        run(["git", "checkout", "-qb", "elsewhere"], self.repo)
+        log = self.tmp / "claude.env"
+        r = self.kit("lane.py", "--agent", "soap", "--once", env={"CLAUDE_ENV_LOG": str(log)})
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertFalse(log.exists(), "the lane built from a stale checkout")
+        self.assertIn("isn't claiming: the main checkout is on elsewhere", self.kit("msg.py", "inbox", "osa").stdout)
+        run(["git", "checkout", "-q", "main"], self.repo)
+        self.assertEqual(self.kit("lane.py", "--agent", "soap", "--once").returncode, 0)  # back on main: claims
+
     def test_a_features_own_auth_words_never_stop_the_lane(self):
         r = self.kit("lane.py", "--agent", "soap", "--once",
                      env={"FAKE_ERR_TEXT": "authentication: OAuth credentials step left; ran out of turns"})

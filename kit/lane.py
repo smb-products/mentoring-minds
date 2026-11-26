@@ -378,6 +378,29 @@ def in_flight():
     return [f["id"] for f in plan.features() if plan.status_of(f, st) in ("doing", "review")]
 
 
+PULL_FAILING = set()
+
+
+def pull_main(agent):
+    """Fast-forward the main checkout to origin/main before a claim. A claim from a stale plan can hand out work
+    whose deps or touches changed, so a failure is logged, OSA hears once per run of failures, and the lane
+    doesn't claim. A bare `git pull` breaks when FETCH_HEAD holds several heads, so name the branch."""
+    branch = git("rev-parse", "--abbrev-ref", "HEAD", cwd=ROOT)
+    if branch != "main":
+        code, out = 1, f"the main checkout is on {branch or '(no branch)'}, not main"
+    else:
+        code, out = sh(["git", "pull", "-q", "--ff-only", "origin", "main"], cwd=ROOT)
+    if not code:
+        PULL_FAILING.discard(agent)
+        return True
+    why = " ".join(out.split())[-200:]
+    log(agent, f"can't update the main checkout: {why}")
+    if agent not in PULL_FAILING:
+        PULL_FAILING.add(agent)
+        msg.send("osa", f"{agent}: lane can't update the main checkout, so it isn't claiming: {why}", agent)
+    return False
+
+
 def stop(agent, e):
     log(agent, f"lane stopped: {e}")
     lane_state(agent, "stopped", why=str(e)[:200])
@@ -402,7 +425,11 @@ def main(a):
         lane_state(agent, "idle")
         return 0 if outcome in ("review", "hold") else 1
     while True:
-        sh(["git", "pull", "-q", "--ff-only"], cwd=ROOT)
+        if not pull_main(agent):
+            if once:
+                return 1
+            time.sleep(int(ENV.get("LANE_PULL_RETRY_S", "60")))
+            continue
         code, out = sh([sys.executable, str(KIT / "plan.py"), "claim", "--agent", agent, "--role", role], cwd=ROOT)
         ids = out.split()
         if code or not ids:

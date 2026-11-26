@@ -3,6 +3,18 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S28, locations at seed time; an S23 holdout case retired
+
+- **S28 (new, held for Zero):** the production seed adds no demo location. It reads the real ones from a JSON
+  file outside the repo, named by `SEED_LOCATIONS_FILE`, with entries `{ name, kind, address? }`. It validates
+  them first and refuses an empty list. A re-run skips names that are already there and never overwrites
+  them. The demo seed keeps its demo locations. Why: the P-review hold on the production seed. Real places
+  must never be in the repo, docs, tests or messages. **Approved by Javaris, 2026-11-26.**
+- **Lead edit, `tests/holdout/S23.test.ts`:** its revoked-code case ("an earlier code Vienne revoked for the
+  same parent" loses the deleted child) is retired. It contradicts S23b checks 3 and 6, which Javaris
+  approved: a code nobody redeemed stays as it is. S23b's check 8 says so. Why: Fantem flagged the conflict
+  while building S23b. Approved: Axis, as a lead.
+
 ## 2026-11-26: S23b, delete by id only; S27 hides Delete until then
 
 - **S23b (new, held for Zero):** deleting a family or a child matches only by id. That means the parent's and
