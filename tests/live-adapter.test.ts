@@ -2,6 +2,8 @@
  * The live adapter (src/ui/api/live.js, live-hooks.js) when a server call throws or a refetch fails.
  * The server functions are fakes: this tests the adapter, not the server.
  */
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fake = vi.hoisted(() => ({
@@ -24,7 +26,6 @@ vi.mock('@/server/notifications', () => ({}));
 vi.mock('@/server/reports', () => ({}));
 vi.mock('@/server/scheduling', () => ({}));
 vi.mock('@/server/taxonomy', () => ({}));
-vi.mock('../src/mock/core', () => ({ subscribe: () => () => {} }));
 
 /* A minimal stand-in for React's hooks, so useQuery runs as written without a DOM. */
 const react = vi.hoisted(() => {
@@ -221,5 +222,22 @@ describe('content.uploadFile', () => {
     fake.createUpload.mockRejectedValue(new TypeError('Failed to fetch'));
     const file = new File(['img'], 'sheet.jpg', { type: 'image/jpeg' });
     expect(await live.content.uploadFile({ file })).toEqual({ ok: false, error: NETWORK, code: 'NETWORK' });
+  });
+});
+
+describe('C1: nothing names the deleted mock folder', () => {
+  it('no file under src, and not this test, mentions it (the frozen copy is tests/contract/mock/)', () => {
+    const deleted = ['src', 'mock'].join('/');
+    const walk = (dir: string, out: string[] = []): string[] => {
+      for (const name of readdirSync(dir)) {
+        const p = path.join(dir, name);
+        if (statSync(p).isDirectory()) walk(p, out);
+        else out.push(p);
+      }
+      return out;
+    };
+    const files = [...walk(path.join(process.cwd(), 'src')), path.join(process.cwd(), 'tests/live-adapter.test.ts')];
+    const naming = files.filter((f) => readFileSync(f, 'utf8').includes(deleted));
+    expect(naming.map((f) => path.relative(process.cwd(), f))).toEqual([]);
   });
 });

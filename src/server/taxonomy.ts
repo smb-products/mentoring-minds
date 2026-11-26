@@ -2,7 +2,7 @@
 /**
  * server/taxonomy — Vienne's subjects and skills (math only today). Archive, never
  * delete: old ratings and notes keep pointing at the skill.
- * Contract: src/mock/server/taxonomy.js
+ * Contract: tests/contract/mock/server/taxonomy.js (the frozen mock)
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';

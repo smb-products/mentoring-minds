@@ -4,9 +4,9 @@ A tutoring app for one math tutor (Vienne, admin) and her families (parents; kid
 
 ## State of the repo
 
-- **Screens:** all 20 are built (`src/ui`) and run on an in-browser mock (`src/mock`).
+- **Screens:** all 20 are built (`src/ui`) and run on the real backend through the live adapter.
 - **Backend:** finished and tested (`src/server`, Postgres via Prisma).
-- **Wiring:** not switched on yet. **Your job is mostly wiring:** follow `docs/WIRING.md`, one area per ticket (W1–W8).
+- **Wiring:** done (W0–W8; `src/mock` is deleted). Next is the production audit after W8 (P-sec, P-product, P-ops, P-review in `plan/features.json`), and the S fixes it finds.
 
 ## Commands
 
@@ -14,7 +14,7 @@ A tutoring app for one math tutor (Vienne, admin) and her families (parents; kid
 npm run dev               # http://localhost:3000 (demo data while .env has DEMO_MODE="true")
 npm run typecheck         # next typegen + tsc
 npm test                  # unit + integration + contract (needs Postgres: createdb mm_test)
-npm run test:contract     # the wiring checker: mock vs real, function by function
+npm run test:contract     # mock vs real shapes, against the frozen mock in tests/contract/mock/
 npm run build:e2e         # production build with sign-in on, for the browser tests
 npm run test:e2e          # browser tests (tests/e2e/README.md); `-- w4` for one ticket
 npm run db:seed:demo      # load the prototype's families into DATABASE_URL (dev only)
@@ -28,15 +28,16 @@ Tests create their tables from `prisma/migrations` and refuse any database whose
 | Path | What |
 |---|---|
 | `src/ui/` | Screens and components (JSX, client). **Don't change shapes the screens read.** |
-| `src/ui/api/index.js` | The switch: mock or live, per area |
+| `src/ui/api/index.js` | Exports the live adapter as `api` (every area live since W8) |
 | `src/ui/api/live.js`, `live-hooks.js` | Live adapter (reads unwrap, writes refresh queries) |
 | `src/server/*.ts` | Server functions. Every export is a **public endpoint**. |
 | `src/lib/` | Server helpers: `guards`, `result`, `validate`, `dto`, `grading`, `slots`, `time`, `storage` (private Vercel Blob / local), `blob-upload`, `files`, `notify`, `push`, `jobs`, `auth-rules`, `ai/` |
-| `src/mock/` | The contract the screens were built on. Deleted at W8. |
+| `tests/contract/mock/` | Frozen copy of the deleted `src/mock`: the shapes the screens were built on |
+| `src/ui/api/best.js`, `prisma/demo/` | What W8 kept from the mock: B.E.S.T. data, and the demo seed (same ids) |
 | `prisma/` | `schema.prisma`, `migrations/`, `seed.ts`, `data.ts` (loads the prototype data) |
 | `tests/integration/` | Every server function against Postgres: permissions, leaks, each area |
 | `tests/contract/` | Mock vs real shapes, and the adapter's read list |
-| `tests/e2e/` | Browser tests, one spec per wiring ticket (skipped until its areas are live) |
+| `tests/e2e/` | Browser tests, one spec per wiring ticket |
 | `docs/` | `WIRING` (start here), `CONTRACT`, `DEPLOY`, `COSTS`, `BUILD_PLAN`, `PORTING` |
 
 ## Rules
@@ -66,4 +67,4 @@ Tests create their tables from `prisma/migrations` and refuse any database whose
 
 ## Still open (needs Vienne)
 
-- What the book's access code unlocks (she's sending it). The per-test question counts in `src/mock/seed.js` (books) are placeholders to check against her book.
+- What the book's access code unlocks (she's sending it). The per-test question counts in `prisma/demo/seed.js` (books) are placeholders to check against her book.

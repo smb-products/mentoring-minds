@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { BookOpen, Check, Clock, ExternalLink, RotateCcw } from 'lucide-react';
 import { api, useAction, useQuery } from '../../api';
 import { AnswerSheet } from '../../components/learning/AnswerSheet';
+import { LockedPage, useLocked } from '../../components/shell/Locked';
 import { useShell } from '../../components/shell/ShellContext';
 import { Button } from '../../components/ui/Button';
 import { AreaTag, PageHeader, PageLoading, Section, Stars, StatusBadge } from '../../components/ui/Display';
@@ -18,6 +19,10 @@ import { fmtDate, fmtDue } from '../../lib/format';
  * Data: assignments.listForStudent · Writes: submitAnswerSheet, markPracticeDone
  */
 export default function AssignmentItemPage({ params }) {
+  return useLocked() ? <LockedPage title="Learning" back={{ href: '/parent/learning', label: 'Learning' }} /> : <AssignmentItem params={params} />;
+}
+
+function AssignmentItem({ params }) {
   const { students } = useShell();
   const show = useResultToast();
   const { data: all } = useQuery(async () => (await Promise.all(students.map((s) => api.assignments.listForStudent({ studentId: s.id })))).flat(), [students.map((s) => s.id).join()]);

@@ -2,7 +2,7 @@
 /**
  * server/notifications — the in-app feed, and this device's push subscription.
  * Creating notifications is internal (lib/notify.ts), never an endpoint.
- * Contract: src/mock/server/notifications.js (+ savePushSubscription / removePushSubscription)
+ * Contract: tests/contract/mock/server/notifications.js, the frozen mock (+ savePushSubscription / removePushSubscription)
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';

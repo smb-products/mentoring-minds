@@ -2,7 +2,7 @@
 /**
  * server/messages — one thread per family. Unread is a badge for parents, not a
  * notification; Vienne also gets a notification for each new parent message.
- * Contract: src/mock/server/messages.js
+ * Contract: tests/contract/mock/server/messages.js (the frozen mock)
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';

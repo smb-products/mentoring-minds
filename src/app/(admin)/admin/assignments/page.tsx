@@ -3,7 +3,7 @@ import AssignmentsPage from '@/ui/pages/admin/AssignmentsPage';
 
 export const metadata: Metadata = { title: 'Assignments' };
 
-/** /admin/assignments — screen: src/ui/pages/admin/AssignmentsPage.jsx (runs on the mock data in src/mock for now). */
+/** /admin/assignments — screen: src/ui/pages/admin/AssignmentsPage.jsx. */
 export default function Page() {
   return <AssignmentsPage />;
 }
