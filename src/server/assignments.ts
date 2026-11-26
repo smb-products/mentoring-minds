@@ -18,6 +18,7 @@ import { action, ApiError, found, need, query } from '@/lib/result';
 import { id, ids, instant, optText, parse, testKey, text } from '@/lib/validate';
 import { bookItemDTO, bookSummary, familyResourceInclude, photoFiles, resourceForFamily, submissionDTO, submissionDTOs, submissionInclude, testsOf, type Photo, type ScoredAnswer } from '@/lib/dto';
 import { itemsFor } from '@/lib/book-results';
+import { visibleTo } from '@/lib/files';
 import { scoreSheet, starsFor, type KeyItem } from '@/lib/grading';
 import { notify, notifyAdmins } from '@/lib/notify';
 
@@ -140,8 +141,15 @@ export const createPracticeAssignment = action(async (input: { title: string; in
     z.object({ title: text(120).min(1, 'Give it a title'), instructions: optText(1000), resourceId: id.nullish(), dueAt: instant.nullish(), studentIds: ids.min(1, 'Choose at least one student') }),
     input,
   );
-  if (v.resourceId) found(await db.resource.findFirst({ where: { id: v.resourceId, deletedAt: null } }), 'Resource');
+  const resource = v.resourceId ? found(await db.resource.findFirst({ where: { id: v.resourceId, deletedAt: null }, include: { shares: { select: { studentId: true } } } }), 'Resource') : null;
   const students = await assignees(v.studentIds);
+  if (resource) {
+    // The family opens the resource from the assignment, so every child on it must be able to see it.
+    const blocked = students.filter((s) => !visibleTo(resource, s)).map((s) => s.firstName);
+    const who = blocked.length > 1 ? `${blocked.slice(0, -1).join(', ')} and ${blocked.at(-1)}` : blocked[0];
+    need(resource.status === 'PUBLISHED', `“${resource.title}” is still a draft, so ${who} can’t open it. Publish it in the library first.`);
+    need(!blocked.length, `${who} can’t see “${resource.title}”. Share it with them in the library first, or choose other students.`);
+  }
   const a = await db.assignment.create({
     data: { title: v.title, instructions: v.instructions, kind: 'PRACTICE', subjectId: MATH, resourceId: v.resourceId ?? null, dueAt: v.dueAt ?? null, submissions: { create: students.map((s) => ({ studentId: s.id })) } },
   });
