@@ -22,8 +22,8 @@ const LIVE = new Set([
   // W6
   'scheduling',
   // W7
-  // 'reports',
-  // 'ai',
+  'reports',
+  'ai',
 ]);
 
 /** An area on the mock answers from live, per call, when the mock doesn't know the signed-in user (a real sign-up). */
