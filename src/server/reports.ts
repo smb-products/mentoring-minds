@@ -6,8 +6,8 @@
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireAdmin, requireStudentAccess } from '@/lib/guards';
-import { action, found, need, query } from '@/lib/result';
+import { requireActive, requireAdmin, requireStudentAccess } from '@/lib/guards';
+import { action, ApiError, found, need, query } from '@/lib/result';
 import { id, instant, parse } from '@/lib/validate';
 import { reportDTO, reportInclude, studentDTO, studentInclude } from '@/lib/dto';
 import { bookResultsFor, itemsFor } from '@/lib/book-results';
@@ -85,12 +85,19 @@ export const publishReport = action(async (input: { reportId: string }) => {
   return reportDTO(row);
 });
 
-/** One report with its student (Vienne: any; a parent: published, own child only). */
+/**
+ * One report with its student (Vienne: any; a parent: published, own child only).
+ * The session is checked before any lookup, and a family looks only among its own
+ * children's reports, so another family's report and a missing id get the same answer.
+ */
 export const getReport = query(async (input: { reportId: string }) => {
+  const user = await requireActive();
   const { reportId } = parse(z.object({ reportId: id }), input);
-  const r = found(await db.progressReport.findUnique({ where: { id: reportId }, include: reportInclude }), 'Report');
-  const user = await requireStudentAccess(r.studentId);
-  need(user.role === 'ADMIN' || r.status === 'PUBLISHED', 'Report not found', 'NOT_FOUND');
+  const admin = user.role === 'ADMIN';
+  const row = await db.progressReport.findFirst({ where: admin ? { id: reportId } : { id: reportId, student: { parentId: user.id } }, include: reportInclude });
+  if (!admin && !row) throw new ApiError('FORBIDDEN', 'You don’t have access to this student.');
+  const r = found(row, 'Report');
+  need(admin || r.status === 'PUBLISHED', 'Report not found', 'NOT_FOUND');
   const s = await db.student.findUniqueOrThrow({ where: { id: r.studentId }, include: { ...studentInclude, parent: { select: { id: true, name: true } } } });
 
   // Book work in the period: handed in during it, or (not handed in) due during it.
@@ -107,7 +114,7 @@ export const getReport = query(async (input: { reportId: string }) => {
   const { parent, ...student } = s;
   return {
     ...reportDTO(r),
-    student: studentDTO(student, { admin: user.role === 'ADMIN' }),
+    student: studentDTO(student, { admin }),
     parent,
     bookWork: { done: subs.filter((x) => x.answers).length, assigned: subs.length, questions },
     bookAreas: await bookResultsFor(s, { from: r.periodStart, to: r.periodEnd }),
