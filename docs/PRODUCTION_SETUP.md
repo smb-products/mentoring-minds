@@ -13,13 +13,15 @@ account owns the sign-in client).
 
 ## Decisions before you start
 
-| # | Decision | Recommended | Why |
+Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**.
+
+| # | Decision | Chosen | Why |
 |---|---|---|---|
 | D1 | Neon: its own account, or through the Vercel Marketplace | **Its own account** | The Marketplace's preview integration makes each preview database a copy of production, which would put real family data in every preview. It also names the direct URL `DATABASE_URL_UNPOOLED`, but the app reads `DIRECT_URL`. |
 | D2 | Address: a custom domain, or `<project>.vercel.app` | Start on `vercel.app`, add a domain later | Google's redirect address has to be updated when the domain changes (Part 4, step 6). |
 | D3 | One Blob store, or one for production and one for previews | **Two stores** | A preview deployment runs code that hasn't launched yet. With one shared store, its token could read or delete families' photos. |
 | D4 | Neon plan | Free to start | Free keeps 6 hours of restore history. Launch (paid, by usage) keeps up to 7 days. See [Neon's history window](https://neon.com/docs/introduction/history-window). |
-| D5 | Production migrations after launch | Your call. Atlas's suggestion is in `plan/reports/P-ops.md` | `npm run vercel-build` runs `prisma migrate deploy` on **every** production deploy, so a merge to main with a migration changes the production database on its own. RULES.md says production migrations are yours. For launch, you run it by hand (Part 6) and the build's run does nothing. |
+| D5 | Production migrations after launch | **Manual: you migrate, then promote** | RULES.md says production migrations are yours. Production builds never run `prisma migrate deploy`; previews still do, on their own database. Merges to main build a **Staged** production deployment that doesn't go live until you promote it (Part 2, step 8). `docs/DEPLOY.md` → Releasing has the steps. |
 
 ## Part 1. Neon (database), about 10 min
 
@@ -50,6 +52,9 @@ account owns the sign-in client).
 6. **Settings → Deployment Protection**: leave **Vercel Authentication** on for Preview. Only your team can
    open previews.
 7. **Settings → Functions → Region**: check it's **Washington, D.C. (iad1)**, next to Neon.
+8. **Settings → Environments → Production → Branch Tracking**: turn **off** "Auto-assign Custom Production
+   Domains", then **Save**. From now on a merge to main builds a production deployment marked **Staged**, and
+   `PROD_URL` keeps serving the old one until you **Promote** (D5).
 
 ## Part 3. Vercel Blob (files), about 5 min
 
@@ -152,7 +157,11 @@ unset DIRECT_URL DATABASE_URL
 
 1. **Vercel → Deployments**, the newest Production deployment, **⋯ → Redeploy**. Environment variables only
    take effect on a new deployment.
-2. When it's **Ready**, open `PROD_URL`. You should see the sign-in screen.
+2. When it's **Ready**, and it says **Staged**: **⋯ → Promote**, and confirm. Then reopen **Settings →
+   Environments → Production → Branch Tracking** and check "Auto-assign Custom Production Domains" is still
+   **off**. Vercel's docs don't say whether promoting switches it back on; if it did, switch it off again and
+   tell Atlas.
+3. Open `PROD_URL`. You should see the sign-in screen.
    - If you see an error page instead, open the deployment's **Logs**. The start-up check names the missing
      or unsafe setting.
 
