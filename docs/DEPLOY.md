@@ -126,6 +126,9 @@ Rehearsal timings: `plan/reports/P-ops.md`.
 
 ## Deleting a family or a child on request
 
+**Not available yet.** S27 hides the Delete buttons until S23b lands. S23 matches some invite codes and alerts
+by name or email, so it can touch another family's rows. S23b matches by id only and brings the buttons back.
+
 A parent can ask for their family, or one child, to be removed (S23). The app deletes for good, so
 **Javaris** approves each request first. **Vienne** then runs it in the app.
 
@@ -197,7 +200,7 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). **Lanes**; `p-product.spec.ts` runs it once S8 removes its two `fixme`s.
 - [ ] Real locations decided. The production seed (`PRODUCTION_SETUP.md` Part 6) waits on it, so the demo locations never reach production. **Javaris**.
 - [ ] The library sends families no other family's children (S15) and Vienne's email can't be squatted before the seed (S19). **Lanes**; both before the production seed.
-- [ ] Deleting a family or a child on request (S23): merged, and the runbook is **Deleting a family or a child on request**. Ticked once its holdouts pass. Deleting real data stays Javaris's call.
+- [ ] Deleting a family or a child matches only by id (S23b), before the production seed. S23 is merged, but it matches some codes and alerts by name or email. The runbook is **Deleting a family or a child on request**, and it gets updated when S23b lands. **Lanes** (Javaris approved, 2026-11-26); S27 hides the buttons until then.
 - [x] Firewall rate limit on sign-up and sign-in: **after launch** (Javaris, 2026-11-26). Accepted risk: throwaway accounts can pause invite codes for everyone for up to an hour (`GLOBAL_REDEEM_FAILURES_PER_HOUR`).
 
 ## Limits

@@ -952,6 +952,72 @@
       "held": "zero"
     },
     {
+      "id": "S23b",
+      "title": "Deleting a family or a child matches only by id, never by name or email",
+      "spec": "tests/integration/s23b-delete-by-id.test.ts (new)",
+      "deps": [
+        "S26",
+        "S27"
+      ],
+      "touches": [
+        "src/server/families.ts",
+        "src/server/invites.ts",
+        "src/lib/notify.ts",
+        "src/lib/jobs.ts",
+        "src/server/messages.ts",
+        "src/server/reports.ts",
+        "src/server/scheduling.ts",
+        "src/server/assignments.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "prisma/data.ts",
+        "prisma/demo/seed.js",
+        "src/ui/pages/admin/FamilyPage.jsx",
+        "tests/e2e/s23-delete-on-request.spec.ts",
+        "tests/holdout/S23.spec.ts",
+        "tests/integration/s23b-delete-by-id.test.ts",
+        "tests/integration/s23-delete-on-request.test.ts",
+        "tests/contract/contract.test.ts",
+        "plan/reports/S23b.md",
+        "tests/e2e/s27-delete-hidden.spec.ts"
+      ],
+      "checks": [
+        "deleteStudent and deleteFamily find what to remove only through ids and foreign keys: the parent's user id, the child's student id, Invite.usedById, the student id stored on a planned entry at redemption (check 3), and an alert's id link (check 4). Nothing is matched by an email, a name or any text pattern (no LIKE, contains or equals on names or emails), in any case.",
+        "Underscore email (named case): Ana's address is ana_m@example.com and another family's code goes to anaxm@example.com with the same child's name. Deleting Ana's child or Ana's family leaves that code exactly as it was. More generally, deleting one family never changes a row of another, even when the names and emails look alike.",
+        "Deleting a family removes exactly these, and the report lists them: the parent's account, its sign-in links and push devices, and its children with everything in check 5. It also removes the parent's conversation and messages, their uploads and the stored files only they used, the invite code they redeemed (usedById), and the alerts linked to them by id. The parent's marks on others' rows stay, without the parent, as in S23. Invite codes they never redeemed stay as they are, including ones Vienne sent to their email. Nothing else is removed.",
+        "Alerts (named case): an alert about a child or family is linked by id when it is created, with a nullable studentId or parentId on Notification. The code that creates the alert passes those ids, in assignments, scheduling, reports, messages, invites and jobs. They aren't derived from S26's `about` inside notify.ts. Deleting goes only through that link. When another family's child has the same first name, that child's alerts stay. An alert with no link stays. The schema change only adds and has its migration. Javaris applies it in production.",
+        "Deleting a child removes their sessions, notes, homework and answers, the assignments only they had, their FAST results, reports and shares, the stored files only their work used, and the alerts linked to them. On the code their parent redeemed, the child comes off the planned children by the student id that redeemInvite stores on each planned entry when it creates the child. Production has no real invites yet (the seed is on hold), so no backfill is needed. The demo seed stores the ids.",
+        "Lower-case names (named case): a child typed in lower case ('noah kim') on the code their parent redeemed comes off it, because the match is by id and not by name. On a code nobody redeemed, the name stays: it isn't the family's.",
+        "Delete family and Delete child come back on Vienne's family page, the same as before S27. Remove the `test.fixme` that S27's plan PR added to tests/e2e/s23-delete-on-request.spec.ts and tests/holdout/S23.spec.ts, and nothing else in those files. Replace the S27 spec with a check that both buttons show.",
+        "tests/integration/s23b-delete-by-id.test.ts covers every check above. tests/holdout/S23.test.ts and S23.spec.ts pass, and so does tests/integration/s23-delete-on-request.test.ts (only its name-matching cases change, each one named in the report). The first case of plan/holdouts/S23.test.ts passes, along with npm test, npm run test:contract and the whole browser suite. That file's second case (a lower-case name on an unredeemed code) is retired by check 6. Rigg moves the first case to tests/holdout/."
+      ],
+      "hints": [
+        "Approved by Javaris 2026-11-26: a rewrite of S23 that matches only by ids, with what each delete removes listed and the holdout cases named. Zero wrote the data rules. It replaces S23's familyInvites and dropAlerts name and email matching (src/server/families.ts) after two reopens. Round 2 found that an email match acting as a wildcard let deleteFamily delete another family's code.",
+        "Held for Zero (src/server, src/lib, prisma). After S27, which hides the buttons this turns back on, and S26 (`about`)."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S27",
+      "title": "Delete family and Delete child are hidden until S23b",
+      "spec": "tests/e2e/s27-delete-hidden.spec.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/ui/pages/admin/FamilyPage.jsx",
+        "tests/e2e/s27-delete-hidden.spec.ts",
+        "plan/reports/S27.md"
+      ],
+      "checks": [
+        "On Vienne's family page there is no Delete family button and no Delete on any child's card. Nothing else on the page changes: same layout, same other buttons. The browser logs no error.",
+        "Only the buttons go: the delete drawer and families.deleteStudent / deleteFamily stay in the code for S23b to turn back on. No server file changes.",
+        "tests/e2e/s27-delete-hidden.spec.ts checks both, as Vienne, on a family with two children. The S23 browser tests are already `test.fixme` (a lead's edit in the plan PR), and the rest of the browser suite passes."
+      ],
+      "hints": [
+        "Approved by Javaris 2026-11-26: an interim, ahead of S23b, because S23 can match another family's invite code by email (details in plan/reports/S23.md and S23b).",
+        "Not held (src/ui only). Hide the buttons, don't restyle anything: one condition, or remove the two buttons and leave a comment pointing at S23b."
+      ]
+    },
+    {
       "id": "S24",
       "title": "Signing out never shows or logs an error",
       "spec": "tests/s24-sign-out.test.ts or tests/e2e/s24-sign-out.spec.ts (new)",

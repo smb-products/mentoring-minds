@@ -3,6 +3,28 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S23b, delete by id only; S27 hides Delete until then
+
+- **S23b (new, held for Zero):** deleting a family or a child matches only by id. That means the parent's and
+  child's ids, `Invite.usedById`, a student id stored on each planned entry at redemption, and an add-only id
+  link on alerts. Nothing is matched by name, email or text pattern. The checks list what each delete removes,
+  and they name three holdout cases: the underscore email, lower-case names, and same-first-name alerts.
+  Unredeemed codes stay, and a lower-case name on one stays too, which retires the second case of
+  `plan/holdouts/S23.test.ts`. Why: S23 was reopened twice. Round 2 found that an email match acting as a
+  wildcard let a family delete remove another family's code. The name and email matching came from the S23
+  checks I wrote in #93, and that was the plan's error. Zero wrote the data rules.
+  The code that creates an alert passes its child or family id, so the touches add those files (Zero's review).
+  **Approved by Javaris, 2026-11-26.**
+- **S27 (new, not held):** hides Delete family and Delete child on main until S23b lands. It runs ahead of
+  S23b. **Approved by Javaris, 2026-11-26.**
+- **Lead edit to locked tests:** the four S23 browser tests (two in `tests/e2e/s23-delete-on-request.spec.ts`,
+  two in Rigg's `tests/holdout/S23.spec.ts`) are now `test.fixme`, with a comment, because the buttons they
+  click are hidden. S23b removes only those `.fixme`s. Approved: Axis, as a lead (RULES: changing a merged
+  test needs a lead).
+- **S23:** stays parked. S23b replaces it.
+- **DEPLOY:** the runbook says delete isn't available until S23b, and the Before launch item blocks the
+  production seed on S23b.
+
 ## 2026-11-26: amend lines
 
 - **S26 check 1 (#94's amend):** a push other than a message is tagged by its type, its href and its title, not
