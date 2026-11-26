@@ -187,7 +187,7 @@ describe('endpoints: every src/server export', () => {
 /* ── 2. Leaks ───────────────────────────────────────────── */
 
 /** Keys no family response may carry (answer keys, hashes, Vienne's notes, lockout state, her room link). */
-const SECRET_KEYS = ['answer', 'passwordHash', 'codeHash', 'adminNotes', 'failedLogins', 'lockedUntil', 'sessionVersion', 'redeemFailures', 'redeemLockedUntil'];
+const SECRET_KEYS = ['answer', 'passwordHash', 'codeHash', 'adminNotes', 'failedLogins', 'lockedUntil', 'sessionVersion', 'redeemFailures', 'redeemLockedUntil', 'storageKey', 'uploadedById'];
 
 /** Every object (at any depth) that has `key` with a truthy value. */
 function holders(obj: unknown, key: string, out: Record<string, unknown>[] = []): Record<string, unknown>[] {

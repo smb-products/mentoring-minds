@@ -90,7 +90,7 @@ type ResourceRow = Prisma.ResourceGetPayload<{ include: typeof resourceInclude }
 
 export function resourceDTO(r: ResourceRow) {
   const { subject, file, tags, shares, deletedAt: _deletedAt, ...rest } = r;
-  return { ...rest, subject: subjectDTO(subject), file, tags: tags.map((t) => t.tag), sharedWith: shares.map((x) => studentSummary(x.student)) };
+  return { ...rest, subject: subjectDTO(subject), file: fileOrNull(file), tags: tags.map((t) => t.tag), sharedWith: shares.map((x) => studentSummary(x.student)) };
 }
 
 /** Preview (locked) accounts only ever receive this: never fileId, url or body. */
@@ -120,6 +120,15 @@ export function bookItemDTO(item: BookItemRow, { grade, withAnswer }: { grade: n
   const base = { ...rest, area: areaFor(grade, { code: item.benchmarkCode }) };
   return withAnswer ? { ...base, answer } : base;
 }
+
+/* ── Files ──────────────────────────────────────────────── */
+
+/** What a screen gets for one file: never the storage key, the uploader or any other column. */
+export function fileDTO(f: { id: string; filename: string; mimeType: string; sizeBytes: number }) {
+  return { id: f.id, filename: f.filename, mimeType: f.mimeType, sizeBytes: f.sizeBytes, url: `/api/files/${f.id}` };
+}
+/** A file attached to a resource or a submission: the same, plus when its upload was checked. */
+const fileOrNull = (f: Parameters<typeof fileDTO>[0] & { uploadedAt: Date | null } | null | undefined) => (f ? { ...fileDTO(f), uploadedAt: f.uploadedAt } : null);
 
 /* ── Work ───────────────────────────────────────────────── */
 
@@ -159,8 +168,8 @@ export function submissionDTO(s: SubmissionRow, files: Map<string, Prisma.FileAs
       bookTo: a.bookTo,
       book: bookSummary(a.book),
     },
-    file,
-    photos: ((s.photos as Photo[]) ?? []).map((p) => ({ ...p, file: files.get(p.fileId) ?? null })),
+    file: fileOrNull(file),
+    photos: ((s.photos as Photo[]) ?? []).map((p) => ({ ...p, file: fileOrNull(files.get(p.fileId)) })),
   };
 }
 
