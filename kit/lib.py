@@ -1,5 +1,5 @@
 """Shared helpers for the AVEL client kit. Standard library only."""
-import contextlib, fcntl, json, os, re, shlex, subprocess, time
+import contextlib, fcntl, json, os, re, shlex, subprocess, sys, time
 from pathlib import Path
 
 
@@ -31,7 +31,11 @@ def avel_dir():
 
 
 def load_env():
-    """kit/project.env overlaid by the real environment. KEY=VALUE lines, # comments."""
+    """kit/project.env overlaid by the real environment. KEY=VALUE lines, # comments.
+
+    The environment wins only when it belongs to this project. A shell that exported another project's
+    project.env (a different PROJECT) would otherwise run this kit with its install command, databases and
+    issue numbers, so then only AVEL_* keys are taken from it."""
     vals = {}
     f = root() / "kit" / "project.env"
     if f.exists():
@@ -44,7 +48,13 @@ def load_env():
             if len(v) >= 2 and v[0] == v[-1] and v[0] in "'\"":
                 v = v[1:-1]
             vals[k.strip()] = v
-    vals.update({k: v for k, v in os.environ.items() if k in vals or k.startswith("AVEL_")})
+    other = os.environ.get("PROJECT")
+    foreign = bool(other and vals.get("PROJECT") and other != vals["PROJECT"])
+    if foreign:
+        print(f"kit: ignoring {other}'s project settings in this shell's environment; "
+              f"using kit/project.env ({vals['PROJECT']})", file=sys.stderr)
+    vals.update({k: v for k, v in os.environ.items()
+                 if k.startswith("AVEL_") or (k in vals and not foreign)})
     return vals
 
 

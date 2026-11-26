@@ -17,6 +17,9 @@ export PATH="$KIT:$PATH"
 # environment override project.env. So tmux runs without those keys, and a server that has them is scrubbed.
 KIT_KEYS="$(sed -nE 's/^([A-Za-z_][A-Za-z0-9_]*)=.*/\1/p' "$KIT/project.env")"
 tmux() { env $(printf -- '-u %s ' $KIT_KEYS) tmux "$@"; }
+# And every pane's command starts by unsetting them, so a pane never inherits them, whatever the server's
+# environment holds (a server started by another project's kit, say). kit/lib.py reads project.env itself.
+clean() { printf 'unset %s; %s' "$(echo $KIT_KEYS)" "$1"; }
 if command tmux info >/dev/null 2>&1; then
   for k in $KIT_KEYS; do command tmux set-environment -gu "$k" 2>/dev/null || true; done
 fi
@@ -44,7 +47,7 @@ guard_up() {  # kit/guard.sh in tmux, unless a guard already runs (old ~/.avel/b
   pgrep -f "($PROJECT-guard|kit/guard)\.sh" >/dev/null && return
   mkdir -p "$HOME/.avel"
   tmux new-session -d -s "$PROJECT-guard" \
-    "${LANE_ENV:+$LANE_ENV; }bash kit/guard.sh ${GUARD_CAPS:-} >> $HOME/.avel/$PROJECT-guard.log 2>&1"
+    "$(clean "${LANE_ENV:+$LANE_ENV; }bash kit/guard.sh ${GUARD_CAPS:-} >> $HOME/.avel/$PROJECT-guard.log 2>&1")"
 }
 
 # A lane that waits for Enter when idle, so the pane stays useful. LANE_ENV goes into the session's
@@ -55,9 +58,9 @@ lane_cmd() {
 
 open_session() {  # name, command
   if [ -n "${TMUX:-}" ] && ! tmux has-session -t "$1" 2>/dev/null; then
-    tmux new-session -d -s "$1" "$2"; tmux switch-client -t "$1"
+    tmux new-session -d -s "$1" "$(clean "$2")"; tmux switch-client -t "$1"
   else
-    exec env $(printf -- '-u %s ' $KIT_KEYS) tmux new-session -A -s "$1" "$2"
+    exec env $(printf -- '-u %s ' $KIT_KEYS) tmux new-session -A -s "$1" "$(clean "$2")"
   fi
 }
 
@@ -72,13 +75,13 @@ case "$seat" in
     preflight
     rm -f "$rc"; tmux kill-session -t "=$PROJECT-proof" 2>/dev/null || true
     tmux new-session -d -s "$PROJECT-proof" \
-      "${LANE_ENV:+$LANE_ENV; }python3 kit/lane.py --agent ${BUILDERS%% *} --feature $fid; echo \$? > $rc"
+      "$(clean "${LANE_ENV:+$LANE_ENV; }python3 kit/lane.py --agent ${BUILDERS%% *} --feature $fid; echo \$? > $rc")"
     echo "proof run: $fid in $PROJECT-proof";;
   lanes)
     lane_setup
     preflight
-    for a in $BUILDERS; do tmux has-session -t "$PROJECT-$a" 2>/dev/null || tmux new-session -d -s "$PROJECT-$a" "$(lane_cmd "$a" build)"; done
-    for a in $CHECKERS; do tmux has-session -t "$PROJECT-$a" 2>/dev/null || tmux new-session -d -s "$PROJECT-$a" "$(lane_cmd "$a" check)"; done
+    for a in $BUILDERS; do tmux has-session -t "$PROJECT-$a" 2>/dev/null || tmux new-session -d -s "$PROJECT-$a" "$(clean "$(lane_cmd "$a" build)")"; done
+    for a in $CHECKERS; do tmux has-session -t "$PROJECT-$a" 2>/dev/null || tmux new-session -d -s "$PROJECT-$a" "$(clean "$(lane_cmd "$a" check)")"; done
     guard_up
     echo "lanes up: $BUILDERS $CHECKERS (guard: $PROJECT-guard, log ~/.avel/$PROJECT-guard.log)";;
   *)
