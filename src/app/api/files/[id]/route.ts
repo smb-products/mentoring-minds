@@ -1,6 +1,7 @@
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { canReadFile } from '@/lib/files';
+import { requireUser } from '@/lib/guards';
+import { ApiError } from '@/lib/result';
 import { contentDisposition, openForDownload } from '@/lib/storage';
 
 /**
@@ -8,16 +9,21 @@ import { contentDisposition, openForDownload } from '@/lib/storage';
  * every request, right next to the read (lib/files.ts): Vienne sees everything; an
  * active parent sees published resources visible to one of their children, and their
  * own children's work. Private Blob files are streamed through here; nothing is cached
- * anywhere shared.
+ * anywhere shared. Someone who must choose a new password first (S21) is refused until
+ * they do (S25), with the guard's message.
  */
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request, ctx: RouteContext<'/api/files/[id]'>) {
   const { id } = await ctx.params;
-  const session = await auth();
-  if (!session?.user?.id) return new Response('Please sign in', { status: 401 });
-  const user = await db.user.findUnique({ where: { id: session.user.id }, select: { id: true, role: true, status: true } });
-  if (!user) return new Response('Please sign in', { status: 401 });
+  let user;
+  try {
+    user = await requireUser();
+  } catch (e) {
+    if (!(e instanceof ApiError)) throw e;
+    if (e.code === 'MUST_CHANGE_PASSWORD') return new Response(e.message, { status: 403 });
+    return new Response('Please sign in', { status: 401 });
+  }
 
   const { file, allowed } = await canReadFile(user, id);
   if (!file) return new Response('Not found', { status: 404 });
