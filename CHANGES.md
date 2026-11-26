@@ -3,6 +3,15 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+
+## 2026-11-26: D5, production migrations are manual (P-ops)
+
+- **Deploy (`scripts/vercel-build.mjs`, `docs/DEPLOY.md` → Releasing, `docs/PRODUCTION_SETUP.md`):** production
+  builds no longer run `prisma migrate deploy`. They run `prisma migrate status` and warn. Previews still
+  migrate their own database. Auto-assignment of production domains is off, so merges build Staged
+  deployments, and Javaris migrates production and then promotes. Why: RULES.md (production migrations are
+  Javaris's); finding S-ops1. Approved: Javaris (D5, via OSA).
+
 ## 2026-11-26: S8 from the P-product audit
 
 - **S8 (new, after P-product, lanes):** preview and paused parents get their screen on every parent route, not

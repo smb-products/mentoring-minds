@@ -1,6 +1,6 @@
 status: waiting (production setup by Javaris: docs/PRODUCTION_SETUP.md, PR #39)
-checks: 1 … 2 ✓ (decision; production run after setup) 3 … 4 … (steps written) 5 … (caps documented) 6 … (steps written)
-tests: none new. Existing: tests/env-check.test.ts (productionProblems), tests/integration/jobs-ai.test.ts ("the cron route needs the secret"), tests/proxy.test.ts (API routes outside the page guard)
+checks: 1 … 2 ✓ (decision; production run after setup) 3 … 4 … (steps written) 5 … (caps documented) 6 … (steps written) 7 … (D5 built here; verified after setup)
+tests: tests/vercel-build.test.ts (D5: production builds never migrate). Existing: tests/env-check.test.ts (productionProblems), tests/integration/jobs-ai.test.ts ("the cron route needs the secret"), tests/proxy.test.ts (API routes outside the page guard)
 notes: Done before production exists: the setup checklist, the cron decision, rollback and restore steps, spend caps in COSTS.md, and the four findings below. Every check that needs the real project is listed under "After setup", with how Atlas checks it.
 
 ## Checks
@@ -36,17 +36,17 @@ notes: Done before production exists: the setup checklist, the cron decision, ro
 
 ## Findings (S tickets for the lanes, not fixed in this audit)
 
-- **S-ops1, decision D5 for Javaris: production migrations run on every deploy.** `scripts/vercel-build.mjs`
-  runs `prisma migrate deploy` whenever `DATABASE_URL` is set, Production included. So a merge to main with a
-  migration changes the production database with no one deciding. RULES.md: "prod migrate … Javaris runs
-  them." Atlas's suggestion:
-  - production builds skip the migrate step (`VERCEL_ENV === 'production'`), and previews keep it;
-  - turn off auto-assignment of production deployments;
-  - for a release with a migration, Javaris runs `npx prisma migrate deploy` against production
-    (PRODUCTION_SETUP.md Part 6), then promotes.
+- **S-ops1, decided D5 = manual (Javaris, 2026-11-26), done in this PR: production migrations ran on every
+  deploy.** `scripts/vercel-build.mjs` ran `prisma migrate deploy` whenever `DATABASE_URL` was set, Production
+  included. Now:
+  - a production build runs only `prisma migrate status`, and its log warns when the database is behind;
+  - previews still migrate their own database;
+  - the checklist turns off auto-assignment, so merges build Staged deployments
+    (`PRODUCTION_SETUP.md` Part 2, step 8);
+  - `docs/DEPLOY.md` → Releasing: Javaris migrates, then promotes.
 
-  The cost is one manual step per migration. Alternative: keep it automatic and accept that migrations
-  merged to main reach production. Files: scripts/vercel-build.mjs, docs/DEPLOY.md.
+  `tests/vercel-build.test.ts` covers the three cases. Open: Vercel's docs don't say whether a Promote turns
+  auto-assignment back on. The checklist says to look after each promote, and check 7 below verifies it.
 - **S-ops2: the demo seed's production guard ignores the URL.** `prisma/seed.ts` refuses `--demo` only when
   `VERCEL_ENV` or `NODE_ENV` is `production`. A laptop shell with the production URL in `DATABASE_URL`
   loads the demo families into production. Fix: refuse `--demo` unless the database's host is local, or its
@@ -73,3 +73,4 @@ notes: Done before production exists: the setup checklist, the cron decision, ro
 - [ ] 4: Neon restore into a new branch rehearsed and timed
 - [ ] 5: the three caps confirmed set
 - [ ] 6: instant rollback rehearsed on a preview and timed
+- [ ] 7: D5: auto-assign is off, still off after Part 7's promote; the next merge to main is Staged; its build log shows `migrate status`, and no `migrate deploy`
