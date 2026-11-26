@@ -127,7 +127,7 @@ Rehearsal timings: `plan/reports/P-ops.md`.
 
 | Variable | Where | What |
 |---|---|---|
-| `DEMO_MODE` | none | **Don't set it in production.** Unset means real sign-in. `true` (demo screens, no sign-in) is for local work and throwaway demo deploys only. Read at build time, so redeploy after changing it. |
+| `DEMO_MODE` | none | Retired in S6: sign-in is always on, and the app ignores this variable. Leave it unset. |
 | `DATABASE_URL` | all | Neon **pooled** URL |
 | `DIRECT_URL` | all | Neon **direct** URL (migrations) |
 | `AUTH_SECRET` | all | `npx auth secret` |
@@ -161,7 +161,7 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] `CRON_SECRET` set; after the first 13:00 UTC run, the job shows 200 in Vercel → Schedules → Cron Jobs → View Logs. **Javaris** sets it; **Atlas** (P-ops) reads the first run. Waits on the first production deploy.
 - [ ] Vienne signs in with Google and lands on Today (the consent screen is published, not "Testing"). **Javaris with Vienne**, on her account. Waits on Google OAuth setup.
 - [ ] A parent's Gmail address can sign in with Google on a phone. **Javaris**, with a test parent's Gmail. Waits on Google OAuth setup.
-- [ ] `DEMO_MODE` isn't set anywhere in Vercel → Settings → Environment Variables. **Atlas** (P-ops env check); the server also refuses to start in production with it (`src/lib/env-check.ts`).
+- [ ] `DEMO_MODE` isn't set anywhere in Vercel → Settings → Environment Variables. Since S6 the app ignores it, so a leftover one is only clutter: delete it. **Atlas** (P-ops env check).
 - [ ] Invite code → a test parent redeems it → sees their child. Passes on a production build (`w2-families-invites.spec.ts`). **Javaris** repeats it once on the real site.
 - [ ] A photo upload from a real iPhone and a real Android phone. **Javaris**. The emulated part passes on a production build (`p-product.spec.ts`: JPEG sent and opened by Vienne, HEIC and over-`MAX_BYTES` files refused with a plain message). On the iPhone, try one photo from the camera and one from the library (Safari normally sends JPEG; a HEIC gets "Use a PDF, PNG, JPG or WebP file").
 - [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit). **Javaris**; P-ops rehearses one restore into a new branch.
