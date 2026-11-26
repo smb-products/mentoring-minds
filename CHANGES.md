@@ -11,6 +11,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   migrate their own database. Auto-assignment of production domains is off, so merges build Staged
   deployments, and Javaris migrates production and then promotes. Why: RULES.md (production migrations are
   Javaris's); finding S-ops1. Approved: Javaris (D5, via OSA).
+
 ## 2026-11-26: leads can read their worktrees in `.wt/`
 
 - **Kit, `.claude/settings.json`:** the `Read(./.wt/**)` deny is narrowed to the `.env` files, `node_modules`
