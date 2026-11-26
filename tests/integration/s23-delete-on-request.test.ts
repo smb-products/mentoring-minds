@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { as, db, fails, freshDemo, ok } from './helpers';
 import * as families from '@/server/families';
+import * as invites from '@/server/invites';
 import * as messages from '@/server/messages';
 import { storedSize, writeLocal } from '@/lib/storage';
 
@@ -232,5 +233,80 @@ describe('deleting a family', () => {
     // Signed in as Keisha on an old phone: signed out.
     as('u_keisha');
     fails(await families.getFamily({ parentId: keisha.id }), 'UNAUTHENTICATED');
+  });
+});
+
+describe('the family’s invite codes, in every state', () => {
+  const DAY = 86400000;
+  type Parent = { id: string; email: string; name: string };
+  /** The family's codes: the one they used, and by email (other case; revoked, expired) or unused with no email by name (other case). */
+  async function theirCodes(parent: Parent, tag: string, plannedStudents: object[]) {
+    const base = { codeHint: 'MM-••S3', plannedStudents, expiresAt: new Date(Date.now() + 7 * DAY) };
+    await db.invite.deleteMany({ where: { usedById: parent.id } });
+    const rows = [
+      { codeHash: `${tag}-used`, parentName: parent.name, usedAt: new Date(), usedById: parent.id },
+      { codeHash: `${tag}-revoked`, parentName: 'Someone', parentEmail: parent.email.toUpperCase(), revokedAt: new Date() },
+      { codeHash: `${tag}-expired`, parentName: 'Someone', parentEmail: parent.email, expiresAt: new Date(Date.now() - DAY) },
+      { codeHash: `${tag}-by-name`, parentName: parent.name.toUpperCase() },
+      { codeHash: `${tag}-by-name-blank-email`, parentName: parent.name.toLowerCase(), parentEmail: '' },
+    ];
+    const ids: string[] = [];
+    for (const r of rows) ids.push((await db.invite.create({ data: { ...base, ...r } })).id);
+    return ids;
+  }
+  /** Codes that aren't theirs: another email under the same name, or the same name used by someone else. */
+  async function otherCodes(parent: Parent, tag: string, plannedStudents: object[]) {
+    const base = { codeHint: 'MM-••S4', plannedStudents, expiresAt: new Date(Date.now() + 7 * DAY) };
+    await db.invite.deleteMany({ where: { usedById: 'u_grace' } });
+    const rows = [
+      { codeHash: `${tag}-other-email`, parentName: parent.name, parentEmail: 'someone.else@example.com' },
+      { codeHash: `${tag}-same-name-used`, parentName: parent.name, usedAt: new Date(), usedById: 'u_grace' },
+    ];
+    const ids: string[] = [];
+    for (const r of rows) ids.push((await db.invite.create({ data: { ...base, ...r } })).id);
+    return ids;
+  }
+  const planned = async (ids: string[]) => (await db.invite.findMany({ where: { id: { in: ids } }, orderBy: { id: 'asc' } })).map((i) => i.plannedStudents);
+
+  it('deleting a child takes them off every one of the family’s codes; the codes stay with their other children', async () => {
+    as('u_admin');
+    const priya = await db.user.findUniqueOrThrow({ where: { id: 'u_priya' } });
+    const kids = [{ firstName: 'Arjun', lastName: 'Patel', grade: 6 }, { firstName: 'Maya', lastName: 'Patel', grade: 1 }];
+    const theirs = await theirCodes(priya, 's23-child', kids);
+    const others = await otherCodes(priya, 's23-child', kids);
+
+    ok(await families.deleteStudent({ studentId: 's_maya' }));
+
+    expect(await planned(theirs)).toEqual(theirs.map(() => [kids[0]]));
+    expect(await planned(others)).toEqual(others.map(() => kids));
+    const listed = ok(await invites.listInvites()).filter((i) => theirs.includes(i.id));
+    expect(listed).toHaveLength(theirs.length);
+    expect(listed.flatMap((i) => (i.plannedStudents as { firstName: string }[]).map((p) => p.firstName))).not.toContain('Maya');
+  });
+
+  it('deleting a family deletes every one of its codes and leaves other people’s', async () => {
+    as('u_admin');
+    const monique = await db.user.findUniqueOrThrow({ where: { id: 'u_monique' } });
+    const kids = [{ firstName: 'Ava', lastName: 'Johnson', grade: 2 }];
+    const theirs = await theirCodes(monique, 's23-family', kids);
+    const others = await otherCodes(monique, 's23-family', kids);
+
+    ok(await families.deleteFamily({ parentId: monique.id }));
+
+    expect(await db.invite.count({ where: { id: { in: theirs } } })).toBe(0);
+    expect(await db.invite.count({ where: { id: { in: others } } })).toBe(others.length);
+    expect(ok(await invites.listInvites()).filter((i) => theirs.includes(i.id))).toEqual([]);
+  });
+
+  it('a parent is refused and their codes don’t change', async () => {
+    as('u_admin');
+    const priya = await db.user.findUniqueOrThrow({ where: { id: 'u_priya' } });
+    const kids = [{ firstName: 'Arjun', lastName: 'Patel', grade: 6 }];
+    const theirs = await theirCodes(priya, 's23-refused', kids);
+    as('u_priya');
+    fails(await families.deleteStudent({ studentId: 's_arjun' }), 'FORBIDDEN');
+    fails(await families.deleteFamily({ parentId: 'u_priya' }), 'FORBIDDEN');
+    expect(await planned(theirs)).toEqual(theirs.map(() => kids));
+    expect(await db.student.findUnique({ where: { id: 's_arjun' } })).not.toBeNull();
   });
 });
