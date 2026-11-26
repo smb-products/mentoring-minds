@@ -15,6 +15,9 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **Not tickets, Javaris 2026-11-26:** locations wait for his decision, and the production seed is on hold until
   then. Preview accounts keep seeing locations and open times. The Firewall rate limit comes after launch, an
   accepted risk. DEPLOY → Before launch lists all three.
+- **S13 check 4 (amend in S13's report), and S15 check 3 the same way:** the contract exception goes in
+  `ALLOWED_MISSING`, because the real DTO drops keys the frozen mock has. It isn't an extra key like `.url`.
+  Approved: Axis; Zero reviews.
 
 ## 2026-11-26: docs after S6, S12 touches
 

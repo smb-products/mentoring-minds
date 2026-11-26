@@ -690,7 +690,7 @@
         "content.getFileForUser returns only { id, filename, mimeType, sizeBytes, url } (a DTO in src/lib/dto.ts), for Vienne and for a family. No storageKey, uploadedById or any other column of the FileAsset row.",
         "A PREVIEW or PAUSED parent gets NOT_ACTIVE for a real file id and for a made-up one alike (the account is checked before the lookup). Signed out gets UNAUTHENTICATED. An active family still gets FORBIDDEN for a file that isn't theirs, and Vienne NOT_FOUND for a missing id.",
         "SECRET_KEYS in tests/integration/p-sec.test.ts gains storageKey and uploadedById, and nothing else in that file changes. tests/holdout/W4.test.ts, tests/integration/permissions.test.ts and leaks.test.ts stay green.",
-        "npm run test:contract passes. If it compares getFileForUser's keys with the frozen mock (tests/contract/mock/, never edited), add one exception beside the existing `.url` one and say why in the report."
+        "npm run test:contract passes. If it compares getFileForUser's keys with the frozen mock (tests/contract/mock/, never edited), add one ALLOWED_MISSING exception (the real DTO drops keys the mock has) and say why in the report."
       ],
       "hints": [
         "Finding S-sec1 from the P-sec audit (#54). Nothing leaks today (a storageKey doesn't open a private Blob), but a column added later would, and AGENTS rule 3 says DTOs, never rows.",
@@ -742,7 +742,7 @@
       "checks": [
         "content.listResourcesForStudent, and every other read a family can call that returns a resource, sends a family DTO: no sharedWith, no shares, and no raw file row (at most the file's id, filename, mimeType and sizeBytes, as S13's file DTO). Vienne's reads keep sharedWith.",
         "As Ana, with a resource shared with Ana's child and another family's child, the response contains neither the other child's name nor any parentId but Ana's. tests/integration/leaks.test.ts gains that case, so the leak sweep catches it from now on.",
-        "Every field the parent screens read from a resource still arrives (src/ui/pages/parent/). The whole browser suite, npm test and npm run test:contract pass; if the contract compares keys with the frozen mock, add one exception for the family resource shape and say why in the report (the frozen mock is never edited)."
+        "Every field the parent screens read from a resource still arrives (src/ui/pages/parent/). The whole browser suite, npm test and npm run test:contract pass; if the contract compares keys with the frozen mock, add ALLOWED_MISSING exceptions for the keys the family shape drops (sharedWith, the file row) and say why in the report (the frozen mock is never edited)."
       ],
       "hints": [
         "From the P-review (plan/reports/P-review.md), finding 1. A launch blocker. resourceDTO (src/lib/dto.ts) is Vienne's shape; families need their own.",
