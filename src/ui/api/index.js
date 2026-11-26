@@ -20,7 +20,7 @@ const LIVE = new Set([
   // W5
   'assignments',
   // W6
-  // 'scheduling',
+  'scheduling',
   // W7
   // 'reports',
   // 'ai',
