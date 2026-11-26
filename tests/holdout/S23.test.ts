@@ -1,8 +1,7 @@
 /** S23 holdouts: nothing about a deleted child stays on Vienne's screens, and a bad request deletes nobody. */
 import { describe, expect, it } from 'vitest';
-import { as, db, fails, freshDemo, ok } from '../../tests/integration/helpers';
+import { as, db, fails, freshDemo } from '../../tests/integration/helpers';
 import * as families from '@/server/families';
-import * as invites from '@/server/invites';
 
 freshDemo();
 
@@ -29,26 +28,7 @@ describe('S23 holdouts', () => {
     expect(await people()).toEqual(before);
   });
 
-  it('a deleted child is gone from the invite list too, including an earlier code Vienne revoked for the same parent', async () => {
-    as('u_admin');
-    const ana = await db.user.findUniqueOrThrow({ where: { id: 'u_ana' } });
-    // Vienne made a code for Ana, then took it back (Ana joined with another one).
-    const first = ok(
-      await invites.createInvite({
-        parentName: ana.name,
-        parentEmail: ana.email,
-        plannedStudents: [
-          { firstName: 'Mateo', lastName: 'Mendoza', grade: 3 },
-          { firstName: 'Lucia', lastName: 'Mendoza', grade: 5 },
-        ],
-      }),
-    );
-    ok(await invites.revokeInvite({ inviteId: first.invite.id }));
-
-    ok(await families.deleteStudent({ studentId: 's_lucia' }));
-
-    const listed = ok(await invites.listInvites());
-    const stillNamed = listed.filter((i) => (i.plannedStudents as { firstName: string }[]).some((p) => p.firstName === 'Lucia')).map((i) => `${i.parentName} (${i.status})`);
-    expect(stillNamed, 'invites on Vienne’s screen that still list the deleted child').toEqual([]);
-  });
+  // Retired by a lead (Axis, 2026-11-26): the case for an earlier, revoked code to the parent's email is
+  // replaced by S23b checks 3 and 6 (Javaris: ids only). A code nobody redeemed stays as it is.
+  // tests/integration/s23b-delete-by-id.test.ts covers the opposite.
 });
