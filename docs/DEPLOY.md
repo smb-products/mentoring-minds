@@ -1,6 +1,7 @@
 # Deploying: Vercel, Neon, Vercel Blob
 
-What runs where, and the one-time setup. The running costs are in `docs/COSTS.md`.
+What runs where, and the one-time setup. The running costs are in `docs/COSTS.md`. The setup as clicks, in
+order, for the person doing it: `docs/PRODUCTION_SETUP.md`.
 
 | Piece | Service | Notes |
 |---|---|---|
