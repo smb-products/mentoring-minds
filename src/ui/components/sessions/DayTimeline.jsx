@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cn } from '../../lib/cn';
-import { fmtTime } from '../../lib/format';
+import { fmtTime, hourOf, minuteOf } from '../../lib/format';
 import { sessionBg, sessionColor } from './SessionParts';
 
 /**
@@ -14,14 +14,14 @@ export function DayTimeline({ sessions, onSelect }) {
     return () => window.clearInterval(id);
   }, []);
 
-  const hoursOf = (iso) => new Date(iso).getHours() + new Date(iso).getMinutes() / 60;
+  const hoursOf = (iso) => hourOf(iso) + minuteOf(iso) / 60;
   const first = Math.min(...sessions.map((s) => Math.floor(hoursOf(s.startsAt))));
   const last = Math.max(...sessions.map((s) => Math.ceil(hoursOf(s.endsAt))));
   const startH = Math.max(0, Math.min(first - 1, 14));
   const endH = Math.min(24, Math.max(last + 1, startH + 8));
   const span = endH - startH;
   const pct = (h) => `${((h - startH) / span) * 100}%`;
-  const nowH = now.getHours() + now.getMinutes() / 60;
+  const nowH = hoursOf(now);
   const ticks = Array.from({ length: span + 1 }, (_, i) => startH + i);
 
   return (

@@ -12,7 +12,7 @@ import { Empty, PageHeader, Row, Section } from '../../components/ui/Display';
 import { Field, Input } from '../../components/ui/Form';
 import { useResultToast, useUndoToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/cn';
-import { addDays, fmtDate, fmtDateYear, fmtTime, isToday, minutesToLabel, sameDay, startOfWeek } from '../../lib/format';
+import { addDays, dayOfMonth, fmtDate, fmtDateWith, fmtDateYear, fmtLongDay, fmtTime, fmtWeekday, hourOf as zonedHour, isToday, minuteOf, minutesToLabel, sameDay, startOfWeek, weekdayOf } from '../../lib/format';
 
 const HOUR_PX = 50;
 
@@ -99,7 +99,7 @@ export default function SchedulePage() {
 }
 
 const offOn = (timeOff, day) => timeOff.find((o) => new Date(o.startsAt) < addDays(day, 1) && new Date(o.endsAt) >= day);
-const hourOf = (iso) => new Date(iso).getHours() + new Date(iso).getMinutes() / 60;
+const hourOf = (iso) => zonedHour(iso) + minuteOf(iso) / 60;
 
 /** Week as a true time grid: open hours shaded, sessions placed by time and length. */
 function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
@@ -125,8 +125,8 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
           return (
             <div key={d.toISOString()} className={cn('border-l border-border/80 px-3 py-2.5', today && 'bg-brand-soft')}>
               <div className="flex items-baseline gap-1.5">
-                <span className={cn('text-[12.5px] font-bold', today ? 'text-brand-soft-foreground' : 'text-muted-foreground')}>{d.toLocaleDateString(undefined, { weekday: 'short' })}</span>
-                <span className={cn('tabular text-[18px] font-extrabold', today && 'text-brand-soft-foreground')}>{d.getDate()}</span>
+                <span className={cn('text-[12.5px] font-bold', today ? 'text-brand-soft-foreground' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
+                <span className={cn('tabular text-[18px] font-extrabold', today && 'text-brand-soft-foreground')}>{dayOfMonth(d)}</span>
               </div>
               <p className="text-[12px] font-semibold text-subtle-foreground">{count ? `${count} session${count > 1 ? 's' : ''}` : '—'}</p>
             </div>
@@ -144,7 +144,7 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
           </div>
           {days.map((d) => {
             const off = offOn(timeOff, d);
-            const windows = availability.filter((a) => a.weekday === d.getDay());
+            const windows = availability.filter((a) => a.weekday === weekdayOf(d));
             const list = sessions.filter((s) => sameDay(s.startsAt, d));
             const today = isToday(d);
             return (
@@ -156,7 +156,7 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
                       key={w.id}
                       type="button"
                       onClick={() => onAdd(d)}
-                      aria-label={`Add a session on ${d.toLocaleDateString()}`}
+                      aria-label={`Add a session on ${fmtDateWith(d, { month: 'numeric', day: 'numeric', year: 'numeric' })}`}
                       className="absolute inset-x-1 rounded-md bg-[color-mix(in_oklch,var(--primary)_9%,transparent)] transition-colors hover:bg-[color-mix(in_oklch,var(--primary)_16%,transparent)]"
                       style={{ top: top(w.startMin / 60) + 1, height: ((w.endMin - w.startMin) / 60) * HOUR_PX - 2 }}
                     />
@@ -206,7 +206,7 @@ function DayAgenda({ days, sessions, timeOff, availability, onSelect }) {
   useEffect(() => setDay(days.find((d) => isToday(d)) ?? days[0]), [days[0].getTime()]);
   const list = sessions.filter((s) => sameDay(s.startsAt, day));
   const off = offOn(timeOff, day);
-  const windows = availability.filter((a) => a.weekday === day.getDay());
+  const windows = availability.filter((a) => a.weekday === weekdayOf(day));
   return (
     <>
       <div className="scrollbar-none -mx-4 mb-4 flex gap-2 overflow-x-auto px-4" role="tablist" aria-label="Day">
@@ -215,14 +215,14 @@ function DayAgenda({ days, sessions, timeOff, availability, onSelect }) {
           const n = sessions.filter((s) => sameDay(s.startsAt, d) && !['CANCELLED', 'DECLINED'].includes(s.status)).length;
           return (
             <button key={d.toISOString()} type="button" role="tab" aria-selected={sel} onClick={() => setDay(d)} className={cn('flex w-14 shrink-0 flex-col items-center rounded-xl py-2', sel ? 'bg-ink text-ink-foreground shadow-raised' : 'surface text-foreground')}>
-              <span className={cn('text-[12px] font-bold', sel ? 'text-ink-muted' : 'text-muted-foreground')}>{d.toLocaleDateString(undefined, { weekday: 'short' })}</span>
-              <span className="tabular text-[19px] font-extrabold leading-tight">{d.getDate()}</span>
+              <span className={cn('text-[12px] font-bold', sel ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
+              <span className="tabular text-[19px] font-extrabold leading-tight">{dayOfMonth(d)}</span>
               <span className={cn('mt-0.5 h-1.5 w-1.5 rounded-full', n ? (sel ? 'bg-reward' : 'bg-primary') : 'bg-transparent')} />
             </button>
           );
         })}
       </div>
-      <Section title={day.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })} description={off ? off.reason || 'Time off' : windows.length ? `Open ${windows.map((w) => `${minutesToLabel(w.startMin)} – ${minutesToLabel(w.endMin)}`).join(', ')}` : 'Not available'}>
+      <Section title={fmtLongDay(day)} description={off ? off.reason || 'Time off' : windows.length ? `Open ${windows.map((w) => `${minutesToLabel(w.startMin)} – ${minutesToLabel(w.endMin)}`).join(', ')}` : 'Not available'}>
         {list.length === 0 ? <Empty title="No sessions" /> : list.map((s) => <SessionRow key={s.id} session={s} onClick={() => onSelect(s)} />)}
       </Section>
     </>

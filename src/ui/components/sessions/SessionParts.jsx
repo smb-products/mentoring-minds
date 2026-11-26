@@ -1,6 +1,6 @@
 import { Building2, Home, Library, MapPin, Video } from 'lucide-react';
 import { cn } from '../../lib/cn';
-import { fmtAgo, fmtTime, fullName } from '../../lib/format';
+import { fmtAgo, fmtDateWith, fmtTime, fullName } from '../../lib/format';
 import { Avatar, StatusBadge, subjectBg } from '../ui/Display';
 
 export const LOCATION_ICON = { TUTOR: Building2, HOME: Home, LIBRARY: Library, VIDEO: Video };
@@ -48,7 +48,7 @@ export function SessionRow({ session, onClick, actions, showDate, forParent, cla
         className={cn('flex min-w-0 flex-1 items-stretch gap-3 text-left', onClick && 'group')}
       >
         <div className="tabular w-[4.6rem] shrink-0 pt-0.5">
-          {showDate && <p className="text-[12.5px] font-bold text-muted-foreground">{new Date(s.startsAt).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}</p>}
+          {showDate && <p className="text-[12.5px] font-bold text-muted-foreground">{fmtDateWith(s.startsAt, { weekday: 'short', day: 'numeric' })}</p>}
           <p className={cn('text-[14.5px] font-extrabold', muted ? 'text-subtle-foreground line-through' : 'text-foreground')}>{fmtTime(s.startsAt)}</p>
           <p className="text-[12.5px] font-semibold text-subtle-foreground">{s.durationMin} min</p>
         </div>

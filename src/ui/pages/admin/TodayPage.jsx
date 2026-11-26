@@ -13,7 +13,7 @@ import { PageLoading } from '../../components/ui/Display';
 import { useResultToast } from '../../components/ui/Toast';
 import { useShell } from '../../components/shell/ShellContext';
 import { cn } from '../../lib/cn';
-import { addDays, fmtAgo, fmtLongDay, fmtRelativeDay, fmtTime, fmtTimeRange, fullName, gradeLabel, greeting, isToday, mapsUrl, sameDay, startOfWeek } from '../../lib/format';
+import { addDays, dayOfMonth, fmtAgo, fmtDateWith, fmtLongDay, fmtRelativeDay, fmtTime, fmtTimeRange, fullName, gradeLabel, greeting, isToday, mapsUrl, sameDay, startOfDay, startOfWeek } from '../../lib/format';
 import { useRouter } from '../../lib/router';
 
 function useNow() {
@@ -259,11 +259,11 @@ function WeekGlance({ week, weekStart, now, onOpen }) {
         {days.map((d) => {
           const list = week.filter((s) => sameDay(s.startsAt, d));
           const today = sameDay(d, now);
-          const past = d < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const past = d < startOfDay(now);
           return (
             <li key={d.toISOString()} className={cn('flex min-w-0 flex-col items-center rounded-lg px-1 pb-2 pt-1.5', today && 'band shadow-raised')}>
-              <span className={cn('text-[12px] font-bold', today ? 'text-ink-muted' : 'text-muted-foreground')}>{d.toLocaleDateString(undefined, { weekday: 'narrow' })}</span>
-              <span className={cn('tabular text-[17px] font-extrabold leading-tight', today ? 'text-ink-foreground' : past ? 'text-subtle-foreground' : 'text-foreground')}>{d.getDate()}</span>
+              <span className={cn('text-[12px] font-bold', today ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtDateWith(d, { weekday: 'narrow' })}</span>
+              <span className={cn('tabular text-[17px] font-extrabold leading-tight', today ? 'text-ink-foreground' : past ? 'text-subtle-foreground' : 'text-foreground')}>{dayOfMonth(d)}</span>
               <span className="mt-2 flex flex-col items-center gap-1" role="img" aria-label={`${list.length} sessions`}>
                 {list.length === 0 && <span className={cn('h-1 w-3 rounded-full', today ? 'bg-ink-foreground/30' : 'bg-border')} />}
                 {list.slice(0, 4).map((s) => (
