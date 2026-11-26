@@ -10,7 +10,6 @@ import { AreaTag, Empty, PageHeader, Row, Section, Stars, StatusBadge } from '..
 import { GetTheBook } from '../../components/learning/GetTheBook';
 import { PageLoading } from '../../components/ui/Display';
 import { Drawer } from '../../components/ui/Overlay';
-import { useToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/cn';
 import { fmtBytes, fmtDate, fmtDue } from '../../lib/format';
 import { useRouter } from '../../lib/router';
@@ -144,7 +143,6 @@ export default function ParentLearningPage() {
 }
 
 function ResourceViewer({ resource: r, onClose }) {
-  const toast = useToast();
   if (!r) return null;
   return (
     <Drawer open onClose={onClose} title={r.title} subtitle={KIND_META[r.kind].label}>
@@ -158,14 +156,7 @@ function ResourceViewer({ resource: r, onClose }) {
       {r.file && (
         <button
           type="button"
-          onClick={async () => {
-            try {
-              await api.content.getFileForUser({ fileId: r.file.id });
-              toast({ title: 'Opens through a secure link', description: 'File viewing isn’t part of the prototype.' });
-            } catch (e) {
-              toast({ tone: 'error', title: e.message });
-            }
-          }}
+          onClick={() => window.open(`/api/files/${r.file.id}`, '_blank', 'noopener')}
           className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left hover:bg-muted/60"
         >
           <span className="grid size-11 place-items-center rounded-lg bg-muted text-muted-foreground"><FileText size={20} aria-hidden /></span>
