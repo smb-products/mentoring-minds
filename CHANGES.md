@@ -8,6 +8,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **Kit, `kit/watch.py`:** a green held PR that's already in the merge queue no longer wakes a lead. Why: a
   queued PR's `autoMergeRequest` is null, so #39 and #40 pinged Axis while they waited on the queue's own CI.
   The queue is read with one GraphQL query (`gh pr list` can't show it). Approved: Axis; Zero reviews.
+
 ## 2026-11-26: leads can read their worktrees in `.wt/`
 
 - **Kit, `.claude/settings.json`:** the `Read(./.wt/**)` deny is narrowed to the `.env` files, `node_modules`
