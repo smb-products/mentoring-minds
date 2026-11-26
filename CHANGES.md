@@ -12,6 +12,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   Approved: Axis; Zero reviews.
 - **S12 (#58), touches:** add `tests/engines.test.ts`. It fails if `engines.node` stops matching the Node
   major in CI. Why: the amend line in S12's report. Approved after the fact: Axis; Zero reviews.
+
 ## 2026-11-26: P-sec's "only a guard before parse()" reads the guard list from guards.ts
 
 - **P-sec, `tests/integration/p-sec.test.ts`:** the check that only a guard runs before `parse()` takes the guard
