@@ -155,23 +155,36 @@ def refresh():
                 s.pop("checker", None)
         checking = {s["hbranch"]: fid for fid, s in st["features"].items()
                     if s.get("status") == "checking" and s.get("hbranch")}
+        reviewing = {branch_of(f["id"], st["features"].get(f["id"], {})): f for f in features()
+                     if status_of(f, st) == "review"}
         code, out = sh(["gh", "pr", "list", "--state", "open", "--limit", "100",
-                        "--json", "headRefName,number,statusCheckRollup,mergeable"])
+                        "--json", "headRefName,headRefOid,number,statusCheckRollup,mergeable"])
         open_prs = json.loads(out) if code == 0 else []
-        if checking:  # a holdout PR whose CI failed: tell OSA once per PR
-            for p in open_prs:
-                fid = checking.get(p["headRefName"])
-                bad = any((c.get("conclusion") or c.get("state") or "").upper() in ("FAILURE", "ERROR", "TIMED_OUT")
-                          for c in p.get("statusCheckRollup") or [])
-                if fid and bad and st["features"][fid].get("hfail") != p["number"]:
-                    st["features"][fid]["hfail"] = p["number"]
-                    failed.append((fid, p["number"]))
+        red_builds = []
+        for p in open_prs:
+            bad = any((c.get("conclusion") or c.get("state") or "").upper() in ("FAILURE", "ERROR", "TIMED_OUT")
+                      for c in p.get("statusCheckRollup") or [])
+            if not bad:
+                continue
+            fid = checking.get(p["headRefName"])  # a holdout PR whose CI failed: tell OSA once per PR
+            if fid and st["features"][fid].get("hfail") != p["number"]:
+                st["features"][fid]["hfail"] = p["number"]
+                failed.append((fid, p["number"]))
+            f = reviewing.get(p["headRefName"])  # a builder's PR whose CI failed: once per head commit
+            if f and st["features"].setdefault(f["id"], {}).get("cifail") != p.get("headRefOid"):
+                st["features"][f["id"]]["cifail"] = p.get("headRefOid")
+                red_builds.append((f["id"], p["number"], f.get("held") or "leads"))
         write_json(STATE, st)
-    if failed:
+    if failed or red_builds:
         from msg import send
         for fid, pr in failed:
             send("osa", f"{fid}: holdout PR #{pr} CI failed. A broken test is the checker's to fix; "
                         f"if the feature is wrong, kit/plan.py reopen {fid}.", "lane")
+        for fid, pr, lead in red_builds:  # it can't merge, and its lane has moved on: someone must decide
+            text = (f"{fid}: builder PR #{pr} is red in CI and won't merge. Read the failure, then fix it on the "
+                    f"branch or kit/plan.py reopen {fid}.")
+            send("osa", text, "lane")
+            send(lead, text, "lane")
     from heal import heal_open
     heal_open(open_prs)
     return n

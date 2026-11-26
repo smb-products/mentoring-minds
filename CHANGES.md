@@ -3,6 +3,19 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: W2 real sign-ups, red builder PRs
+
+- **W2, WIRING Step 2:** while areas are on the mock, a signed-in user the mock doesn't know gets every area
+  from the real backend (`src/ui/api/index.js` export line, decided per call). Why: W2's PR #9 failed in CI
+  because Rosa, a real sign-up, lands on parent Home, which mounts `RequestSessionDrawer` and reads
+  `scheduling.listLocations` from the mock, and the mock throws "Please sign in." for her. The spec is right; the
+  plan had a gap. Approved: Axis; Zero reviews.
+- **W2 attempt 1 doesn't count.** Its failure came from the plan gap, and its local green from lanes sharing e2e
+  port 3200 and the test databases. W2 is reopened from main once the lane isolation and this plan merge.
+  Approved: Axis (W2's owner, per OSA).
+- **Kit:** `kit/plan.py refresh` tells OSA and the feature's `held` lead when a builder's PR is red in CI, once
+  per head commit. Why: PR #9 sat in `review` with nobody told. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: S5 lock rows, WC touches, held PRs
 
 - **S5:** a refusal while locked (global or per-account) adds no `RedeemFailure` row, and

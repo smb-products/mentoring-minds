@@ -107,6 +107,7 @@
       ],
       "checks": [
         "In src/ui/api/index.js, only 'families' and 'invites' under // W2 are newly uncommented.",
+        "While some areas are still on the mock, a signed-in user the mock doesn't know (a real sign-up, like Rosa) gets every area from the real backend. In src/ui/api/index.js, an area on the mock answers from live when the mock's auth() is null, decided at call time, not import time. Seeded families keep today's mix. Change only the export line, not the LIVE lines, so it never collides with another ticket. Why: after redeeming, Rosa lands on parent Home, whose RequestSessionDrawer reads scheduling.listLocations (on the mock until W6), and the mock throws 'Please sign in.' for her (PR #9's CI failure).",
         "Vienne invites a family ('Invite family' → 'Create code') and gets a code shaped MM-XXXX. The new parent creates an account, sees 'Enter your invite code'; a wrong code shows 'That code isn’t valid. Check it with Vienne.'; the right one unlocks the app and shows Pablo. The user is ACTIVE with one student, Pablo, grade 4. Vienne's Families list shows Rosa Diaz. No console errors for the new parent.",
         "'Reset password' on Daniel's family page shows a temporary password once (mm-xxxxxx-xxxxxx). Daniel's open session on another device goes to /sign-in on its next page, his old password is refused ('don’t match'), and the temporary one signs him in.",
         "'Pause' sets Daniel to PAUSED right away and shows 'Make active'; 'Undo' sets him back to ACTIVE.",
@@ -115,7 +116,8 @@
       ],
       "hints": [
         "resetParentPassword returns the password to show once; never log or store it in plain text.",
-        "Invite limits live in src/server/invites.ts: VALID_DAYS (14), MAX_FAILURES (10), LOCK_MS. Don't change them."
+        "Invite limits live in src/server/invites.ts: VALID_DAYS (14), MAX_FAILURES (10), LOCK_MS. Don't change them.",
+        "Prove it locally only with the lane isolation in place: lanes used to share e2e port 3200 and the test databases, so a local green could have come from another lane's server."
       ],
       "held": "zero"
     },

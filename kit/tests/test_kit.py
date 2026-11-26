@@ -231,6 +231,22 @@ class Kit(unittest.TestCase):
         shown = json.loads(self.kit("plan.py", "show", "A").stdout)
         self.assertEqual(shown["notes"], ["holdout 2 fails"])
 
+    def test_red_builder_pr_tells_osa_and_leads_once_per_head(self):
+        self.kit("plan.py", "set", "A", "review", "--pr", "9")
+        red = lambda sha: json.dumps([{"headRefName": "f/A", "headRefOid": sha, "number": 9,
+                                       "statusCheckRollup": [{"name": "check", "conclusion": "FAILURE"}]}])
+        for _ in range(2):  # same head: told once
+            self.kit("plan.py", "refresh", env={"GH_OPEN": red("aaa")})
+        self.assertEqual(self.kit("msg.py", "inbox", "osa").stdout.count("A: builder PR #9 is red"), 1)
+        self.assertEqual(self.kit("msg.py", "inbox", "axis").stdout.count("A: builder PR #9 is red"), 1)  # leads
+        self.kit("plan.py", "refresh", env={"GH_OPEN": red("bbb")})  # a new push that's still red: told again
+        self.assertEqual(self.kit("msg.py", "inbox", "osa").stdout.count("A: builder PR #9 is red"), 1)
+        green = json.dumps([{"headRefName": "f/A", "headRefOid": "ccc", "number": 9,
+                             "statusCheckRollup": [{"name": "check", "conclusion": "SUCCESS"}]}])
+        self.kit("plan.py", "refresh", env={"GH_OPEN": green})
+        self.assertIn("no new messages", self.kit("msg.py", "inbox", "osa").stdout)
+        self.assertIn("A          review", self.kit("plan.py", "board").stdout)
+
     def test_checked_only_after_holdout_pr_merges(self):
         self.kit("plan.py", "set", "A", "merged")
         self.kit("plan.py", "set", "A", "checking", env={"AVEL_BRANCH": "h/rigg-1"})
