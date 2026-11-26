@@ -3,10 +3,27 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
-## 2026-11-26: first plan (plan/features.json: W0, WA, W1–W7, WC, W8)
+## 2026-11-26: server fixes S1–S5 (plan/features.json)
 
-Folds in Zero's touches review and OSA's wiring review (both 2026-11-26). Approved: Axis (plan); Zero reviews
-and merges the plan PR.
+From OSA's wiring review, specified by Zero. Each one waits for its area's wiring ticket so its touches never
+overlap a build in progress.
+
+- **S1:** `scheduling.listTimeOff` is admin-only; a parent gets `FORBIDDEN`. Why: it returned raw rows with
+  Vienne's reasons to any signed-in family. Approved: Zero.
+- **S2:** a FAST edit keeps `enteredById`/`enteredAt`, so a result Ana entered still says "Entered by Ana" after
+  Vienne edits it, and Ana can still edit it. `deleteResult` guards first. Approved: Zero.
+- **S3, S4:** `saveAnswerDraft`, `submitAnswerSheet`, `markPracticeDone` and `getReport` guard before any lookup,
+  and another family's id gets the same `NOT_FOUND` as a missing one. Approved: Zero.
+- **S5, new limit:** `GLOBAL_REDEEM_FAILURES_PER_HOUR = 30` (`src/server/invites.ts`). Past it, every redeem
+  returns `LOCKED`: "Too many tries right now. Try again in an hour, or ask Vienne to check the code." Vienne
+  gets one alert. Failures are logged in a new `RedeemFailure` table. Why: with ~1.05M codes, free accounts and only
+  a per-account lock, 1,000 accounts could try 3M+ codes in a code's 14 days. `MAX_FAILURES`, `LOCK_MS` and the
+  MM-XXXX shape don't change. Approved: Zero.
+
+## 2026-11-26: plan revised after review (plan/features.json: W0, WA, W1–W7, WC, W8)
+
+Folds in Zero's touches review and OSA's wiring review (both 2026-11-26). PR #1 merged the first version; these
+changes replace it. Approved: Axis (plan); Zero reviews and merges the plan PR.
 
 - **W0 switches `dashboard` on; W6 is `scheduling` only; W7 is `reports`, `ai`.** Why: `dashboard` is read-only,
   and every parent page and the shell's badges read it. The w2 spec (a new sign-up the mock doesn't know) and the
@@ -33,3 +50,18 @@ and merges the plan PR.
   `npm run test:contract` keeps checking the shapes the screens were built on.
 - **Kit:** `SHARED_TOUCHES` (`src/ui/api/index.js`) no longer blocks a parallel claim. `PROTECT_MERGE` adds
   `src/server/*`, `src/lib/*` and `src/app/api/*`, so every endpoint change waits for Zero (Zero's request).
+
+## 2026-11-26: first plan (plan/features.json, W0–W8)
+
+- **W6, W7:** `dashboard` goes live in W6, not W7. Why: `w6-scheduling.spec.ts` requires `dashboard` (confirm
+  from Today, Join call from Home), and W7's spec requires `scheduling`, so the old split couldn't pass in order.
+  W7 is now `reports`, `ai`. WIRING table updated. Approved: Axis (plan), Zero reviews in the plan PR.
+- **W0, Step 2:** W0 writes `src/ui/api/index.js` with every area on its own commented line under a `// Wn`
+  header, and ships with none live. Why: every ticket edits this file; one line per area, with a header between
+  tickets, lets parallel tickets merge cleanly. The w0 spec skips with none live, so W0 is proven with one area
+  uncommented locally. Approved: Axis, Zero reviews.
+- **W8:** "delete `src/mock`" moves what's still used instead of losing it: B.E.S.T. data to `src/ui/api/best.js`,
+  the demo seed to `prisma/demo/` (same ids), and a frozen copy of the mock to `tests/contract/mock/` so
+  `npm run test:contract` keeps checking the shapes the screens were built on. Approved: Axis, Zero reviews.
+- **Kit:** `SHARED_TOUCHES` in `kit/project.env` (`src/ui/api/index.js`) no longer blocks a parallel claim, so
+  W1–W4 can run on three lanes at once. Approved: Axis, Zero reviews.

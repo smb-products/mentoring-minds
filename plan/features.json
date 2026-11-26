@@ -242,6 +242,99 @@
       "hints": ["Lanes have no ANTHROPIC_API_KEY: the no-key path is what the lane proves. Never add a key to any file."]
     },
     {
+      "id": "S1",
+      "title": "Time off is admin-only (listTimeOff)",
+      "spec": "tests/integration/s1-timeoff.test.ts (new)",
+      "deps": ["W6"],
+      "touches": [
+        "src/server/scheduling.ts",
+        "tests/integration/s1-timeoff.test.ts",
+        "plan/reports/S1.md"
+      ],
+      "checks": [
+        "scheduling.listTimeOff starts with requireAdmin and returns DTOs, not raw rows. Only the admin SchedulePage reads it.",
+        "A parent calling listTimeOff gets code FORBIDDEN, and never sees a time-off reason.",
+        "getOpenSlots still leaves out times inside Vienne's time off for families, without sending the time off itself.",
+        "Permission test for each of the above in tests/integration/s1-timeoff.test.ts. The w6 spec and npm run test:contract stay green."
+      ],
+      "hints": ["Held for Zero (src/server)."]
+    },
+    {
+      "id": "S2",
+      "title": "FAST edits keep who entered the result; deleteResult guards first",
+      "spec": "tests/integration/s2-fast-edit.test.ts (new)",
+      "deps": ["W1"],
+      "touches": [
+        "src/server/fast.ts",
+        "tests/integration/s2-fast-edit.test.ts",
+        "plan/reports/S2.md"
+      ],
+      "checks": [
+        "An edit keeps the row's enteredById and enteredAt. After Vienne edits a result Ana entered, it still says 'Entered by Ana', and Ana can still edit it.",
+        "fast.deleteResult runs its guard before any database lookup. A family gets the same NOT_FOUND for another family's result id as for a missing one.",
+        "Permission tests for both in tests/integration/s2-fast-edit.test.ts. The w1 spec and npm run test:contract stay green."
+      ],
+      "hints": ["Schema fields used: FastResult.enteredById, FastResult.enteredAt. Held for Zero (src/server)."]
+    },
+    {
+      "id": "S3",
+      "title": "Assignment writes guard before any lookup",
+      "spec": "tests/integration/s3-assignments-guard.test.ts (new)",
+      "deps": ["W5"],
+      "touches": [
+        "src/server/assignments.ts",
+        "tests/integration/s3-assignments-guard.test.ts",
+        "plan/reports/S3.md"
+      ],
+      "checks": [
+        "saveAnswerDraft, submitAnswerSheet and markPracticeDone call requireUser/requireActive before any database lookup.",
+        "A family gets the same NOT_FOUND for another family's submission id as for a missing one, so ids can't be probed.",
+        "A permission test for each function in tests/integration/s3-assignments-guard.test.ts. The w5 spec and npm run test:contract stay green."
+      ],
+      "hints": ["Held for Zero (src/server)."]
+    },
+    {
+      "id": "S4",
+      "title": "getReport guards before any lookup",
+      "spec": "tests/integration/s4-report-guard.test.ts (new)",
+      "deps": ["W7"],
+      "touches": [
+        "src/server/reports.ts",
+        "tests/integration/s4-report-guard.test.ts",
+        "plan/reports/S4.md"
+      ],
+      "checks": [
+        "reports.getReport calls requireUser before any database lookup.",
+        "A family gets the same NOT_FOUND for another family's report id (draft or published) as for a missing one.",
+        "Permission tests in tests/integration/s4-report-guard.test.ts. The w7 spec and npm run test:contract stay green."
+      ],
+      "hints": ["Held for Zero (src/server)."]
+    },
+    {
+      "id": "S5",
+      "title": "Invite codes can't be brute-forced across accounts",
+      "spec": "tests/integration/s5-redeem.test.ts (new)",
+      "deps": ["W2"],
+      "touches": [
+        "src/server/invites.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "tests/integration/s5-redeem.test.ts",
+        "plan/reports/S5.md"
+      ],
+      "checks": [
+        "Every failed redeemInvite adds a row to a new RedeemFailure table (userId, at; indexed on at), made by a committed migration (npx prisma migrate dev --name redeem-failures).",
+        "Once there are more than GLOBAL_REDEEM_FAILURES_PER_HOUR (30, a constant in src/server/invites.ts) failures in the last hour across all accounts, every redeem returns code LOCKED with 'Too many tries right now. Try again in an hour, or ask Vienne to check the code.', a correct code included.",
+        "Vienne gets one alert when the limit is first reached in an hour, sent after the transaction commits (lib/notify.ts), never one per try.",
+        "The per-account limit (MAX_FAILURES, LOCK_MS) and the MM-XXXX code shape stay as they are; the w2 spec checks the shape.",
+        "Tests in tests/integration/s5-redeem.test.ts: the 31st failure in an hour locks every account, an hour later redeeming works again, and the alert goes out once. The w2 spec and npm run test:contract stay green."
+      ],
+      "hints": [
+        "Why: 32^4 ≈ 1.05M codes, free accounts and a per-account lock only, so 1,000 accounts could try 3M+ codes in a code's 14 days (VALID_DAYS).",
+        "Notification.type is a String, so the alert needs no enum change. Held for Zero (prisma, src/server)."
+      ]
+    },
+    {
       "id": "WC",
       "title": "Contract check covers the writes the screens use",
       "spec": "tests/contract/contract.test.ts",
