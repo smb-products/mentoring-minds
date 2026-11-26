@@ -105,7 +105,12 @@ export const getFamily = query(async (input: { parentId: string }) => {
   return {
     parent: { ...userSummary(parent)!, createdAt: parent.createdAt },
     students: studentDTOs,
-    sessions: sessions.map((x) => (admin ? sessionDTO(x) : sessionForParent(x, settings, now))),
+    // A family that isn't ACTIVE (PAUSED, PREVIEW) still sees its sessions, never the video link (as in listSessions).
+    sessions: sessions.map((x) => {
+      if (admin) return sessionDTO(x);
+      const dto = sessionForParent(x, settings, now);
+      return user.status === 'ACTIVE' ? dto : { ...dto, meetingUrl: null };
+    }),
     reports: reports.map(reportDTO),
     recentWork: await submissionDTOs(recent),
     conversationId: conversation?.id ?? null,

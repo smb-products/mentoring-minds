@@ -5,6 +5,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { as, db, fails, freshDemo, ok } from './helpers';
 import * as scheduling from '@/server/scheduling';
+import * as families from '@/server/families';
 
 freshDemo();
 
@@ -83,6 +84,33 @@ describe('listSessions for a family that isn’t active', () => {
 
     as('u_admin');
     expect(ok(await scheduling.listSessions()).find((s) => s.id === 'ses_live')?.meetingUrl).toBe(live.meetingUrl);
+  });
+});
+
+describe('getFamily for a family that isn’t active', () => {
+  it('lists the sessions with no video link, even inside the join window; ACTIVE and Vienne get it as before', async () => {
+    const live = await db.session.findUniqueOrThrow({ where: { id: 'ses_live' } });
+    expect(live.meetingUrl).toMatch(/^https:\/\//);
+    const link = (r: Awaited<ReturnType<typeof families.getFamily>>) => ok(r).sessions.find((s) => s.id === 'ses_live')?.meetingUrl;
+
+    as('u_grace');
+    expect(link(await families.getFamily({ parentId: 'u_grace' }))).toBe(live.meetingUrl);
+    const activeCount = ok(await families.getFamily({ parentId: 'u_grace' })).sessions.length;
+
+    for (const status of ['PAUSED', 'PREVIEW'] as const) {
+      await db.user.update({ where: { id: 'u_grace' }, data: { status } });
+      const r = await families.getFamily({ parentId: 'u_grace' });
+      const rows = ok(r).sessions;
+      expect(rows.length, status).toBe(activeCount);
+      expect(rows.some((s) => s.id === 'ses_live')).toBe(true);
+      for (const s of rows) expect(s.meetingUrl, `${status} ${s.id}`).toBeNull();
+      expect(JSON.stringify(r)).not.toContain(live.meetingUrl!);
+    }
+
+    as('u_admin');
+    expect(link(await families.getFamily({ parentId: 'u_grace' }))).toBe(live.meetingUrl);
+    as('u_ana');
+    fails(await families.getFamily({ parentId: 'u_grace' }), 'FORBIDDEN');
   });
 });
 
