@@ -168,6 +168,24 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] "Auto-assign Custom Production Domains" is off (D5); a merge to main shows up **Staged**, and `PROD_URL` keeps the old build until Promote. **Javaris** sets it (setup Part 2); **Atlas** (P-ops) checks the next merge.
 - [ ] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). **Lanes**; `p-product.spec.ts` runs it once S8 removes its two `fixme`s.
 
+## Limits
+
+What stops guessing and runaway costs. Each is a named constant, and `tests/integration/p-sec.test.ts` reaches it.
+
+| Limit | Where | What it does |
+|---|---|---|
+| `MAX_FAILED_LOGINS` (5) | `src/lib/auth.ts` | Wrong passwords in a row lock password sign-in on that account for `LOCK_MINUTES` (15), even with the right password. |
+| `MAX_FAILURES` (10) | `src/server/invites.ts` | Wrong invite codes lock code entry on that account for an hour. |
+| `GLOBAL_REDEEM_FAILURES_PER_HOUR` (30) | `src/server/invites.ts` | More wrong codes than this from everyone in an hour pause code entry for everyone, and Vienne is told. |
+| `AI_DAILY_LIMIT` (150) | `src/lib/ai/prompts.ts` | AI drafts per 24 hours (only Vienne can ask), counted before Claude is called. The Claude Console spend limit backs it. |
+| `MAX_BYTES` (25 MB) | `src/lib/storage.ts` | The largest upload. Blob enforces it again on the upload token. |
+
+No limit in the app yet, and what covers it:
+
+- **Sign-up** (`createAccount` in `src/app/(auth)/sign-in/actions.ts`): covered by a Vercel Firewall rate-limit rule on `/sign-in` (Hardening later). A new account is a locked preview that sees teasers only until Vienne's code.
+- **Sign-in by IP**: the lockout is per account, so one address can try a password across many emails. Covered by a Vercel Firewall rate-limit rule on `/sign-in` and `/api/auth/*` (Hardening later). Google sign-in is throttled by Google.
+- **Messages, session requests and uploads** from an active family: only families Vienne gave a code can send them, and abandoned uploads are removed by the daily clean-up. Hardening later, if one is ever abused.
+
 ## Dependency notes
 
 - **`overrides` in package.json** move three nested packages onto patched versions, so `npm audit --omit=dev` is clean:
