@@ -4,7 +4,7 @@
   watch.py --lanes    a lane idle WATCH_IDLE_MIN (5) with ready work → OSA
   watch.py --seats    a held PR green and waiting WATCH_HELD_MIN (10) → wake its owner (its `owner:<seat>`
                       label, else the feature's `held` in plan/features.json, else HELD_OWNER, zero).
-                      Drafts are skipped: not ready yet.
+                      Drafts are skipped (not ready yet), and so are PRs already in the merge queue.
                       a seat with an unsent prompt for WATCH_UNSENT_MIN (5), or no transcript write for
                       WATCH_STALE_MIN (30) with unread inbox (FYI messages don't count) → OSA (osa's own → ops)
 
@@ -117,11 +117,27 @@ def seats(memo):
     held(memo, here)
 
 
+QUEUE_Q = ('query($owner:String!,$name:String!){repository(owner:$owner,name:$name)'
+           '{mergeQueue(branch:"main"){entries(first:100){nodes{pullRequest{number}}}}}}')
+
+
+def queued():
+    """PR numbers in the merge queue. They wait on the queue's CI, not a lead, and `gh pr list` can't show it
+    (autoMergeRequest stays null for a queued PR)."""
+    code, out = sh(["gh", "api", "graphql", "-F", "owner={owner}", "-F", "name={repo}", "-f", f"query={QUEUE_Q}"])
+    try:
+        nodes = json.loads(out)["data"]["repository"]["mergeQueue"]["entries"]["nodes"]
+        return {n["pullRequest"]["number"] for n in nodes if n.get("pullRequest")}
+    except (ValueError, KeyError, TypeError):
+        return set()
+
+
 def held(memo, here):
     code, out = sh(["gh", "pr", "list", "--state", "open", "--limit", "100",
                     "--json", "number,headRefName,headRefOid,statusCheckRollup,autoMergeRequest,isDraft,labels"])
     if code:
         return
+    in_queue = queued()
     default = ENV.get("HELD_OWNER", "zero")
     held_by = {f"f/{f['id']}": f.get("held") for f in plan.features() if f.get("held")}
     for p in json.loads(out or "[]"):
@@ -130,7 +146,7 @@ def held(memo, here):
         claimed = [l["name"].split(":", 1)[1] for l in p.get("labels") or [] if l.get("name", "").startswith("owner:")]
         owner = (claimed[0] if claimed else None) or held_by.get(re.sub(r"-r\d+$", "", p["headRefName"])) or default
         checks = p.get("statusCheckRollup") or []
-        if p.get("autoMergeRequest") or p.get("isDraft") or not checks:
+        if p.get("autoMergeRequest") or p["number"] in in_queue or p.get("isDraft") or not checks:
             continue
         if any((c.get("conclusion") or c.get("state") or "").upper() not in ("SUCCESS", "NEUTRAL", "SKIPPED") for c in checks):
             continue

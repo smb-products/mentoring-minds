@@ -46,6 +46,7 @@ case "$1 $2" in
   "pr list") case "$*" in *open*) echo "${GH_OPEN:-[]}";; *) echo "${GH_MERGED:-[]}";; esac;;
   "issue comment") echo "comment $*" >> "$GH_LOG";;
   "pr ready") echo "ready $3" >> "$GH_LOG";;
+  "api graphql") echo "${GH_QUEUE:-null}";;
   "issue view") case "$*" in *state*) echo OPEN; exit 0;; esac; echo '{"comments":[{"createdAt":"2026-11-22T10:00:00Z","body":"[to:osa][from:soap][id:abc123] hi from miosa"}]}';;
 esac
 """
@@ -230,14 +231,16 @@ class Kit(unittest.TestCase):
         pr = lambda n, labels: {"number": n, "headRefName": f"h/rigg-{n}", "headRefOid": f"sha{n}", "isDraft": False,
                                 "autoMergeRequest": None, "labels": [{"name": l} for l in labels],
                                 "statusCheckRollup": [{"name": "check", "conclusion": "SUCCESS", "completedAt": old}]}
-        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, [])])
+        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, []), pr(16, ["owner:axis"])])
+        queue = json.dumps({"data": {"repository": {"mergeQueue": {"entries": {"nodes": [{"pullRequest": {"number": 16}}]}}}}})
         (self.tmp / "bin" / "tmux").write_text("#!/usr/bin/env bash\nexit 0\n")  # every seat is up; never the real tmux
         (self.tmp / "bin" / "tmux").chmod(0o755)
-        self.kit("watch.py", "--seats", env={"GH_OPEN": prs})
+        self.kit("watch.py", "--seats", env={"GH_OPEN": prs, "GH_QUEUE": queue})
         axis, zero = self.kit("msg.py", "inbox", "axis").stdout, self.kit("msg.py", "inbox", "zero").stdout
         self.assertIn("PR #14", axis)
         self.assertNotIn("PR #14", zero)  # claimed by axis: zero isn't woken for it
         self.assertIn("PR #15", zero)     # unclaimed and not in the plan: HELD_OWNER
+        self.assertNotIn("PR #16", axis + zero)  # already in the merge queue: waiting on CI, not on a lead
 
     def test_checker_skips_tickets_a_seat_runs_itself(self):
         self.kit("plan.py", "set", "E", "merged")  # role ops: no holdouts

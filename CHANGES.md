@@ -3,6 +3,12 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: the guard skips PRs already in the merge queue
+
+- **Kit, `kit/watch.py`:** a green held PR that's already in the merge queue no longer wakes a lead. Why: a
+  queued PR's `autoMergeRequest` is null, so #39 and #40 pinged Axis while they waited on the queue's own CI.
+  The queue is read with one GraphQL query (`gh pr list` can't show it). Approved: Axis; Zero reviews.
+
 ## 2026-11-26: S1 touches, new S7 and C1, after-the-fact edits in WC, W8 and S5b, AGENTS after W8
 
 - **S1, touches and check 4:** add `src/server/families.ts`. `getFamily` sends a parent who isn't ACTIVE
