@@ -23,6 +23,12 @@ const UPLOAD_TTL_SEC = 10 * 60;
 export const ALLOWED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'] as const;
 export type AllowedType = (typeof ALLOWED_TYPES)[number];
 export const MAX_BYTES = 25 * 1024 * 1024;
+/**
+ * Uploads a parent can reserve in 24 hours (Vienne has no cap). One answer sheet can take
+ * up to 200 photos (submitAnswerSheet), so a family can always hand in a full sheet in a day;
+ * the book's tests are 40 questions, so this leaves room for several sheets and retakes.
+ */
+export const MAX_UPLOADS_PER_DAY = 200;
 
 export const usingBlob = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 

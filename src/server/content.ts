@@ -19,7 +19,7 @@ import { requireActive, requireAdmin, requireStudentAccess, requireUser } from '
 import { action, ApiError, found, need, query } from '@/lib/result';
 import { id, ids, optText, parse, text } from '@/lib/validate';
 import { fileDTO, resourceDTO, resourceForFamily, resourceInclude, resourceTeaser } from '@/lib/dto';
-import { ALLOWED_TYPES, MAX_BYTES, matchesType, readStart, removeObject, storageKeyFor, storedSize, uploadTarget, type AllowedType } from '@/lib/storage';
+import { ALLOWED_TYPES, MAX_BYTES, MAX_UPLOADS_PER_DAY, matchesType, readStart, removeObject, storageKeyFor, storedSize, uploadTarget, type AllowedType } from '@/lib/storage';
 import { canReadFile, visibleTo } from '@/lib/files';
 
 /* ── Files ──────────────────────────────────────────────── */
@@ -38,7 +38,17 @@ export const createUpload = action(async (input: { filename: string; mimeType: s
   );
   const filename = v.filename.replace(/[\\/\u0000-\u001f]/g, '_');
   const key = storageKeyFor(randomUUID(), v.mimeType);
-  const file = await db.fileAsset.create({ data: { storageKey: key, filename, mimeType: v.mimeType, sizeBytes: v.sizeBytes, uploadedById: user.id } });
+  const data = { storageKey: key, filename, mimeType: v.mimeType, sizeBytes: v.sizeBytes, uploadedById: user.id };
+  const file =
+    user.role === 'ADMIN'
+      ? await db.fileAsset.create({ data })
+      : await db.$transaction(async (tx) => {
+          // One reservation at a time per parent, so taps at once can't slip past the cap.
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`upload:${user.id}`}))`;
+          const today = await tx.fileAsset.count({ where: { uploadedById: user.id, createdAt: { gte: new Date(Date.now() - 86400000) } } });
+          need(today < MAX_UPLOADS_PER_DAY, 'That’s the most files for today. Try again tomorrow, or message Vienne if you need to send more.', 'LIMIT');
+          return tx.fileAsset.create({ data });
+        });
   const upload = uploadTarget(file.id, key, v.mimeType);
   return { file, upload };
 });
