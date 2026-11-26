@@ -9,6 +9,14 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   no-input guard exported from `src/lib/guards.ts` (`export async function requireX()`), instead of a fixed
   list of three. Why: S9 (#56) adds `requireCanMessage`, so main plus S9 failed the check in the merge queue
   although each passed alone. The check is unchanged otherwise. Approved: Axis; Zero reviews.
+## 2026-11-26: S13 and S14 from the P-sec audit
+
+- **S13 (new, held zero):** `content.getFileForUser` checks the account before the lookup and returns a file
+  DTO, not the `FileAsset` row. Why: finding S-sec1 (P-sec, #54): a raw row breaks AGENTS rule 3, and NOT_FOUND
+  before NOT_ACTIVE let a locked account probe file ids. Approved: Axis; Zero reviews.
+- **S14 (new, after S6, held zero):** sign-up caps the password at `MAX_PASSWORD` (200, one constant in
+  `src/lib/auth-rules.ts`), as sign-in and change-password do. Why: finding S-sec2 (P-sec, #54):
+  a longer one made an account that could never sign in by password. Approved: Axis; Zero reviews.
 
 
 ## 2026-11-26: D5, production migrations are manual (P-ops)

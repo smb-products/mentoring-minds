@@ -1,14 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { DEMO_MODE } from '@/lib/demo';
 
 /**
  * Next.js 16 proxy (formerly middleware). Signed-out visitors go to /sign-in;
  * parents can't open /admin and Vienne lands on /admin. Every server function
  * still checks permissions itself (lib/guards.ts): this is only routing.
- * In demo mode (the scaffold) there is no sign-in, so everything passes through.
  */
 export async function proxy(req: NextRequest) {
-  if (DEMO_MODE) return NextResponse.next();
   const { auth } = await import('@/lib/auth');
   const session = await auth();
   const user = session?.user;
