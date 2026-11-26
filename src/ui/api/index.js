@@ -6,8 +6,8 @@ const LIVE = new Set([
   // W0
   'dashboard',
   // W1
-  // 'taxonomy',
-  // 'fast',
+  'taxonomy',
+  'fast',
   // W2
   // 'families',
   // 'invites',
