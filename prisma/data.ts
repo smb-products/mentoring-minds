@@ -66,11 +66,49 @@ export async function loadReference(db: PrismaClient, seed = prototypeSeed(), { 
   await insert(db, 'Tag', rows(seed, 'tags'));
 }
 
-/** Vienne's account. With Google sign-in, ADMIN_EMAIL must be her Google address. */
+/**
+ * Vienne's account. With Google sign-in, ADMIN_EMAIL must be her Google address.
+ * Run again for the same admin, it changes nothing (her password stays hers).
+ * If someone else signed up with her address first, the account is taken back: their
+ * password stops working, their sessions are signed out, and anything they made on it
+ * (children, a message thread, a used invite) is printed so it can be checked by hand.
+ */
 export async function ensureAdmin(db: PrismaClient, { email, name, password }: { email: string; name: string; password?: string }) {
   if (password !== undefined && password.length < 8) throw new Error('ADMIN_PASSWORD must be at least 8 characters (the sign-in screen won’t accept less).');
   const existing = await db.user.findUnique({ where: { email: email.toLowerCase() } });
-  if (existing) return db.user.update({ where: { id: existing.id }, data: { role: 'ADMIN', status: 'ACTIVE' } });
+  if (existing?.role === 'ADMIN') return existing.status === 'ACTIVE' ? existing : db.user.update({ where: { id: existing.id }, data: { status: 'ACTIVE' } });
+  if (existing) {
+    const [children, conversation, invite] = [
+      await db.student.findMany({ where: { parentId: existing.id }, select: { id: true, firstName: true } }),
+      await db.conversation.findUnique({ where: { parentId: existing.id }, select: { id: true, _count: { select: { messages: true } } } }),
+      await db.invite.findUnique({ where: { usedById: existing.id }, select: { id: true } }),
+    ];
+    const user = await db.user.update({
+      where: { id: existing.id },
+      data: {
+        name,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        emailVerified: new Date(),
+        passwordHash: password ? await bcrypt.hash(password, 12) : null,
+        sessionVersion: { increment: 1 },
+        failedLogins: 0,
+        lockedUntil: null,
+        mustChangePassword: false,
+      },
+    });
+    const left = [
+      children.length && `${children.length} child${children.length === 1 ? '' : 'ren'} (${children.map((c) => `${c.id} ${c.firstName}`).join(', ')})`,
+      conversation && `a message thread ${conversation.id} with ${conversation._count.messages} message${conversation._count.messages === 1 ? '' : 's'}`,
+      invite && `used invite ${invite.id}`,
+    ].filter(Boolean);
+    console.warn(
+      `An account already used ${user.email} (${user.id}). It is now Vienne's admin account: the old password no longer works and every session on it is signed out.` +
+        (password ? '' : ' Set ADMIN_PASSWORD and run again, or sign in with Google.') +
+        (left.length ? `\nStill attached to it, check these by hand: ${left.join('; ')}.` : '\nNothing else was attached to it.'),
+    );
+    return user;
+  }
   return db.user.create({
     data: { email: email.toLowerCase(), name, role: 'ADMIN', status: 'ACTIVE', textSize: 'LARGE', emailVerified: new Date(), passwordHash: password ? await bcrypt.hash(password, 12) : null },
   });
