@@ -6,6 +6,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { as, db, fails, freshDemo, ok } from './helpers';
 import * as assignments from '@/server/assignments';
+import * as families from '@/server/families';
 import * as messages from '@/server/messages';
 import * as notifications from '@/server/notifications';
 
@@ -75,6 +76,26 @@ describe('S26: push tags', () => {
     expect(mateo).toBeTruthy();
     expect(jordan).toBeTruthy();
     expect(jordan).not.toBe(mateo);
+  });
+
+  it('a tag names the record, not the words: two children called Mateo get their own tags', async () => {
+    as('u_admin');
+    const other = ok(await families.addStudent({ parentId: 'u_grace', firstName: 'Mateo', grade: 3 }));
+    const a = ok(await assignments.createBookAssignment({ bookId: 'book_g3', test: 'T2', from: 1, to: 1, studentIds: ['s_mateo', other.id] }));
+    const subs = await db.submission.findMany({ where: { assignmentId: a.id }, select: { id: true, studentId: true } });
+    const subOf = (studentId: string) => subs.find((s) => s.studentId === studentId)!.id;
+    sendNotification.mockClear();
+    for (const [parent, student] of [['u_ana', 's_mateo'], ['u_grace', other.id]]) {
+      as(parent);
+      ok(await assignments.submitAnswerSheet({ submissionId: subOf(student), answers: [{ number: 1, value: 'A' }] }));
+    }
+    expect(await tags(2)).toEqual([`SUBMISSION_RECEIVED:${subOf('s_mateo')}`, `SUBMISSION_RECEIVED:${subOf(other.id)}`]);
+
+    sendNotification.mockClear();
+    as('u_grace');
+    ok(await messages.sendMessage({ body: 'Mateo is new here' }));
+    const thread = await db.conversation.findUniqueOrThrow({ where: { parentId: 'u_grace' } });
+    expect(await tags(1)).toEqual([`thread:${thread.id}`]);
   });
 
   it('a parent can’t hand in another family’s work, and nothing is pushed', async () => {

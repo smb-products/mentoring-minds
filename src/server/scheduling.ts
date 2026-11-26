@@ -242,7 +242,7 @@ export const requestSession = action(async (input: { studentId: string; mode?: M
       include: sessionInclude,
     });
   });
-  await notifyAdmins({ type: 'SESSION_REQUESTED', title: `New request from ${user.name}`, body: fmtLabel(session), href: '/admin/schedule' });
+  await notifyAdmins({ type: 'SESSION_REQUESTED', title: `New request from ${user.name}`, body: fmtLabel(session), href: '/admin/schedule', about: session.id });
   return sessionDTO(session);
 });
 
@@ -264,7 +264,7 @@ export const confirmSession = action(async (input: { sessionId: string }) => {
   });
   // The video link is part of the confirmation, not a separate notification.
   const body = s.mode === 'VIDEO' ? `${fmtLabel(s)}. The Join call button appears ${settings.joinOpensMin} minutes before.` : fmtLabel(s);
-  await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_CONFIRMED', title: `Vienne confirmed ${s.student.firstName}’s session`, body, href: '/parent/sessions' });
+  await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_CONFIRMED', title: `Vienne confirmed ${s.student.firstName}’s session`, body, href: '/parent/sessions', about: s.id });
   return sessionDTO(s);
 });
 
@@ -274,7 +274,7 @@ export const declineSession = action(async (input: { sessionId: string; reason?:
   const cur = await loadSession(v.sessionId);
   need(cur.status === 'REQUESTED', 'Only requests can be declined');
   const s = await db.session.update({ where: { id: v.sessionId }, data: { status: 'DECLINED', declineReason: v.reason }, include: sessionInclude });
-  await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_DECLINED', title: `Vienne couldn’t take ${s.student.firstName}’s request`, body: v.reason || fmtLabel(s), href: '/parent/sessions' });
+  await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_DECLINED', title: `Vienne couldn’t take ${s.student.firstName}’s request`, body: v.reason || fmtLabel(s), href: '/parent/sessions', about: s.id });
   return sessionDTO(s);
 });
 
@@ -290,9 +290,9 @@ export const cancelSession = action(async (input: { sessionId: string; reason?: 
   }
   const s = await db.session.update({ where: { id: v.sessionId }, data: { status: 'CANCELLED', cancelledById: user.id, cancelledAt: new Date(), cancelReason: v.reason }, include: sessionInclude });
   if (admin) {
-    await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_CHANGED', title: `Vienne cancelled ${s.student.firstName}’s session`, body: v.reason || fmtLabel(s), href: '/parent/sessions' });
+    await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_CHANGED', title: `Vienne cancelled ${s.student.firstName}’s session`, body: v.reason || fmtLabel(s), href: '/parent/sessions', about: s.id });
   } else {
-    await notifyAdmins({ type: 'SESSION_CANCELLED_BY_PARENT', title: `${user.name} cancelled a session`, body: v.reason ? `${fmtLabel(s)}. ${v.reason}` : fmtLabel(s), href: '/admin/schedule' });
+    await notifyAdmins({ type: 'SESSION_CANCELLED_BY_PARENT', title: `${user.name} cancelled a session`, body: v.reason ? `${fmtLabel(s)}. ${v.reason}` : fmtLabel(s), href: '/admin/schedule', about: s.id });
   }
   return admin ? sessionDTO(s) : sessionForParent(s, settings);
 });
@@ -309,7 +309,7 @@ export const rescheduleSession = action(async (input: { sessionId: string; start
     if (conflicts(v.startsAt, end, cur as Place, { ...cal, ignoreId: cur.id })) throw new ApiError('SLOT_TAKEN', 'That overlaps another session.');
     return tx.session.update({ where: { id: cur.id }, data: { startsAt: v.startsAt, endsAt: end, durationMin: dur, reminderSentAt: null }, include: sessionInclude });
   });
-  await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_CHANGED', title: `Vienne moved ${s.student.firstName}’s session`, body: fmtLabel(s), href: '/parent/sessions' });
+  await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_CHANGED', title: `Vienne moved ${s.student.firstName}’s session`, body: fmtLabel(s), href: '/parent/sessions', about: s.id });
   return sessionDTO(s);
 });
 
@@ -331,7 +331,7 @@ export const createSessionAsAdmin = action(
         include: sessionInclude,
       });
     });
-    await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_CONFIRMED', title: `New session booked for ${s.student.firstName}`, body: fmtLabel(s), href: '/parent/sessions' });
+    await notify({ userId: s.student.parentId, audience: 'PARENT', type: 'SESSION_CONFIRMED', title: `New session booked for ${s.student.firstName}`, body: fmtLabel(s), href: '/parent/sessions', about: s.id });
     return sessionDTO(s);
   },
 );

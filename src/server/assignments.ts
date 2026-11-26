@@ -130,7 +130,8 @@ export const createBookAssignment = action(
         submissions: { create: students.map((s) => ({ studentId: s.id })) },
       },
     });
-    await Promise.all(students.map((s) => notify({ userId: s.parentId, audience: 'PARENT', type: 'ASSIGNMENT_GIVEN', title: `New book homework for ${s.firstName}`, body: a.title, href: '/parent/learning' })));
+    const work = await workIds(a.id);
+    await Promise.all(students.map((s) => notify({ userId: s.parentId, audience: 'PARENT', type: 'ASSIGNMENT_GIVEN', title: `New book homework for ${s.firstName}`, body: a.title, href: '/parent/learning', about: work.get(s.id) })));
     return a;
   },
 );
@@ -153,9 +154,16 @@ export const createPracticeAssignment = action(async (input: { title: string; in
   const a = await db.assignment.create({
     data: { title: v.title, instructions: v.instructions, kind: 'PRACTICE', subjectId: MATH, resourceId: v.resourceId ?? null, dueAt: v.dueAt ?? null, submissions: { create: students.map((s) => ({ studentId: s.id })) } },
   });
-  await Promise.all(students.map((s) => notify({ userId: s.parentId, audience: 'PARENT', type: 'ASSIGNMENT_GIVEN', title: `New practice for ${s.firstName}`, body: a.title, href: '/parent/learning' })));
+  const work = await workIds(a.id);
+  await Promise.all(students.map((s) => notify({ userId: s.parentId, audience: 'PARENT', type: 'ASSIGNMENT_GIVEN', title: `New practice for ${s.firstName}`, body: a.title, href: '/parent/learning', about: work.get(s.id) })));
   return a;
 });
+
+/** Each child's submission on an assignment, so each child's homework push has its own tag. */
+async function workIds(assignmentId: string) {
+  const subs = await db.submission.findMany({ where: { assignmentId }, select: { id: true, studentId: true } });
+  return new Map(subs.map((s) => [s.studentId, s.id]));
+}
 
 /* ── Families: the answer sheet ─────────────────────────── */
 
@@ -277,6 +285,7 @@ export const submitAnswerSheet = action(async (input: { submissionId: string; an
     title: `${sub.student.firstName} finished ${sub.assignment.title}`,
     body: `${right} of ${checked} right.${r.waiting ? ` ${written} written ${written === 1 ? 'answer' : 'answers'} to check.` : ''}`,
     href: `/admin/assignments/${sub.assignmentId}`,
+    about: sub.id,
   });
   const [dto] = await submissionDTOs([updated]);
   return { ...dto, slots: items.map((it) => bookItemDTO(it, { grade: sub.student.grade, withAnswer: false })) };
@@ -324,7 +333,7 @@ export const gradeSubmission = action(async (input: { submissionId: string; resu
     await addMissesToRedo(tx, sub.studentId, sub.id, items, answers);
     return tx.submission.findUniqueOrThrow({ where: { id: sub.id }, include: submissionInclude });
   });
-  await notify({ userId: sub.student.parentId, audience: 'PARENT', type: 'WORK_GRADED', title: `Vienne checked ${sub.student.firstName}’s ${sub.assignment.title}`, body: `${score} of ${sub.maxScore} points`, href: '/parent/learning' });
+  await notify({ userId: sub.student.parentId, audience: 'PARENT', type: 'WORK_GRADED', title: `Vienne checked ${sub.student.firstName}’s ${sub.assignment.title}`, body: `${score} of ${sub.maxScore} points`, href: '/parent/learning', about: sub.id });
   const [dto] = await submissionDTOs([updated]);
   return dto;
 });
@@ -341,7 +350,7 @@ export const returnSubmission = action(async (input: { submissionId: string; fee
     data: { status: 'RETURNED', feedback: v.feedback, draft: draft ?? Prisma.DbNull },
     include: submissionInclude,
   });
-  await notify({ userId: sub.student.parentId, audience: 'PARENT', type: 'WORK_RETURNED', title: `Vienne returned ${sub.student.firstName}’s work`, body: v.feedback, href: '/parent/learning' });
+  await notify({ userId: sub.student.parentId, audience: 'PARENT', type: 'WORK_RETURNED', title: `Vienne returned ${sub.student.firstName}’s work`, body: v.feedback, href: '/parent/learning', about: sub.id });
   const [dto] = await submissionDTOs([updated]);
   return dto;
 });

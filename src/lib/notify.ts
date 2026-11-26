@@ -14,25 +14,32 @@ import { pushToUser } from './push';
  * Call these AFTER a transaction commits, so nobody is told about a change that
  * was rolled back.
  */
-export type NewNotification = { userId: string; audience: 'ADMIN' | 'PARENT'; type: string; title: string; body?: string | null; href?: string | null };
+export type NewNotification = {
+  userId: string;
+  audience: 'ADMIN' | 'PARENT';
+  type: string;
+  title: string;
+  body?: string | null;
+  href?: string | null;
+  /** The id of the record the push is about (thread, submission, session, report, invite). Only names the push's tag; not stored. */
+  about?: string | null;
+};
 
-export async function notify(n: NewNotification) {
+export async function notify({ about, ...n }: NewNotification) {
   const row = await db.notification.create({ data: { ...n, body: n.body ?? null, href: n.href ?? null, channel: 'IN_APP', sentAt: new Date() } });
-  afterResponse(() => pushToUser(n.userId, { title: n.title, body: n.body, href: n.href, tag: pushTag(n) }));
+  afterResponse(() => pushToUser(n.userId, { title: n.title, body: n.body, href: n.href, tag: pushTag(n.type, about) }));
   return row;
 }
 
 /**
  * The push's tag: a newer push with the same tag replaces the older one on the phone, so it
- * names what the push is about. A message is about its thread. Anything else is about its type,
- * the item it opens and who it's about (the title names the family or child: one assignment
- * handed in by two families, or two families' session requests, open the same page). One
- * without an href keeps its type alone.
+ * names the record the push is about, never words two families can share (two children can
+ * both be called Mateo). A message is about its thread; anything else is its type and the id
+ * of its record. A push about no record keeps its type alone.
  */
-function pushTag(n: NewNotification) {
-  const thread = n.type.startsWith('MESSAGE') && n.href?.match(/\/messages\/([^/?#]+)/)?.[1];
-  if (thread) return `thread:${thread}`;
-  return n.href ? `${n.type}:${n.href}:${n.title}` : n.type;
+function pushTag(type: string, about?: string | null) {
+  if (!about) return type;
+  return type.startsWith('MESSAGE') ? `thread:${about}` : `${type}:${about}`;
 }
 
 /**
