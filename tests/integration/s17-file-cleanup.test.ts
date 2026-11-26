@@ -148,6 +148,29 @@ describe('uploads per parent per day', () => {
     ok(await reserve());
   });
 
+  it('a refused upload (not really a photo) still counts toward the day, and its stand-in is never served', async () => {
+    const parent = 'u_grace';
+    const mine = await db.fileAsset.count({ where: { uploadedById: parent, createdAt: { gte: new Date(Date.now() - DAY) } } });
+    await db.fileAsset.createMany({ data: Array.from({ length: MAX_UPLOADS_PER_DAY - mine - 1 }, (_, i) => ({ storageKey: `files/s17-refused-${i}-${Date.now()}.jpg`, filename: 'w.jpg', mimeType: 'image/jpeg', sizeBytes: 100, uploadedById: parent })) });
+    as(parent);
+    const bytes = new TextEncoder().encode('this is not a photo');
+    const { file, upload: u } = ok(await content.createUpload({ filename: 'work.jpg', mimeType: 'image/jpeg', sizeBytes: bytes.byteLength }));
+    const upload = localTarget(u);
+    const res = await uploadRoute(new Request(new URL(upload.url, 'http://localhost'), { method: 'PUT', headers: upload.headers, body: bytes as unknown as BodyInit }), { params: Promise.resolve({ id: file.id }) } as never);
+    expect(res.status).toBe(204);
+    fails(await content.finishUpload({ fileId: file.id }), 'INVALID', /isn’t a real JPG/);
+    await gone(file);
+    fails(await reserve(), 'LIMIT', /try again tomorrow, or message Vienne/i);
+
+    // The stand-in holds no bytes, can't be opened, and the clean-up drops it after a day.
+    const standIn = await db.fileAsset.findFirstOrThrow({ where: { uploadedById: parent, filename: 'work.jpg', uploadedAt: null }, orderBy: { createdAt: 'desc' } });
+    expect(await storedSize(standIn.storageKey)).toBeNull();
+    fails(await content.getFileForUser({ fileId: standIn.id }), 'NOT_FOUND');
+    await db.fileAsset.update({ where: { id: standIn.id }, data: { createdAt: new Date(Date.now() - DAY - 60000) } });
+    await cleanUp();
+    expect(await db.fileAsset.findUnique({ where: { id: standIn.id } })).toBeNull();
+  });
+
   it('Vienne has no cap', async () => {
     await db.fileAsset.createMany({ data: Array.from({ length: MAX_UPLOADS_PER_DAY }, (_, i) => ({ storageKey: `files/s17-admin-${i}-${Date.now()}.pdf`, filename: 'w.pdf', mimeType: 'application/pdf', sizeBytes: 100, uploadedById: 'u_admin' })) });
     as('u_admin');

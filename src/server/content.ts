@@ -65,7 +65,16 @@ export const finishUpload = action(async (input: { fileId: string }) => {
   const ok = size === file.sizeBytes && matchesType(await readStart(file.storageKey), file.mimeType);
   if (!ok) {
     await removeObject(file.storageKey);
-    await db.fileAsset.delete({ where: { id: file.id } });
+    await db.$transaction(async (tx) => {
+      const gone = await tx.fileAsset.deleteMany({ where: { id: file.id, uploadedAt: null } });
+      // A parent's refused try still counts toward the day's cap: a stand-in reservation with
+      // nothing stored keeps the slot, and the daily clean-up drops it once it's a day old.
+      if (gone.count && user.role !== 'ADMIN') {
+        await tx.fileAsset.create({
+          data: { storageKey: storageKeyFor(randomUUID(), file.mimeType as AllowedType), filename: file.filename, mimeType: file.mimeType, sizeBytes: file.sizeBytes, uploadedById: user.id, createdAt: file.createdAt },
+        });
+      }
+    });
     throw new ApiError('INVALID', `That file isn’t a real ${LABEL[file.mimeType as AllowedType] ?? 'file'}. Try another.`);
   }
   return db.fileAsset.update({ where: { id: file.id }, data: { uploadedAt: new Date() } });
