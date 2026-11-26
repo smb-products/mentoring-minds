@@ -3,6 +3,28 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S1 touches, new S7 and C1, after-the-fact edits in WC, W8 and S5b, AGENTS after W8
+
+- **S1, touches and check 4:** add `src/server/families.ts`. `getFamily` sends a parent who isn't ACTIVE
+  `meetingUrl` as null too. Why: Rigg's S1 holdout (#37) found a PAUSED parent getting the video link from
+  `getFamily`, which the parent shell calls. The S1 rebuild (fantem) was told before its PR. Approved: Axis; Zero
+  reviews.
+- **S7 (new, after S1):** `cancelSession` guards first and gives the same `FORBIDDEN` for a missing session id as
+  for another family's, as S2–S4 do. Why: Rigg's FYI on #37 (ids could be probed: NOT_FOUND vs FORBIDDEN).
+  Approved: Axis; Zero reviews.
+- **C1 (new, after S1 and S7):** comments in `src/server`, `src/lib` and the page files stop naming the deleted
+  `src/mock`, and `tests/live-adapter.test.ts` stops mocking `../src/mock/core`. No behaviour change. Why: Zero,
+  after W8. Approved: Zero.
+- **WC (#29), outside its narrowed touches:** fixed one gap in `src/server/ai.ts`: `discardDraft` returns the
+  draft, is admin-only, and selects its fields explicitly. It was built under WC's old touches (all of
+  `src/server/`). Approved after the fact: Zero.
+- **W8 (#36):** deleted the retired `tests/integration/w2-families-invites.test.ts`, outside W8's touches.
+  **S5b (#35):** a one-line edit to `tests/integration/jobs-ai.test.ts`,
+  outside its touches. Approved after the fact: Zero.
+- **AGENTS.md:** State of the repo, the contract command and the Where table describe the app after W8 (every
+  area live, the frozen mock in `tests/contract/mock/`, the seed in `prisma/demo/`). Why: agents read it first,
+  and it still said the screens ran on the mock. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: production-readiness phase after W8
 
 - **Production-readiness phase (new P-sec, P-product, P-ops, P-review):** after W8, an audit in three parts,
