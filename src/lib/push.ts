@@ -16,14 +16,21 @@ function ready() {
   return configured;
 }
 
-export async function pushToUser(userId: string, payload: { title: string; body?: string | null; href?: string | null; tag?: string }) {
+export type PushInput = { title: string; body?: string | null; href?: string | null; tag?: string };
+
+/** What public/sw.js reads: `title`, `body`, `href` (opened on tap) and `tag` (a newer push with the same tag replaces the older one). */
+export function pushPayload(payload: PushInput) {
+  return { title: payload.title, body: payload.body ?? '', href: payload.href || '/', ...(payload.tag ? { tag: payload.tag } : {}) };
+}
+
+export async function pushToUser(userId: string, payload: PushInput) {
   if (!ready()) return 0;
   const subs = await db.pushSubscription.findMany({ where: { userId } });
   let sent = 0;
   await Promise.all(
     subs.map(async (s) => {
       try {
-        await sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify({ title: payload.title, body: payload.body ?? '', url: payload.href ?? '/', tag: payload.tag }), {
+        await sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(pushPayload(payload)), {
           TTL: 60 * 60 * 24,
           urgency: 'normal',
         });
