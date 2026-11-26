@@ -27,7 +27,8 @@ async function visit(page: Page, path: string) {
 
 const parentPhone = (browser: Browser, who: 'ana' | 'keisha') => openAs(browser, who);
 
-test('Lucia is deleted: gone from Vienne’s screens, and from Ana’s phone even though she had Lucia picked', async ({ page, as, browser }) => {
+// S27 hides Delete until S23b lands (Javaris, 2026-11-26). S23b turns this back on: remove `.fixme`.
+test.fixme('Lucia is deleted: gone from Vienne’s screens, and from Ana’s phone even though she had Lucia picked', async ({ page, as, browser }) => {
   const ana = await parentPhone(browser, 'ana');
   await visit(ana.page, '/parent/progress');
   await chooseChild(ana.page, 'Lucia');
@@ -56,7 +57,8 @@ test('Lucia is deleted: gone from Vienne’s screens, and from Ana’s phone eve
   await ana.close();
 });
 
-test('Jordan, an only child, is deleted, then the family: an empty state, and Keisha’s open phone goes to sign-in', async ({ page, as, browser }) => {
+// S27 hides Delete until S23b lands (Javaris, 2026-11-26). S23b turns this back on: remove `.fixme`.
+test.fixme('Jordan, an only child, is deleted, then the family: an empty state, and Keisha’s open phone goes to sign-in', async ({ page, as, browser }) => {
   const keisha = await parentPhone(browser, 'keisha');
   await visit(keisha.page, '/parent/home');
 
