@@ -28,7 +28,7 @@ npx playwright install chromium      # or set E2E_CHROME_PATH to an installed Ch
 Then:
 
 ```bash
-npm run build:e2e                    # a production build with sign-in on (DEMO_MODE not "true")
+npm run build:e2e                    # a production build, as Vercel builds it
 npm run test:e2e                     # everything that's switched on
 npm run test:e2e -- w4               # one ticket
 npm run test:e2e -- w6 --headed      # watch it happen

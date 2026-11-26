@@ -3,6 +3,16 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: docs after S6, S12 touches
+
+- **Docs after S6 (#57):** README, AGENTS, WIRING, `tests/e2e/README.md` and DEPLOY no longer describe
+  `DEMO_MODE` or the in-browser demo. Local work signs in with the demo accounts after `npm run db:seed:demo`.
+  DEPLOY's environment table and Before launch item say the app ignores the variable, instead of "the server
+  refuses to start with it", which S6 made untrue. README's status and layout describe the app after W8.
+  Approved: Axis; Zero reviews.
+- **S12 (#58), touches:** add `tests/engines.test.ts`. It fails if `engines.node` stops matching the Node
+  major in CI. Why: the amend line in S12's report. Approved after the fact: Axis; Zero reviews.
+
 ## 2026-11-26: P-sec's "only a guard before parse()" reads the guard list from guards.ts
 
 - **P-sec, `tests/integration/p-sec.test.ts`:** the check that only a guard runs before `parse()` takes the guard

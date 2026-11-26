@@ -33,7 +33,7 @@ Demo sign-in: `vienne@example.com` or any demo parent (for example `ana.mendoza@
 
 ## Step 1: turn on sign-in (once)
 
-1. Remove `DEMO_MODE="true"` from `.env` (unset means sign-in is on). It's read at build time; `npm run dev` picks it up on restart.
+1. Done in W0, and S6 retired `DEMO_MODE` entirely: sign-in is always on, and there's nothing to turn off.
 2. In `src/ui/AppRoot.jsx`, take the user from the session instead of the demo persona:
    - **The layouts:** both group layouts (`src/app/(admin|parent)/*/layout.tsx`) already call `auth()` when demo mode is off. Pass `session.user` into `<AppRoot user={…}>`.
    - **AppRoot:** call `setSessionUser(user.id)` only while some areas are still on the mock. Use `user.role` instead of reading it from the URL, and `user.textSize` for the text size.
