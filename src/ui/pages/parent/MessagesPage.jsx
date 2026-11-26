@@ -1,11 +1,17 @@
 'use client';
 
 import { Thread } from '../../components/messages/Thread';
+import { LockedPage, useLocked } from '../../components/shell/Locked';
 import { useShell } from '../../components/shell/ShellContext';
 import { Avatar, PageHeader } from '../../components/ui/Display';
 
 /** /parent/messages — the family's one thread with Vienne. Data: messages.getThread. */
 export default function ParentMessagesPage() {
+  // A locked account can't read the thread yet (messages.getThread is for active families).
+  return useLocked() ? <LockedPage title="Messages" /> : <ParentMessages />;
+}
+
+function ParentMessages() {
   const { mode } = useShell();
   const phone = mode === 'phone';
   return (

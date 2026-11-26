@@ -4,6 +4,7 @@ import { usePathname } from '../../lib/router';
 import { useLayoutMode } from '../../lib/useLayoutMode';
 import { ToastProvider } from '../ui/Toast';
 import { ErrorBoundary } from '../ui/ErrorBoundary';
+import { PausedNotice, useLocked } from './Locked';
 import { BandMotif, MastheadContext, OverlayContext } from './Masthead';
 import { PhoneNav, PhoneTop } from './PhoneNav';
 import { Rail } from './Rail';
@@ -19,6 +20,7 @@ export function AppShell({ children }) {
   const pathname = usePathname();
   const [ref, mode] = useLayoutMode();
   const phone = mode === 'phone';
+  const locked = useLocked();
   const [target, setTarget] = useState(null);
   const [overlap, setOverlap] = useState(false);
   const [overlayHost, setOverlayHost] = useState(null);
@@ -35,7 +37,10 @@ export function AppShell({ children }) {
         <div ref={setTarget} className={cn('@container/page relative mx-auto w-full max-w-[1240px] px-4 @3xl/app:px-8', overlap ? 'pb-[4.5rem]' : 'pb-6 @3xl/app:pb-8')} />
       </div>
       <div className={cn('@container/page relative mx-auto w-full max-w-[1240px] px-4 pb-10 @3xl/app:px-8', overlap ? '-mt-12' : 'pt-5 @3xl/app:pt-6')}>
-        <ErrorBoundary>{children}</ErrorBoundary>
+        <ErrorBoundary>
+          {locked === 'PAUSED' && <PausedNotice className="mb-5" />}
+          {children}
+        </ErrorBoundary>
       </div>
     </Body>
   );

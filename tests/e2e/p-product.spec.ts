@@ -99,7 +99,7 @@ async function sweepWithMessage(page: Page, routes: string[], errors: string[], 
   }
 }
 
-test.fixme('a preview parent: every parent screen asks for the code, with a clean console @phone', async ({ page, as, db, errors }) => {
+test('a preview parent: every parent screen asks for the code, with a clean console @phone', async ({ page, as, db, errors }) => {
   await as('tom');
   await sweepWithMessage(page, await parentRoutes(db, 'u_tom'), errors, /Enter your invite code/);
 });
@@ -109,7 +109,7 @@ test.describe('a paused parent', () => {
     await db.user.update({ where: { id: 'u_daniel' }, data: { status: 'ACTIVE' } });
   });
 
-  test.fixme('every parent screen says the account is paused, with a clean console @phone', async ({ page, as, db, errors }) => {
+  test('every parent screen says the account is paused, with a clean console @phone', async ({ page, as, db, errors }) => {
     await db.user.update({ where: { id: 'u_daniel' }, data: { status: 'PAUSED' } });
     await as('daniel' satisfies Who);
     await sweepWithMessage(page, await parentRoutes(db, 'u_daniel'), errors, /Your account is paused/);

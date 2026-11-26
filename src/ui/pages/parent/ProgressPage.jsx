@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FileBarChart } from 'lucide-react';
 import { api, useQuery } from '../../api';
 import { ChildSwitcher } from '../../components/shell/ChildSwitcher';
+import { LockedPage, useLocked } from '../../components/shell/Locked';
 import { useShell } from '../../components/shell/ShellContext';
 import { AreaBars, areaColor, Empty, Figures, PageHeader, Row, Section, SkillMeter, Stars, subjectBg } from '../../components/ui/Display';
 import { FastResults } from '../../components/fast/FastResults';
@@ -14,6 +15,10 @@ import { useRouter } from '../../lib/router';
 
 /** /parent/progress — data: reports.listForStudent (published only), assignments.listForStudent */
 export default function ParentProgressPage() {
+  return useLocked() ? <LockedPage title="Progress" /> : <ParentProgress />;
+}
+
+function ParentProgress() {
   const { activeStudent: kid } = useShell();
   const { navigate } = useRouter();
   const { data: reports = [] } = useQuery(() => (kid ? api.reports.listForStudent({ studentId: kid.id }) : []), [kid?.id]);
