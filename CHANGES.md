@@ -3,6 +3,24 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S23b, delete by id only
+
+- **S23b (new, held for Zero, status `hold`):** deleting a family or a child matches only by id. That means the
+  parent's and child's ids, `Invite.usedById`, a student id stored on each planned entry at redemption, and an
+  add-only id link on alerts. Nothing is matched by name or email. The checks list what each delete removes.
+  Unredeemed codes stay. Why: S23 was reopened twice. Round 2 found that an email match acting as a wildcard
+  let a family delete remove another family's code. The name and email matching came from the S23 checks I
+  wrote in #93, and that was the plan's error. OSA asked for this rewrite. It waits for Javaris on two
+  questions: unredeemed codes stay, and alerts get an id link (a production migration).
+- **S23:** stays parked. Its last case (a lower-case name on an unredeemed code) is retired, because under
+  S23b an unredeemed code isn't the family's.
+- **No interim ticket to hide the buttons:** there is no real data before the production seed, and DEPLOY's
+  runbook now says not to use delete until S23b lands. The Before launch item blocks the seed on it. Hiding the
+  buttons would mean editing S23's e2e spec and Rigg's holdouts twice. If Javaris wants them hidden anyway,
+  that's a small ticket.
+
+Approved: Axis; Zero reviews; Javaris decides S23b's two questions.
+
 ## 2026-11-26: amend lines
 
 - **S26 check 1 (#94's amend):** a push other than a message is tagged by its type, its href and its title, not

@@ -952,6 +952,41 @@
       "held": "zero"
     },
     {
+      "id": "S23b",
+      "title": "Deleting a family or a child matches only by id, never by name or email",
+      "status": "hold",
+      "spec": "tests/integration/s23b-delete-by-id.test.ts (new)",
+      "deps": [
+        "S26"
+      ],
+      "touches": [
+        "src/server/families.ts",
+        "src/server/invites.ts",
+        "src/lib/notify.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "prisma/data.ts",
+        "prisma/demo/seed.js",
+        "tests/integration/s23b-delete-by-id.test.ts",
+        "tests/integration/s23-delete-on-request.test.ts",
+        "tests/contract/contract.test.ts",
+        "plan/reports/S23b.md"
+      ],
+      "checks": [
+        "deleteStudent and deleteFamily find what to remove only through ids and foreign keys: the parent's user id, the child's student id, Invite.usedById, and ids stored when a code is redeemed or an alert is sent. Nothing is matched by an email, a name or any text pattern, in any case. The new test checks it by giving two families the same names and look-alike emails, such as ana_m@example.com and anaxm@example.com. Deleting one family never changes a row of the other's.",
+        "Deleting a family removes exactly these, and the report lists them: the parent's account, its sign-in links and push devices, and its children with everything in check 3. It also removes the parent's conversation and messages, their uploads and the stored files only they used, the invite code they redeemed (usedById), and the alerts linked to them by id (check 4). The parent's marks on others' rows stay, without the parent, as in S23. Nothing else is removed. Invite codes the parent never redeemed stay as they are, including ones Vienne sent to their email.",
+        "Deleting a child removes their sessions, notes, homework and answers, the assignments only they had, their FAST results, reports and shares, the stored files only their work used, and the alerts linked to them by id. On the code their parent redeemed, the child comes off the planned children by the student id that redeemInvite stores on each planned entry when it creates the child. Nothing else changes. Production has no real invites yet (the seed is on hold), so no backfill is needed. The demo seed stores the ids.",
+        "An alert about a child or a family is linked by id when it is created, for example a nullable studentId or parentId on Notification set from S26's `about`. It goes only through that link. An alert with no link stays. Any schema change only adds, and has its migration. Javaris applies it in production.",
+        "tests/holdout/S23.test.ts and S23.spec.ts, tests/integration/s23-delete-on-request.test.ts (only its name-matching cases change, each one named in the report), the first case of plan/holdouts/S23.test.ts, npm test, npm run test:contract and the whole browser suite all pass. Its second case (a lower-case child name on an unredeemed code) is retired, because an unredeemed code is no longer the family's. Rigg moves the first case to tests/holdout/."
+      ],
+      "hints": [
+        "Replaces S23's name and email matching (familyInvites, dropAlerts in src/server/families.ts) after two reopens. Round 2 found that a LIKE-style email match let deleteFamily delete another family's code. OSA's ask: ids only, with an explicit list of what goes.",
+        "Held for Zero (src/server, src/lib, prisma). Status hold: no lane claims it until Javaris answers. Then a lead runs kit/plan.py set S23b ready.",
+        "For Javaris: (a) unredeemed codes for the family stay; Vienne revokes them by hand, and their names stay on Invite codes. (b) Alerts get an add-only id link, which needs a production migration. If he says no to (b), alerts about a deleted child stay."
+      ],
+      "held": "zero"
+    },
+    {
       "id": "S24",
       "title": "Signing out never shows or logs an error",
       "spec": "tests/s24-sign-out.test.ts or tests/e2e/s24-sign-out.spec.ts (new)",
