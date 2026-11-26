@@ -7,7 +7,7 @@
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireStudentAccess, requireUser } from '@/lib/guards';
+import { requireActive, requireStudentAccess, requireUser } from '@/lib/guards';
 import { action, found, need, query } from '@/lib/result';
 import { id, parse } from '@/lib/validate';
 import { AREA_LABEL, categoriesFor, isFastGrade } from '@/lib/best';
@@ -81,20 +81,25 @@ export const saveResult = action(async (input: z.input<typeof resultInput>) => {
     level: fast ? v.level! : null,
     percentile: fast ? null : (v.percentile ?? null),
     categories: fast ? v.categories : [],
-    enteredById: user.id,
-    enteredAt: new Date(),
   };
+  // An edit keeps who entered the row and when, so the parent who entered it can still correct it.
   const row = v.id
     ? await db.fastResult.update({ where: { id: v.id }, data: fields, include: enteredBy })
-    : await db.fastResult.create({ data: { studentId: v.studentId, testType: fast ? 'FAST_MATH' : 'STAR_MATH', gradeTested: student.grade, ...fields }, include: enteredBy });
+    : await db.fastResult.create({ data: { studentId: v.studentId, testType: fast ? 'FAST_MATH' : 'STAR_MATH', gradeTested: student.grade, ...fields, enteredById: user.id, enteredAt: new Date() }, include: enteredBy });
   return resultDTO(row);
 });
 
 export const deleteResult = action(async (input: { id: string }) => {
+  const user = await requireActive();
   const v = parse(z.object({ id }), input);
+  if (user.role !== 'ADMIN') {
+    // A family looks only among its own children's results, so a missing id and another
+    // family's id get the same answer and nothing says which results exist.
+    const own = await db.fastResult.findFirst({ where: { id: v.id, student: { parentId: user.id } } });
+    need(own, 'You don’t have access to this result.', 'FORBIDDEN');
+    need(own.enteredById === user.id, 'Only Vienne can remove a result someone else entered', 'FORBIDDEN');
+  }
   const r = found(await db.fastResult.findUnique({ where: { id: v.id } }), 'Result');
-  const user = await requireStudentAccess(r.studentId);
-  if (user.role !== 'ADMIN') need(r.enteredById === user.id, 'Only Vienne can remove a result someone else entered', 'FORBIDDEN');
   await db.fastResult.delete({ where: { id: r.id } });
   return r;
 });
