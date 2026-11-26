@@ -29,7 +29,9 @@ describe('S23 holdouts', () => {
     expect(await people()).toEqual(before);
   });
 
-  it('a deleted child is gone from the invite list too, including an earlier code Vienne revoked for the same parent', async () => {
+  // Retired by S23b checks 3 and 6 (approved by Javaris, 2026-11-26): a delete matches only by id, so a code
+  // nobody redeemed (this revoked one, sent to Ana's email) stays as it is. Lead edit, see CHANGES.md.
+  it.skip('a deleted child is gone from the invite list too, including an earlier code Vienne revoked for the same parent', async () => {
     as('u_admin');
     const ana = await db.user.findUniqueOrThrow({ where: { id: 'u_ana' } });
     // Vienne made a code for Ana, then took it back (Ana joined with another one).

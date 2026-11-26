@@ -3,6 +3,14 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S23 holdout case 2 retired by S23b
+
+- **`tests/holdout/S23.test.ts`, second case (lead edit):** now `it.skip`, with a comment. It expected a deleted
+  child to come off a revoked code sent to the parent's email, a code nobody redeemed. S23b checks 3 and 6 keep
+  such codes as they are, because a delete matches only by id. Why: S23b's build (Fantem) found the conflict.
+  Check 8 of #101 still asked this file to pass, which Zero missed in review. Approved: Javaris (S23b's
+  ids-only rule, 2026-11-26); Zero made the edit; Axis reviews.
+
 ## 2026-11-26: S23b, delete by id only; S27 hides Delete until then
 
 - **S23b (new, held for Zero):** deleting a family or a child matches only by id. That means the parent's and
