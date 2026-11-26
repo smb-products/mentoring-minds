@@ -1,5 +1,5 @@
 /**
- * Open slots and booking conflicts (src/mock/server/scheduling.js).
+ * Open slots and booking conflicts (tests/contract/mock/server/scheduling.js).
  * Pure functions: the server module loads rows from Prisma and passes them in.
  */
 import { addDays, zonedDay, zonedToUtc } from './time';

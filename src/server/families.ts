@@ -1,7 +1,7 @@
 'use server';
 /**
  * server/families — parents, their children, account status.
- * Contract: src/mock/server/families.js
+ * Contract: tests/contract/mock/server/families.js (the frozen mock)
  */
 import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';

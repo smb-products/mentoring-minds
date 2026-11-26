@@ -1,6 +1,6 @@
 /**
  * The two AI features' prompts and JSON schemas (ADDITIONS.md §4b). Shared with the
- * prototype (src/mock/server/ai.js). Model: Claude Haiku 5.5 at high effort,
+ * prototype (frozen in tests/contract/mock/server/ai.js). Model: Claude Haiku 5.5 at high effort,
  * with structured outputs so the server can check every field.
  */
 export const MODEL = 'claude-haiku-5-5';
