@@ -225,6 +225,20 @@ class Kit(unittest.TestCase):
         self.assertEqual(inbox.count("soap: idle 10 min"), 1, inbox)
         self.assertNotIn("fantem", inbox)
 
+    def test_watch_wakes_the_seat_that_claimed_a_held_pr(self):
+        old = "2026-01-01T00:00:00Z"
+        pr = lambda n, labels: {"number": n, "headRefName": f"h/rigg-{n}", "headRefOid": f"sha{n}", "isDraft": False,
+                                "autoMergeRequest": None, "labels": [{"name": l} for l in labels],
+                                "statusCheckRollup": [{"name": "check", "conclusion": "SUCCESS", "completedAt": old}]}
+        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, [])])
+        (self.tmp / "bin" / "tmux").write_text("#!/usr/bin/env bash\nexit 0\n")  # every seat is up; never the real tmux
+        (self.tmp / "bin" / "tmux").chmod(0o755)
+        self.kit("watch.py", "--seats", env={"GH_OPEN": prs})
+        axis, zero = self.kit("msg.py", "inbox", "axis").stdout, self.kit("msg.py", "inbox", "zero").stdout
+        self.assertIn("PR #14", axis)
+        self.assertNotIn("PR #14", zero)  # claimed by axis: zero isn't woken for it
+        self.assertIn("PR #15", zero)     # unclaimed and not in the plan: HELD_OWNER
+
     def test_check_batch_and_reopen(self):
         self.kit("plan.py", "set", "A", "merged")
         self.assertEqual(self.kit("plan.py", "claim", "--agent", "rigg", "--role", "check").stdout.strip(), "A")

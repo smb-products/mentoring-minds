@@ -2,8 +2,9 @@
 """kit/watch.py: one pass of the guard's alerts. Reads plan state and lane state files, not screen text.
 
   watch.py --lanes    a lane idle WATCH_IDLE_MIN (5) with ready work → OSA
-  watch.py --seats    a held PR green and waiting WATCH_HELD_MIN (10) → wake its lead (the feature's `held`
-                      in plan/features.json, else HELD_OWNER, zero). Drafts are skipped: not ready yet.
+  watch.py --seats    a held PR green and waiting WATCH_HELD_MIN (10) → wake its owner (its `owner:<seat>`
+                      label, else the feature's `held` in plan/features.json, else HELD_OWNER, zero).
+                      Drafts are skipped: not ready yet.
                       a seat with an unsent prompt for WATCH_UNSENT_MIN (5), or no transcript write for
                       WATCH_STALE_MIN (30) with unread inbox (FYI messages don't count) → OSA (osa's own → ops)
 
@@ -118,14 +119,16 @@ def seats(memo):
 
 def held(memo, here):
     code, out = sh(["gh", "pr", "list", "--state", "open", "--limit", "100",
-                    "--json", "number,headRefName,headRefOid,statusCheckRollup,autoMergeRequest,isDraft"])
+                    "--json", "number,headRefName,headRefOid,statusCheckRollup,autoMergeRequest,isDraft,labels"])
     if code:
         return
     default = ENV.get("HELD_OWNER", "zero")
     held_by = {f"f/{f['id']}": f.get("held") for f in plan.features() if f.get("held")}
     for p in json.loads(out or "[]"):
-        # A feature's PR goes to the lead the plan names (`held`, also on f/<id>-r<n> after a reopen).
-        owner = held_by.get(re.sub(r"-r\d+$", "", p["headRefName"])) or default
+        # The seat that claimed it (`owner:<seat>`) first, then the lead the plan names (`held`, also on
+        # f/<id>-r<n> after a reopen), then HELD_OWNER.
+        claimed = [l["name"].split(":", 1)[1] for l in p.get("labels") or [] if l.get("name", "").startswith("owner:")]
+        owner = (claimed[0] if claimed else None) or held_by.get(re.sub(r"-r\d+$", "", p["headRefName"])) or default
         checks = p.get("statusCheckRollup") or []
         if p.get("autoMergeRequest") or p.get("isDraft") or not checks:
             continue
