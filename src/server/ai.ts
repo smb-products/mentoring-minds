@@ -6,6 +6,7 @@
  * Photos are sent once and never stored.
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { Prisma, type DraftKind } from '@prisma/client';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/guards';
 import { z } from 'zod';
@@ -22,17 +23,30 @@ const anthropic = () => (client ??= new Anthropic()); // reads ANTHROPIC_API_KEY
  * Cost guard. Each call costs well under a cent (Haiku 5.5, small prompts, max_tokens capped),
  * but a stuck button or a bug shouldn't be able to run up a bill. Set a monthly spend limit
  * in the Claude Console as well.
+ *
+ * Every call to Claude is counted before it's made: it gets an AiDraft row, FAILED until a usable
+ * draft comes back, so refused, too-long, garbled and errored calls count too. Discarding a draft
+ * doesn't give the call back. The lock keeps two taps at once from both taking the last call.
  */
-async function withinDailyLimit() {
-  const since = new Date(Date.now() - 86400000);
-  need((await db.aiDraft.count({ where: { createdAt: { gte: since } } })) < AI_DAILY_LIMIT, 'That’s the most drafts for today. Type it in for now, or try again tomorrow.', 'LIMIT');
-}
-
+const AI_LOCK = 7_300_530_002;
+const LIMIT_MSG = 'That’s the most drafts for today. Type it in for now, or try again tomorrow.';
 const AI_DOWN = 'The AI helper isn’t available right now. Type it in instead, or try again in a minute.';
 
-async function structured<T>(system: string, content: Anthropic.MessageParam['content'], schema: Record<string, unknown>): Promise<T> {
-  await withinDailyLimit();
-  need(process.env.ANTHROPIC_API_KEY, AI_DOWN, 'AI_FAILED');
+type Reserve = { kind: DraftKind; refId: string; input: Prisma.InputJsonValue };
+
+async function reserveCall(data: Reserve) {
+  const since = new Date(Date.now() - 86400000);
+  return db.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(${AI_LOCK})`;
+    need((await tx.aiDraft.count({ where: { createdAt: { gte: since } } })) < AI_DAILY_LIMIT, LIMIT_MSG, 'LIMIT');
+    need(process.env.ANTHROPIC_API_KEY, AI_DOWN, 'AI_FAILED'); // no key, no call: nothing to count
+    return (await tx.aiDraft.create({ data: { ...data, model: MODEL, effort: EFFORT, status: 'FAILED', output: {} }, select: { id: true } })).id;
+  });
+}
+
+/** One counted call. Returns the reserved draft id; the caller fills it in (status DRAFT) once the answer checks out. */
+async function structured<T>(reserve: Reserve, system: string, content: Anthropic.MessageParam['content'], schema: Record<string, unknown>): Promise<{ draftId: string; out: T }> {
+  const draftId = await reserveCall(reserve);
   let res: Anthropic.Message;
   try {
     res = await anthropic().messages.create({
@@ -51,7 +65,7 @@ async function structured<T>(system: string, content: Anthropic.MessageParam['co
   const text = res.content.find((b) => b.type === 'text');
   need(text && text.type === 'text', 'The draft came back empty. Try again.', 'AI_FAILED');
   try {
-    return JSON.parse(text.text) as T;
+    return { draftId, out: JSON.parse(text.text) as T };
   } catch {
     throw new ApiError('AI_FAILED', 'The draft came back garbled. Try again.');
   }
@@ -70,7 +84,8 @@ export const draftSessionNote = action(async (input: { sessionId: string; transc
   const tests = (book?.tests as { key: string; name: string }[] | undefined) ?? [];
   const bookMap = tests.map((t) => ({ test: t.key, name: t.name, numbers: book!.items.filter((i) => i.test === t.key).map((i) => i.number) }));
 
-  const out = await structured<NoteOut>(
+  const { draftId, out } = await structured<NoteOut>(
+    { kind: 'SESSION_NOTE', refId: sessionId, input: { transcript } },
     sessionNoteSystem(),
     sessionNoteUser({ student, sessionDate: session.startsAt.toISOString(), skills, bookMap, transcript }),
     SESSION_NOTE_SCHEMA as unknown as Record<string, unknown>,
@@ -85,10 +100,8 @@ export const draftSessionNote = action(async (input: { sessionId: string; transc
   const dropped = out.redo.length - redo.length;
   const unsure = [...out.unsure, ...(dropped ? [dropped === 1 ? '1 question number wasn’t in the answer key' : `${dropped} question numbers weren’t in the answer key`] : [])];
 
-  const draft = await db.aiDraft.create({
-    data: { kind: 'SESSION_NOTE', model: MODEL, effort: EFFORT, refId: sessionId, input: { transcript }, output: { ...out, skills: validSkills, redo, unsure } },
-  });
-  return { draftId: draft.id, note: out.note, homework: out.homework, skills: validSkills.map((x) => ({ ...x, name: skills.find((k) => k.id === x.skillId)!.name })), redo, unsure };
+  await db.aiDraft.update({ where: { id: draftId }, data: { status: 'DRAFT', output: { ...out, skills: validSkills, redo, unsure } } });
+  return { draftId, note: out.note, homework: out.homework, skills: validSkills.map((x) => ({ ...x, name: skills.find((k) => k.id === x.skillId)!.name })), redo, unsure };
 });
 
 type PageOut = { test: string; items: { number: number; answer: string | null; format: 'MC' | 'MULTI' | 'NUMERIC' | 'OPEN'; benchmarkCode: string | null; confident: boolean }[] };
@@ -112,7 +125,8 @@ export const readAnswerKeyPage = action(async (input: { bookId: string; test: st
   const t = found(testsOf(book).find((x) => x.key === test), 'Test');
   const codes = codesForGrade(book.grade);
 
-  const out = await structured<PageOut>(
+  const { draftId, out } = await structured<PageOut>(
+    { kind: 'BOOK_PAGE', refId: `${bookId}:${test}`, input: {} },
     answerPageSystem(),
     [
       { type: 'image', source: { type: 'base64', media_type: image.mediaType, data: image.base64 } },
@@ -124,11 +138,9 @@ export const readAnswerKeyPage = action(async (input: { bookId: string; test: st
   const items = out.items
     .filter((it) => Number.isInteger(it.number) && it.number >= 1 && it.number <= t.count)
     .map((it) => ({ ...it, benchmarkCode: it.benchmarkCode && codes.includes(it.benchmarkCode) ? it.benchmarkCode : null }));
-  const draft = await db.aiDraft.create({
-    data: { kind: 'BOOK_PAGE', model: MODEL, effort: EFFORT, refId: `${bookId}:${test}`, input: { photoDeletedAt: new Date().toISOString() }, output: { test, items } },
-  });
+  await db.aiDraft.update({ where: { id: draftId }, data: { status: 'DRAFT', input: { photoDeletedAt: new Date().toISOString() }, output: { test, items } } });
   const nums = items.map((i) => i.number);
-  return { draftId: draft.id, test, from: nums.length ? Math.min(...nums) : fromNumber, to: nums.length ? Math.max(...nums) : fromNumber, expected: t.count, items };
+  return { draftId, test, from: nums.length ? Math.min(...nums) : fromNumber, to: nums.length ? Math.max(...nums) : fromNumber, expected: t.count, items };
 });
 
 export const discardDraft = action(async (input: { draftId: string }) => {
