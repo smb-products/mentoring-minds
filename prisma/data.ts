@@ -70,7 +70,8 @@ export async function loadReference(db: PrismaClient, seed = prototypeSeed(), { 
  * Vienne's account. With Google sign-in, ADMIN_EMAIL must be her Google address.
  * Run again for the same admin, it changes nothing (her password stays hers).
  * If someone else signed up with her address first, the account is taken back: their
- * password stops working, their sessions are signed out, and anything they made on it
+ * password stops working, their sessions are signed out, their devices stop getting
+ * notifications, and anything they made on it
  * (children, a message thread, a used invite) is printed so it can be checked by hand.
  */
 export async function ensureAdmin(db: PrismaClient, { email, name, password }: { email: string; name: string; password?: string }) {
@@ -83,19 +84,27 @@ export async function ensureAdmin(db: PrismaClient, { email, name, password }: {
       await db.conversation.findUnique({ where: { parentId: existing.id }, select: { id: true, _count: { select: { messages: true } } } }),
       await db.invite.findUnique({ where: { usedById: existing.id }, select: { id: true } }),
     ];
-    const user = await db.user.update({
-      where: { id: existing.id },
-      data: {
-        name,
-        role: 'ADMIN',
-        status: 'ACTIVE',
-        emailVerified: new Date(),
-        passwordHash: password ? await bcrypt.hash(password, 12) : null,
-        sessionVersion: { increment: 1 },
-        failedLogins: 0,
-        lockedUntil: null,
-        mustChangePassword: false,
-      },
+    const passwordHash = password ? await bcrypt.hash(password, 12) : null;
+    const { user, devices } = await db.$transaction(async (tx) => {
+      // Their phones and browsers would otherwise get Vienne's notifications.
+      const { count: devices } = await tx.pushSubscription.deleteMany({ where: { userId: existing.id } });
+      const user = await tx.user.update({
+        where: { id: existing.id },
+        data: {
+          name,
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          emailVerified: new Date(),
+          passwordHash,
+          sessionVersion: { increment: 1 },
+          failedLogins: 0,
+          lockedUntil: null,
+          mustChangePassword: false,
+          redeemFailures: 0,
+          redeemLockedUntil: null,
+        },
+      });
+      return { user, devices };
     });
     const left = [
       children.length && `${children.length} child${children.length === 1 ? '' : 'ren'} (${children.map((c) => `${c.id} ${c.firstName}`).join(', ')})`,
@@ -103,7 +112,8 @@ export async function ensureAdmin(db: PrismaClient, { email, name, password }: {
       invite && `used invite ${invite.id}`,
     ].filter(Boolean);
     console.warn(
-      `An account already used ${user.email} (${user.id}). It is now Vienne's admin account: the old password no longer works and every session on it is signed out.` +
+      `An account already used ${user.email} (${user.id}). It is now Vienne's admin account: the old password no longer works, every session on it is signed out` +
+        (devices ? ` and ${devices} device${devices === 1 ? '' : 's'} no longer get${devices === 1 ? 's' : ''} its notifications.` : '.') +
         (password ? '' : ' Set ADMIN_PASSWORD and run again, or sign in with Google.') +
         (left.length ? `\nStill attached to it, check these by hand: ${left.join('; ')}.` : '\nNothing else was attached to it.'),
     );

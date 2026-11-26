@@ -72,6 +72,18 @@ describe('a squatter signed up with Vienne’s email before the seed ran', () =>
     expect((await db.user.findUniqueOrThrow({ where: { id: u.id } })).role).toBe('ADMIN');
   });
 
+  it('the squatter’s devices stop getting notifications, and their invite-guessing lock is cleared', async () => {
+    const u = await db.user.create({ data: { email: 'vienne.squat5@example.com', name: 'X', passwordHash: 'x', redeemFailures: 7, redeemLockedUntil: new Date(Date.now() + 600000) } });
+    await db.pushSubscription.create({ data: { userId: u.id, endpoint: 'https://fcm.googleapis.com/fcm/send/s19-squat5', p256dh: 'p', auth: 'a' } });
+    await db.pushSubscription.create({ data: { userId: 'u_admin', endpoint: 'https://fcm.googleapis.com/fcm/send/s19-vienne', p256dh: 'p', auth: 'a' } });
+    const log = warn();
+    await ensureAdmin(db as never, { email: 'vienne.squat5@example.com', name: 'Vienne Elliott' });
+    expect(await db.pushSubscription.count({ where: { userId: u.id } })).toBe(0);
+    expect(await db.pushSubscription.count({ where: { userId: 'u_admin' } })).toBe(1);
+    expect(await db.user.findUniqueOrThrow({ where: { id: u.id } })).toMatchObject({ redeemFailures: 0, redeemLockedUntil: null });
+    expect(log.mock.calls.flat().join('\n')).toMatch(/1 device no longer gets its notifications/);
+  });
+
   it('the taken-back account can’t act as a parent any more, and is Vienne’s', async () => {
     const { u } = await squatter('vienne.squat4@example.com');
     warn();
