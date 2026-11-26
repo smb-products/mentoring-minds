@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireAdmin, requireStudentAccess } from '@/lib/guards';
+import { requireActive, requireAdmin, requireStudentAccess } from '@/lib/guards';
 import { action, found, need, query } from '@/lib/result';
 import { id, instant, parse } from '@/lib/validate';
 import { reportDTO, reportInclude, studentDTO, studentInclude } from '@/lib/dto';
@@ -85,12 +85,17 @@ export const publishReport = action(async (input: { reportId: string }) => {
   return reportDTO(row);
 });
 
-/** One report with its student (Vienne: any; a parent: published, own child only). */
+/**
+ * One report with its student (Vienne: any; a parent: published, own child only).
+ * The session is checked before any lookup, and a family looks only among its own
+ * children's published reports, so another family's id (draft or published) and a
+ * missing one get the same "Report not found".
+ */
 export const getReport = query(async (input: { reportId: string }) => {
+  const user = await requireActive();
   const { reportId } = parse(z.object({ reportId: id }), input);
-  const r = found(await db.progressReport.findUnique({ where: { id: reportId }, include: reportInclude }), 'Report');
-  const user = await requireStudentAccess(r.studentId);
-  need(user.role === 'ADMIN' || r.status === 'PUBLISHED', 'Report not found', 'NOT_FOUND');
+  const where = user.role === 'ADMIN' ? { id: reportId } : { id: reportId, status: 'PUBLISHED' as const, student: { parentId: user.id } };
+  const r = found(await db.progressReport.findFirst({ where, include: reportInclude }), 'Report');
   const s = await db.student.findUniqueOrThrow({ where: { id: r.studentId }, include: { ...studentInclude, parent: { select: { id: true, name: true } } } });
 
   // Book work in the period: handed in during it, or (not handed in) due during it.

@@ -52,7 +52,7 @@ describe('progress reports', () => {
     const r = ok(await reports.createDraft({ studentId: 's_mateo' }));
     as('u_grace');
     fails(await reports.listForStudent({ studentId: 's_mateo' }), 'FORBIDDEN');
-    fails(await reports.getReport({ reportId: r.id }), 'FORBIDDEN');
+    fails(await reports.getReport({ reportId: r.id }), 'NOT_FOUND');
     as('u_ana');
     fails(await reports.createDraft({ studentId: 's_mateo' }), 'FORBIDDEN');
     fails(await reports.updateReport({ reportId: r.id, summary: 'mine now' }), 'FORBIDDEN');

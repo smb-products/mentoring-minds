@@ -128,7 +128,6 @@ describe('a parent', () => {
       ['fast.saveResult', fast.saveResult({ studentId: 's_sofia', schoolYear: '2026–27', window: 'PM2', scaleScore: 300, level: 3 })],
       ['fast.deleteResult', fast.deleteResult({ id: 'fr_sofia_PM1_2026' })],
       ['reports.listForStudent', reports.listForStudent({ studentId: 's_sofia' })],
-      ['reports.getReport', reports.getReport({ reportId: 'rep_sofia_1' })],
       ['scheduling.cancelSession', scheduling.cancelSession({ sessionId: 'ses_t1' })],
       ['scheduling.joinCall', scheduling.joinCall({ sessionId: 'ses_live' })],
       ['content.listResourcesForStudent', content.listResourcesForStudent({ studentId: 's_sofia' })],
@@ -139,6 +138,10 @@ describe('a parent', () => {
       expect(r.ok, name).toBe(false);
       expect(r.code, name).toBe('FORBIDDEN');
     }
+    // A report id answers like a missing one (S4), so it says nothing about other families.
+    const report = await reports.getReport({ reportId: 'rep_sofia_1' });
+    expect(report.ok, 'reports.getReport').toBe(false);
+    expect(report.ok ? undefined : report.code, 'reports.getReport').toBe('NOT_FOUND');
   });
 
   it('can’t book for another family’s child', async () => {
