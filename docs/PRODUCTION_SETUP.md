@@ -134,8 +134,8 @@ printf '' | clip.exe                              # clear the clipboard when you
 
 > **HOLD: don't run the `npm run db:seed` line yet** (P-review, 2026-11-26). Today the seed would add the
 > prototype's demo locations (a studio and Coral Pines Library) to production, and nothing in the app can
-> edit or remove them. Vienne has no studio: she meets at a Miami-Dade regional library or at home. The fix
-> waits on your go. Until then, run the lines down to `migrate deploy`, skip the seed, and run the `unset`.
+> edit or remove them. The demo locations aren't real and must not reach production; the real locations
+> are set at seed time, not in the repo. The fix waits on your go. Until then, run the lines down to `migrate deploy`, skip the seed, and run the `unset`.
 > Part 7 works without the seed, as far as the sign-in screen. Don't sign in or create accounts on
 > production until the seed has run: it also loads the settings (Miami time) the screens need. Part 9's
 > hand checks wait too. This note goes once the fix merges.
