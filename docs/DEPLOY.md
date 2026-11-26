@@ -63,6 +63,35 @@ DATABASE_URL="<neon pooled url>" ADMIN_EMAIL="vienne's google address" ADMIN_NAM
 This loads settings (Miami time, the FAST windows), Math and Vienne's skills, the books, locations and weekly hours, and creates her admin account. Run it again whenever you like: it never overwrites her changes. **Never run `db:seed:demo` against production.** It refuses unless forced.
 
 4. **Cron:** `vercel.json` runs `/api/cron/daily` at 13:00 UTC, which is 8 AM in Miami (9 AM in summer). It sends session reminders for today and tomorrow, empties the 30-day resource bin, and removes unfinished uploads. Crons only run on the production deployment. Vercel sends `CRON_SECRET` as a Bearer token, and the route rejects anything else.
+   - **Why `crons` and not Vercel Schedules (yet):** Schedules would run the job as a private function, with
+     no public route and no secret, and `timezone: "America/New_York"` would keep it at 8 AM all year.
+     But it's in beta (`schedule/v1beta`), it needs `@vercel/schedules` and a route change, and Vercel keeps
+     existing `crons` working. Move it after launch (P-ops report, S ticket), keeping the name `daily`.
+
+## Rollback
+
+A bad deployment goes back to the previous one in about a minute, without a rebuild.
+
+1. **Vercel → Deployments**, then the last good **Production** deployment, **⋯ → Instant Rollback**, and confirm.
+2. Production now serves that build. **Auto-assignment of new production deployments is paused** until you
+   promote again: merges to main still build, but don't go live.
+3. Fix forward on main. Then, on the fixed deployment, **⋯ → Promote**, which turns auto-assignment back on.
+
+A rollback changes code only, never the database. If the bad deployment applied a migration, the old code
+runs against the new schema. Migrations here only add, so that works, but check the migration first (see
+**Changing the database later**). Rehearsal, on a preview: `plan/reports/P-ops.md`.
+
+## Restoring the database
+
+Neon keeps a history window: 6 hours on Free, up to 7 days on Launch. You can restore to any moment inside it.
+
+1. **Neon → Branches → Create branch.** Parent `main`, **from a point in time**, just before the problem.
+   Name it `restore-<date>`. This copies nothing over `main`.
+2. Check the new branch: connect with its URL and look at the rows you lost.
+3. Only then, and only Javaris, either restore `main` to that time (**Branches → `main` → Restore**; Neon
+   keeps the old state as a backup branch) or copy the few rows across. Delete `restore-<date>` afterwards.
+
+Rehearsal timings: `plan/reports/P-ops.md`.
 
 ## Environment variables
 
