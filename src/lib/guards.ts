@@ -8,6 +8,20 @@ import { ApiError } from './result';
  * core.js, frozen in tests/contract/mock/). They read the user fresh from the database.
  */
 export async function requireUser() {
+  const user = await requireSignedIn();
+  // After Vienne's "Reset password", nothing works until the person picks their own (S21). The browser
+  // shows only the change-password screen (AppRoot); this holds the server to the same rule.
+  if (user.mustChangePassword) {
+    throw new ApiError('MUST_CHANGE_PASSWORD', 'Please choose a new password first. Enter the temporary password Vienne gave you, then pick your own.');
+  }
+  return user;
+}
+
+/**
+ * Signed in, even before the new password a reset asks for. Only for families.changePassword, the one
+ * thing the change-password screen calls. Everything else uses requireUser or a guard built on it.
+ */
+export async function requireSignedIn() {
   const session = await auth();
   if (!session?.user?.id) throw new ApiError('UNAUTHENTICATED', 'Please sign in again.');
   const user = await db.user.findUnique({ where: { id: session.user.id } });
