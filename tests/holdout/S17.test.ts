@@ -73,4 +73,22 @@ describe('S17 holdouts', () => {
     // That was the last upload of the day: one more is over the cap.
     fails(await reserve(), 'LIMIT');
   });
+
+  it('confirming a bad file several times at once costs exactly one slot, and the bad file can’t be opened or handed in', async () => {
+    as('u_admin');
+    const a = ok(await assignments.createBookAssignment({ bookId: 'book_g3', test: 'T2', from: 14, to: 14, studentIds: ['s_jordan'] }));
+    const sub = await db.submission.findFirstOrThrow({ where: { assignmentId: a.id, studentId: 's_jordan' } });
+    await leaveSlots('u_keisha', 2);
+    as('u_keisha');
+    const { file, status } = await sendBytes(new TextEncoder().encode('still not a photo'));
+    expect(status).toBe(204);
+    const confirms = await Promise.all(Array.from({ length: 4 }, () => content.finishUpload({ fileId: file.id })));
+    expect(confirms.filter((r) => r.ok)).toHaveLength(0);
+
+    expect((await content.getFileForUser({ fileId: file.id })).ok).toBe(false);
+    expect((await assignments.submitAnswerSheet({ submissionId: sub.id, answers: [], photos: [{ number: 14, fileId: file.id }] })).ok).toBe(false);
+    // Two slots, one spent on the bad file: exactly one is left.
+    ok(await reserve());
+    fails(await reserve(), 'LIMIT');
+  });
 });
