@@ -13,7 +13,7 @@ The feature goes back to ready without using up an attempt. Each lane writes its
 (busy | waiting | idle | stopped) to .git/avel/lanes/<agent>.json; the guard reads that, not the screen.
 Lanes on one host never share a test database or a server port: see lane_env().
 """
-import json, os, re, signal, subprocess, sys, threading, time, zlib
+import hashlib, json, os, re, signal, subprocess, sys, threading, time, zlib
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -57,7 +57,10 @@ def auth_failure(res):
     return None
 
 
-def worktree(branch, path):
+def worktree(branch, path, reset_to=None):
+    """The lane's worktree for branch. A new one gets WT_SETUP_CMD. A reused one (resumed build, the checker's)
+    is first reset to reset_to when given, then refreshed: its install and generated code may be from an older
+    main (a Prisma client from before a schema change fails typecheck, and lanes can't regenerate it)."""
     excl = ROOT / ".git" / "info" / "exclude"
     if excl.parent.exists() and ".wt/" not in (excl.read_text() if excl.exists() else ""):
         with open(excl, "a") as fh:
@@ -65,16 +68,47 @@ def worktree(branch, path):
     sh(["git", "fetch", "-q", "origin", "main"], cwd=ROOT)
     if not path.exists():
         exists = git("rev-parse", "--verify", "-q", f"refs/remotes/origin/{branch}", cwd=ROOT)
-        start = f"origin/{branch}" if exists else "origin/main"
+        start = f"origin/{branch}" if exists else (reset_to or "origin/main")
         sh(["git", "worktree", "add", "-q", "-B", branch, str(path), start], cwd=ROOT, check=True)
         for f in words(ENV.get("WT_COPY", "")):  # dev-only env files, gitignored
             if (ROOT / f).exists() and not (path / f).exists():
                 (path / f).write_bytes((ROOT / f).read_bytes())
-        if ENV.get("WT_SETUP_CMD"):
-            code, out = sh(ENV["WT_SETUP_CMD"], cwd=path)
-            if code:
-                raise RuntimeError(f"setup failed in {path}: {out[-300:]}")
+        setup(path)
+        return path
+    if reset_to:
+        sh("git reset -q --hard && git clean -fdq", cwd=path)
+        sh(["git", "checkout", "-q", "-B", branch, reset_to], cwd=path, check=True)
+    stamp = setup_stamp(path)
+    if not stamp.exists() or stamp.read_text().strip() != setup_key(path):
+        setup(path)  # the lockfile changed since this worktree's install (or it predates stamps)
+    elif ENV.get("WT_REFRESH_CMD"):
+        code, out = sh(ENV["WT_REFRESH_CMD"], cwd=path)
+        if code:
+            raise RuntimeError(f"refresh failed in {path}: {out[-300:]}")
     return path
+
+
+def setup_key(path):
+    """What an install depends on: the WT_SETUP_KEY files (the lockfile), hashed."""
+    h = hashlib.sha256()
+    for f in words(ENV.get("WT_SETUP_KEY", "")):
+        h.update(f.encode() + b"\0" + ((path / f).read_bytes() if (path / f).is_file() else b"-") + b"\0")
+    return h.hexdigest()
+
+
+def setup_stamp(path):
+    # In the shared git dir, not the worktree: `git clean` must not drop it and a lane must never commit it.
+    return avel_dir() / "wt" / f"{path.name}.setup"
+
+
+def setup(path):
+    """WT_SETUP_CMD (which also generates code: npm ci runs postinstall), then the stamp it was done for."""
+    if ENV.get("WT_SETUP_CMD"):
+        code, out = sh(ENV["WT_SETUP_CMD"], cwd=path)
+        if code:
+            raise RuntimeError(f"setup failed in {path}: {out[-300:]}")
+    setup_stamp(path).parent.mkdir(exist_ok=True)
+    setup_stamp(path).write_text(setup_key(path) + "\n")
 
 
 def lane_env(agent):
@@ -291,9 +325,7 @@ def build_one(agent, fid):
 
 def check_batch(agent, ids):
     branch = f"h/{agent}-{time.strftime('%m%d%H%M')}"
-    wt = worktree(branch, ROOT / ".wt" / f"check-{agent}")
-    sh("git reset -q --hard && git clean -fdq", cwd=wt)
-    sh(["git", "checkout", "-q", "-B", branch, "origin/main"], cwd=wt)
+    wt = worktree(branch, ROOT / ".wt" / f"check-{agent}", reset_to="origin/main")
     feats = [json.loads(subprocess.run([sys.executable, str(KIT / "plan.py"), "show", i],
                                        capture_output=True, text=True, cwd=ROOT).stdout) for i in ids]
     env = {"AVEL_AGENT": agent, "AVEL_KIND": "check", "AVEL_BRANCH": branch}

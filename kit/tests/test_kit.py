@@ -253,6 +253,25 @@ class Kit(unittest.TestCase):
         shown = json.loads(self.kit("plan.py", "show", "A").stdout)
         self.assertEqual(shown["notes"], ["holdout 2 fails"])
 
+    def test_reused_worktree_is_refreshed_and_reinstalled_on_lockfile_change(self):
+        log = self.tmp / "setup.log"
+        with open(self.repo / "kit" / "project.env", "a") as fh:
+            fh.write(f"WT_SETUP_CMD='echo setup >> {log}'\nWT_SETUP_KEY=\"package-lock.json\"\n"
+                     f"WT_REFRESH_CMD='echo refresh >> {log}'\n")
+        batch = lambda: (self.kit("plan.py", "set", "A", "merged"),
+                         self.kit("lane.py", "--agent", "rigg", "--role", "check", "--once", env={"GH_NO_PR": "1"}))
+        r = batch()[1]
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(log.read_text().split(), ["setup"])  # a new worktree installs
+        batch()
+        self.assertEqual(log.read_text().split(), ["setup", "refresh"])  # reused: regenerate only
+        (self.repo / "package-lock.json").write_text('{"v": 2}\n')
+        for c in (["add", "-A"], ["commit", "-qm", "new dep"], ["push", "-q", "origin", "main"]):
+            run(["git", *c], self.repo)
+        batch()
+        self.assertEqual(log.read_text().split(), ["setup", "refresh", "setup"])  # lockfile changed: reinstall
+        self.assertTrue((self.repo / ".wt" / "check-rigg" / "package-lock.json").exists())  # on the new main
+
     def test_red_builder_pr_tells_osa_and_leads_once_per_head(self):
         self.kit("plan.py", "set", "A", "review", "--pr", "9")
         red = lambda sha: json.dumps([{"headRefName": "f/A", "headRefOid": sha, "number": 9,
