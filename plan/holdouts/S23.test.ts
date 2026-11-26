@@ -1,54 +1,44 @@
-/** S23 holdouts: nothing about a deleted child stays on Vienne's screens, and a bad request deletes nobody. */
+/** S23 holdouts: deleting on request touches the right family's invite codes, and takes the child off all of them. */
 import { describe, expect, it } from 'vitest';
-import { as, db, fails, freshDemo, ok } from '../../tests/integration/helpers';
+import { as, db, freshDemo, ok } from '../../tests/integration/helpers';
 import * as families from '@/server/families';
 import * as invites from '@/server/invites';
 
 freshDemo();
 
-const people = async () => ({
-  users: await db.user.count(),
-  students: await db.student.count(),
-  sessions: await db.session.count(),
-  submissions: await db.submission.count(),
-  messages: await db.message.count(),
-});
+/** Vienne makes a code for this child and a second child, Sam. */
+const code = async (parentName: string, parentEmail: string, firstName: string, lastName: string) =>
+  ok(
+    await invites.createInvite({
+      parentName,
+      parentEmail,
+      plannedStudents: [
+        { firstName, lastName, grade: 5 },
+        { firstName: 'Sam', lastName, grade: 2 },
+      ],
+    }),
+  ).invite.id;
+const listed = async (inviteId: string) => ok(await invites.listInvites()).find((i) => i.id === inviteId);
+const childrenOn = async (inviteId: string) => ((await listed(inviteId))?.plannedStudents as { firstName: string }[] | undefined)?.map((p) => p.firstName);
 
-describe('S23 holdouts', () => {
-  it('an empty or malformed request deletes nobody', async () => {
+describe('S23 holdouts: the right family’s codes', () => {
+  it('another family’s code stays whole when its address differs only where the parent’s has an underscore', async () => {
     as('u_admin');
-    const before = await people();
-    const bad: unknown[] = [{}, { studentId: '' }, { parentId: '' }, { studentId: null }, { parentId: null }, { studentId: { not: 'x' } }, { parentId: { not: 'x' } }, { studentId: ['s_mateo'] }, { parentId: ['u_ana'] }];
-    for (const input of bad) {
-      expect((await families.deleteStudent(input as never)).ok, `child ${JSON.stringify(input)}`).toBe(false);
-      expect((await families.deleteFamily(input as never)).ok, `family ${JSON.stringify(input)}`).toBe(false);
-    }
-    // A child's id is not a family, and a parent's id is not a child.
-    fails(await families.deleteFamily({ parentId: 's_mateo' }), 'NOT_FOUND');
-    fails(await families.deleteStudent({ studentId: 'u_ana' }), 'NOT_FOUND');
-    expect(await people()).toEqual(before);
-  });
-
-  it('a deleted child is gone from the invite list too, including an earlier code Vienne revoked for the same parent', async () => {
-    as('u_admin');
-    const ana = await db.user.findUniqueOrThrow({ where: { id: 'u_ana' } });
-    // Vienne made a code for Ana, then took it back (Ana joined with another one).
-    const first = ok(
-      await invites.createInvite({
-        parentName: ana.name,
-        parentEmail: ana.email,
-        plannedStudents: [
-          { firstName: 'Mateo', lastName: 'Mendoza', grade: 3 },
-          { firstName: 'Lucia', lastName: 'Mendoza', grade: 5 },
-        ],
-      }),
-    );
-    ok(await invites.revokeInvite({ inviteId: first.invite.id }));
+    await db.user.update({ where: { id: 'u_ana' }, data: { email: 'ana_m@example.com' } });
+    const other = await code('Alma Moreno', 'anaxm@example.com', 'Lucia', 'Moreno');
 
     ok(await families.deleteStudent({ studentId: 's_lucia' }));
+    expect.soft(await childrenOn(other), 'the other family’s code after Ana’s child is deleted').toEqual(['Lucia', 'Sam']);
 
-    const listed = ok(await invites.listInvites());
-    const stillNamed = listed.filter((i) => (i.plannedStudents as { firstName: string }[]).some((p) => p.firstName === 'Lucia')).map((i) => `${i.parentName} (${i.status})`);
-    expect(stillNamed, 'invites on Vienne’s screen that still list the deleted child').toEqual([]);
+    ok(await families.deleteFamily({ parentId: 'u_ana' }));
+    expect.soft(await listed(other), 'the other family’s code after Ana’s family is deleted').toBeDefined();
+  });
+
+  it('a deleted child typed in lower case on one of the family’s codes is taken off it', async () => {
+    as('u_admin');
+    const grace = await db.user.findUniqueOrThrow({ where: { id: 'u_grace' } });
+    const id = await code(grace.name, grace.email, 'noah', 'kim');
+    ok(await families.deleteStudent({ studentId: 's_noah' }));
+    expect(await childrenOn(id)).toEqual(['Sam']);
   });
 });
