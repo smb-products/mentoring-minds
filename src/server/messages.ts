@@ -62,7 +62,7 @@ export const sendMessage = action(async (input: { conversationId?: string; body:
     db.message.create({ data: { conversationId: conv.id, senderId: user.id, body: v.body, createdAt: now } }),
     db.conversation.update({ where: { id: conv.id }, data: { lastMessageAt: now, ...(user.role === 'ADMIN' ? { adminLastReadAt: now } : { parentLastReadAt: now }) } }),
   ]);
-  if (user.role !== 'ADMIN') await notifyAdmins({ type: 'MESSAGE_RECEIVED', title: `${user.name} sent a message`, body: v.body.slice(0, 80), href: `/admin/messages/${conv.id}` });
+  if (user.role !== 'ADMIN') await notifyAdmins({ type: 'MESSAGE_RECEIVED', title: `${user.name} sent a message`, body: v.body.slice(0, 80), href: `/admin/messages/${conv.id}`, about: conv.id });
   return msg;
 });
 

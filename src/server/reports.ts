@@ -80,7 +80,7 @@ export const publishReport = action(async (input: { reportId: string }) => {
   need(r._count.ratings, 'Rate at least one skill');
   const row = await db.progressReport.update({ where: { id: reportId }, data: { status: 'PUBLISHED', publishedAt: r.publishedAt ?? new Date() }, include: reportInclude });
   if (r.status !== 'PUBLISHED') {
-    await notify({ userId: r.student.parentId, audience: 'PARENT', type: 'REPORT_PUBLISHED', title: `New progress report for ${r.student.firstName}`, body: 'Vienne shared a new report.', href: '/parent/progress' });
+    await notify({ userId: r.student.parentId, audience: 'PARENT', type: 'REPORT_PUBLISHED', title: `New progress report for ${r.student.firstName}`, body: 'Vienne shared a new report.', href: '/parent/progress', about: r.id });
   }
   return reportDTO(row);
 });
