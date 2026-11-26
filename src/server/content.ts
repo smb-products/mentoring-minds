@@ -18,7 +18,7 @@ import { db } from '@/lib/db';
 import { requireActive, requireAdmin, requireStudentAccess, requireUser } from '@/lib/guards';
 import { action, ApiError, found, need, query } from '@/lib/result';
 import { id, ids, optText, parse, text } from '@/lib/validate';
-import { fileDTO, resourceDTO, resourceInclude, resourceTeaser } from '@/lib/dto';
+import { fileDTO, resourceDTO, resourceForFamily, resourceInclude, resourceTeaser } from '@/lib/dto';
 import { ALLOWED_TYPES, MAX_BYTES, matchesType, readStart, removeObject, storageKeyFor, storedSize, uploadTarget, type AllowedType } from '@/lib/storage';
 import { canReadFile, visibleTo } from '@/lib/files';
 
@@ -96,7 +96,9 @@ export const listResourcesForStudent = query(async (input: { studentId?: string 
   await requireStudentAccess(studentId);
   const student = found(await db.student.findUnique({ where: { id: studentId } }), 'Student');
   const rows = await db.resource.findMany({ where: { status: 'PUBLISHED', deletedAt: null }, include: resourceInclude, orderBy: { updatedAt: 'desc' } });
-  return rows.filter((r) => visibleTo({ ...r, shares: r.shares }, student)).map(resourceDTO);
+  const visible = rows.filter((r) => visibleTo({ ...r, shares: r.shares }, student));
+  // Vienne keeps who each one is shared with; a family never sees the other children on it.
+  return user.role === 'ADMIN' ? visible.map(resourceDTO) : visible.map(resourceForFamily);
 });
 
 const fields = {

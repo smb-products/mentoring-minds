@@ -16,7 +16,7 @@ import { db } from '@/lib/db';
 import { requireActive, requireAdmin, requireStudentAccess } from '@/lib/guards';
 import { action, ApiError, found, need, query } from '@/lib/result';
 import { id, ids, instant, optText, parse, testKey, text } from '@/lib/validate';
-import { bookItemDTO, bookSummary, photoFiles, submissionDTO, submissionDTOs, submissionInclude, testsOf, type Photo, type ScoredAnswer } from '@/lib/dto';
+import { bookItemDTO, bookSummary, familyResourceInclude, photoFiles, resourceForFamily, submissionDTO, submissionDTOs, submissionInclude, testsOf, type Photo, type ScoredAnswer } from '@/lib/dto';
 import { itemsFor } from '@/lib/book-results';
 import { scoreSheet, starsFor, type KeyItem } from '@/lib/grading';
 import { notify, notifyAdmins } from '@/lib/notify';
@@ -159,13 +159,13 @@ export const listForStudent = query(async (input: { studentId: string }) => {
   const { studentId } = parse(z.object({ studentId: id }), input);
   await requireStudentAccess(studentId);
   const student = found(await db.student.findUnique({ where: { id: studentId } }), 'Student');
-  const subs = await db.submission.findMany({ where: { studentId }, include: { ...submissionInclude, assignment: { include: { book: true, resource: true } } } });
+  const subs = await db.submission.findMany({ where: { studentId }, include: { ...submissionInclude, assignment: { include: { book: true, resource: { include: familyResourceInclude } } } } });
   const files = await photoFiles(subs);
   const out = await Promise.all(
     subs.map(async (s) => {
       const { book, resource, ...a } = s.assignment;
       const slots = (await itemsFor(a)).map((it) => bookItemDTO(it, { grade: student.grade, withAnswer: false }));
-      return { ...submissionDTO(s, files), assignment: { ...a, book: bookSummary(book), resource: resource && !resource.deletedAt ? (({ deletedAt: _bin, ...rest }) => rest)(resource) : null, slots } };
+      return { ...submissionDTO(s, files), assignment: { ...a, book: bookSummary(book), resource: resource && !resource.deletedAt ? resourceForFamily(resource) : null, slots } };
     }),
   );
   return out.sort((a, b) => (a.assignment.dueAt?.toISOString() ?? '').localeCompare(b.assignment.dueAt?.toISOString() ?? ''));

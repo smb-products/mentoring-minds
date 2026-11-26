@@ -98,6 +98,23 @@ describe('what a family can read', () => {
     expect(valuesOf(list, 'codeHash')).toEqual([]);
   });
 
+  it('a resource shared with another family’s child too names neither that child nor their parent', async () => {
+    as('u_admin');
+    const r = ok(
+      await content.createResource({ title: 'Leak sweep: shared worksheet', kind: 'WORKSHEET', fileId: 'fa_fraction_strips', gradeMin: 3, gradeMax: 5, visibility: 'SELECTED', status: 'PUBLISHED', studentIds: ['s_mateo', 's_noah'] }),
+    );
+    ok(await assignments.createPracticeAssignment({ title: 'Leak sweep: practice', resourceId: r.id, studentIds: ['s_mateo', 's_noah'] }));
+    const all = await everythingParentCanRead('u_ana', ['s_mateo', 's_lucia']);
+    const text = JSON.stringify(all);
+    expect(text, 'the resource reaches Ana').toContain(r.id);
+    expect(text).not.toContain('s_noah');
+    expect(text).not.toContain('Noah');
+    expect(valuesOf(all, 'parentId').filter((p) => p !== 'u_ana')).toEqual([]);
+    expect(valuesOf(all, 'sharedWith')).toEqual([]);
+    expect(valuesOf(all, 'shares')).toEqual([]);
+    expect(valuesOf(all, 'storageKey')).toEqual([]);
+  });
+
   it('results come back as plain JSON: dates are ISO strings', async () => {
     as('u_ana');
     const o = ok(await dashboard.getParentOverview({ studentId: 's_mateo' }));
