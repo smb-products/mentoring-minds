@@ -16,11 +16,12 @@ Never merge your own PR. Never write feature code.
 
 ## The plan for this repo
 One feature per ticket in `docs/WIRING.md`. The checks are what its spec in `tests/e2e/` asserts.
-- **W0 first** (Step 1, sign-in), with no areas live. It also rewrites `src/ui/api/index.js` into the Step 2 form,
-  one area per line, so later tickets each add their own line. That file is the one hot spot every ticket touches.
-- **Deps follow each spec's `requires(...)`:** W1–W4 need W0 and can run in parallel. W5 needs W2 and W4. The w6
-  spec also needs `dashboard`, which is W7's area, and W7 needs `scheduling`: either merge W6 and W7 into one
-  feature, or have W6 switch `dashboard` on too. W8 (delete `src/mock`) comes last.
+- **W0 first** (Step 1, sign-in), with only `dashboard` live: it's read-only and every parent page reads it, and
+  it lets the w0 spec run. W0 rewrites `src/ui/api/index.js` into the Step 2 form, one area per line under a
+  `// Wn` header, so later tickets each uncomment their own lines. That file is in `SHARED_TOUCHES`.
+- **Deps follow each spec's `requires(...)`:** WA (adapter) runs beside W0. W1–W4 need W0 and WA and run in
+  parallel. W5 needs W2 and W4, W6 needs W2, W7 needs W6. WC (contract writes) follows W7, and W8 (delete
+  `src/mock`) comes last. `CHANGES.md` 2026-11-26 says why.
 - `touches`: every file the ticket edits and every folder it may create files in, plus `src/ui/api/index.js`.
 - A check that names a limit names its constant. A hint that names a schema field is re-checked against
   main's schema when the plan PR merges.
