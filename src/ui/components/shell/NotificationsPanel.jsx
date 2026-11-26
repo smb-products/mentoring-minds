@@ -1,8 +1,9 @@
 import { BellOff, CalendarCheck, CalendarClock, CalendarX, ClipboardCheck, FileBarChart, MessageSquare, RotateCcw, UserRoundCheck, Inbox } from 'lucide-react';
-import { api, useQuery } from '../../api';
+import { useQuery } from '../../api';
 import { cn } from '../../lib/cn';
 import { fmtAgo } from '../../lib/format';
 import { useRouter } from '../../lib/router';
+import { useShell } from './ShellContext';
 
 const ICONS = {
   SESSION_REQUESTED: Inbox,
@@ -19,14 +20,16 @@ const ICONS = {
 };
 
 export function useUnreadNotifications() {
-  const { data } = useQuery(() => api.notifications.listForUser(), []);
+  const { source: api } = useShell();
+  const { data } = useQuery(() => api.notifications.listForUser(), [api]);
   return (data ?? []).filter((n) => !n.readAt).length;
 }
 
 /** Notification list. Clicking an item marks it read and opens where it points. */
 export function NotificationsPanel({ onDone }) {
   const { navigate } = useRouter();
-  const { data = [] } = useQuery(() => api.notifications.listForUser(), []);
+  const { source: api } = useShell();
+  const { data = [] } = useQuery(() => api.notifications.listForUser(), [api]);
   const unread = data.filter((n) => !n.readAt).length;
 
   return (

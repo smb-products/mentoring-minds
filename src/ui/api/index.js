@@ -1,14 +1,31 @@
-/**
- * The UI's data layer. Every screen imports `api`, `useQuery` and `useAction` from here.
- *
- * SCAFFOLD: points at the prototype's in-browser mock (src/mock), so every screen runs
- * with demo data and no database.
- *
- * GOING LIVE: replace this file with an adapter that calls the server functions in
- * src/server/*.ts (same namespaces, names and inputs — see docs/CONTRACT.md):
- *   import * as families from '@/server/families'; …
- *   export const api = { families, … };
- * and a useQuery/useAction pair that re-runs queries after a successful write
- * (or move reads into server components). Nothing else in src/ui changes.
- */
-export { api, useQuery, useAction, auth, setSessionUser } from '../../mock';
+import { api as mock } from '../../mock';
+import { live } from './live';
+
+/** Areas running on the real backend. Uncomment your ticket's lines, test, commit. */
+const LIVE = new Set([
+  // W0
+  'dashboard',
+  // W1
+  // 'taxonomy',
+  // 'fast',
+  // W2
+  // 'families',
+  // 'invites',
+  // W3
+  // 'messages',
+  // 'notifications',
+  // W4
+  // 'books',
+  // 'content',
+  // W5
+  // 'assignments',
+  // W6
+  // 'scheduling',
+  // W7
+  // 'reports',
+  // 'ai',
+]);
+
+export const api = Object.fromEntries(Object.entries(mock).map(([k, v]) => [k, LIVE.has(k) ? live[k] : v]));
+export { useQuery, useAction } from './live-hooks';
+export { auth, setSessionUser } from '../../mock';
