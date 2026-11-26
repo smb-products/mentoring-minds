@@ -7,8 +7,9 @@ import { Avatar, PageHeader } from '../../components/ui/Display';
 
 /** /parent/messages — the family's one thread with Vienne. Data: messages.getThread. */
 export default function ParentMessagesPage() {
-  // A locked account can't read the thread yet (messages.getThread is for active families).
-  return useLocked() ? <LockedPage title="Messages" /> : <ParentMessages />;
+  // A preview account can't read the thread yet. A paused one can: the paused notice (AppShell) says to message Vienne.
+  const locked = useLocked();
+  return locked && locked !== 'PAUSED' ? <LockedPage title="Messages" /> : <ParentMessages />;
 }
 
 function ParentMessages() {

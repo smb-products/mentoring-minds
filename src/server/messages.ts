@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireActive, requireAdmin, requireUser } from '@/lib/guards';
+import { requireAdmin, requireCanMessage, requireUser } from '@/lib/guards';
 import { action, found, query } from '@/lib/result';
 import { id, parse } from '@/lib/validate';
 import { notifyAdmins } from '@/lib/notify';
@@ -40,8 +40,9 @@ export const listThreads = query(async () => {
   );
 });
 
+/** An active or a paused family (the paused notice says to message Vienne); a preview one gets NOT_ACTIVE. */
 export const getThread = query(async (input: { conversationId?: string } = {}) => {
-  const user = await requireActive();
+  const user = await requireCanMessage();
   const { conversationId } = parse(z.object({ conversationId: id.optional() }), input);
   const conv = await threadFor(user, conversationId);
   const [parent, messages, unread] = await Promise.all([
@@ -53,7 +54,7 @@ export const getThread = query(async (input: { conversationId?: string } = {}) =
 });
 
 export const sendMessage = action(async (input: { conversationId?: string; body: string }) => {
-  const user = await requireActive();
+  const user = await requireCanMessage();
   const v = parse(z.object({ conversationId: id.optional(), body: z.string().trim().min(1, 'Write a message first').max(4000, 'That message is too long') }), input);
   const conv = await threadFor(user, v.conversationId);
   const now = new Date();
