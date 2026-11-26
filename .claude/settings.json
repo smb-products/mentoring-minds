@@ -40,7 +40,11 @@
       "Bash(git push -f*)",
       "Read(./node_modules/**)",
       "Read(./.next/**)",
-      "Read(./.wt/**)"
+      "Read(./.wt/*/.env)",
+      "Read(./.wt/*/.env.local)",
+      "Read(./.wt/*/.env.miosa)",
+      "Read(./.wt/*/node_modules/**)",
+      "Read(./.wt/*/.next/**)"
     ]
   },
   "hooks": {
