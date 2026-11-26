@@ -29,8 +29,7 @@ async function makeFamily(db: Db, lastName: string, [first, second] = ['Pablo', 
   return { parent, pablo, elena, conv };
 }
 
-// S27 hides Delete until S23b lands (Javaris, 2026-11-26). S23b turns this back on: remove `.fixme`.
-test.fixme('Vienne deletes one child: asked twice, then the child is gone and the sibling stays', async ({ page, as, db }) => {
+test('Vienne deletes one child: asked twice, then the child is gone and the sibling stays', async ({ page, as, db }) => {
   const { parent, pablo, elena } = await makeFamily(db, 'Quintero');
   await as('vienne');
   await page.goto(`/admin/families/${parent.id}`);
@@ -73,8 +72,7 @@ test.fixme('Vienne deletes one child: asked twice, then the child is gone and th
   expect(await db.student.findUnique({ where: { id: elena.id } })).not.toBeNull();
 });
 
-// S27 hides Delete until S23b lands (Javaris, 2026-11-26). S23b turns this back on: remove `.fixme`.
-test.fixme('Vienne deletes a whole family: asked twice, then the parent and children are gone from every screen', async ({ page, as, db }) => {
+test('Vienne deletes a whole family: asked twice, then the parent and children are gone from every screen', async ({ page, as, db }) => {
   const { parent, pablo, elena, conv } = await makeFamily(db, 'Castillo', ['Marco', 'Lina']);
   await as('vienne');
   await page.goto(`/admin/families/${parent.id}`);

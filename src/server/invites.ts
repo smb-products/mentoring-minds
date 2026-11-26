@@ -27,7 +27,8 @@ const ACCOUNT_LOCKED = 'Too many tries. Wait an hour, or ask Vienne to check the
 const REDEEM_LIMIT_ALERT = 'INVITE_GUESSING';
 const MATH = 'sub_math';
 
-type Planned = { firstName: string; lastName?: string; grade: number; school?: string | null };
+/** A child on a code. `studentId` is set by redeemInvite on the child it created (S23b). */
+type Planned = { firstName: string; lastName?: string; grade: number; school?: string | null; studentId?: string };
 
 const statusOf = (inv: { revokedAt: Date | null; usedAt: Date | null; expiresAt: Date }, now = new Date()) =>
   inv.revokedAt ? 'REVOKED' : inv.usedAt ? 'USED' : inv.expiresAt < now ? 'EXPIRED' : 'ACTIVE';
@@ -159,8 +160,10 @@ export const redeemInvite = action(async (input: { code: string }) => {
     // Claim the code atomically, so two people can't use it at once.
     const claimed = await tx.invite.updateMany({ where: { id: inv.id, usedAt: null, revokedAt: null, expiresAt: { gt: now } }, data: { usedAt: now, usedById: user.id } });
     if (claimed.count !== 1) throw new ApiError('INVALID_CODE', 'That code isn’t valid. Check it with Vienne.');
+    // Each planned entry keeps the id of the child it became, so deleting that child finds it by id (S23b).
+    const made: (Planned & { studentId: string })[] = [];
     for (const p of planned) {
-      await tx.student.create({
+      const child = await tx.student.create({
         data: {
           parentId: user.id,
           firstName: p.firstName,
@@ -170,11 +173,14 @@ export const redeemInvite = action(async (input: { code: string }) => {
           schoolYear: schoolYearOf(now, settings.timezone),
           subjects: { create: [{ subjectId: MATH }] },
         },
+        select: { id: true },
       });
+      made.push({ ...p, studentId: child.id });
     }
+    await tx.invite.update({ where: { id: inv.id }, data: { plannedStudents: made } });
     await tx.user.update({ where: { id: user.id }, data: { status: 'ACTIVE', redeemFailures: 0, redeemLockedUntil: null } });
     await tx.conversation.upsert({ where: { parentId: user.id }, create: { parentId: user.id, lastMessageAt: now, adminLastReadAt: now, parentLastReadAt: now }, update: {} });
   });
-  await notifyAdmins({ type: 'INVITE_REDEEMED', title: `${user.name} joined`, body: `Invite code used. ${planned.map((p) => p.firstName).join(' and ')} added.`, href: '/admin/families', about: inv.id });
+  await notifyAdmins({ type: 'INVITE_REDEEMED', title: `${user.name} joined`, body: `Invite code used. ${planned.map((p) => p.firstName).join(' and ')} added.`, href: '/admin/families', about: inv.id, parentId: user.id });
   return { status: 'ACTIVE' as const };
 });

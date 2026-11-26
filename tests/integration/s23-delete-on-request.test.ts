@@ -119,13 +119,14 @@ describe('deleting a child', () => {
     await db.submission.update({ where: { id: subs[0].id }, data: { fileId: upload.id, draft: [{ number: 1, value: 'A', fileId: library.id }] } });
     // Ana's own upload not attached to anything: hers, not Lucia's, so it stays.
     const anasOther = await storedFile('u_ana');
-    // A share, a session note draft and alerts that name her.
+    // A share, a session note draft and alerts linked to her (S23b: by id, as the app links them).
     await db.resourceShare.create({ data: { resourceId: 'res_mult', studentId: lucia.id } });
     const session = await db.session.findFirstOrThrow({ where: { studentId: lucia.id } });
     await db.aiDraft.create({ data: { kind: 'SESSION_NOTE', model: 'claude-haiku-5-5', effort: 'high', refId: session.id, input: { transcript: 'Lucia did well' }, output: {} } });
-    await db.notification.create({ data: { userId: 'u_ana', audience: 'PARENT', type: 'WORK_GRADED', title: 'Vienne checked Lucia’s Test 1', href: '/parent/learning' } });
-    await db.notification.create({ data: { userId: 'u_admin', audience: 'ADMIN', type: 'SUBMISSION_RECEIVED', title: 'Lucia finished Test 1', href: '/admin/assignments/x' } });
-    await db.invite.create({ data: { codeHash: 's23-ana', codeHint: 'MM-••S2', parentName: 'Ana Mendoza', plannedStudents: [{ firstName: 'Mateo', lastName: 'Mendoza', grade: 3 }, { firstName: 'Lucia', lastName: 'Mendoza', grade: 5 }], expiresAt: new Date(), usedAt: new Date(), usedById: 'u_ana' } });
+    await db.notification.create({ data: { userId: 'u_ana', audience: 'PARENT', type: 'WORK_GRADED', title: 'Vienne checked Lucia’s Test 1', href: '/parent/learning', studentId: lucia.id } });
+    await db.notification.create({ data: { userId: 'u_admin', audience: 'ADMIN', type: 'SUBMISSION_RECEIVED', title: 'Lucia finished Test 1', href: '/admin/assignments/x', studentId: lucia.id, parentId: 'u_ana' } });
+    // The code Ana redeemed: each planned entry holds the id of the child it became (S23b).
+    await db.invite.create({ data: { codeHash: 's23-ana', codeHint: 'MM-••S2', parentName: 'Ana Mendoza', plannedStudents: [{ firstName: 'Mateo', lastName: 'Mendoza', grade: 3, studentId: 's_mateo' }, { firstName: 'Lucia', lastName: 'Mendoza', grade: 5, studentId: lucia.id }], expiresAt: new Date(), usedAt: new Date(), usedById: 'u_ana' } });
 
     const ids = [
       lucia.id,
@@ -144,7 +145,7 @@ describe('deleting a child', () => {
 
     expect(await pointersTo(ids)).toEqual([]);
     expect(await alertsNaming('Lucia')).toEqual([]);
-    expect((await db.invite.findUniqueOrThrow({ where: { codeHash: 's23-ana' } })).plannedStudents).toEqual([{ firstName: 'Mateo', lastName: 'Mendoza', grade: 3 }]);
+    expect((await db.invite.findUniqueOrThrow({ where: { codeHash: 's23-ana' } })).plannedStudents).toEqual([{ firstName: 'Mateo', lastName: 'Mendoza', grade: 3, studentId: 's_mateo' }]);
     await gone(upload);
     await gone(solo);
     await kept(photo);
@@ -184,7 +185,7 @@ describe('deleting a family', () => {
     await db.pushSubscription.create({ data: { userId: keisha.id, endpoint: 'https://fcm.googleapis.com/fcm/send/s23-keisha', p256dh: 'p', auth: 'a' } });
     await db.redeemFailure.create({ data: { userId: keisha.id } });
     await db.notification.create({ data: { userId: keisha.id, audience: 'PARENT', type: 'SESSION_CONFIRMED', title: 'Vienne confirmed Jordan’s session' } });
-    await db.notification.create({ data: { userId: 'u_admin', audience: 'ADMIN', type: 'INVITE_REDEEMED', title: 'Keisha Brooks joined', href: '/admin/families' } });
+    await db.notification.create({ data: { userId: 'u_admin', audience: 'ADMIN', type: 'INVITE_REDEEMED', title: 'Keisha Brooks joined', href: '/admin/families', parentId: keisha.id } });
     const finished = await storedFile(keisha.id);
     const unfinished = await storedFile(keisha.id, false);
     const sub = await db.submission.findFirstOrThrow({ where: { studentId: 's_jordan' } });
@@ -236,29 +237,32 @@ describe('deleting a family', () => {
   });
 });
 
+/*
+ * S23b changed this block: a family's code is only the one its parent redeemed (Invite.usedById), and a
+ * child comes off it by the studentId stored on its planned entry. Codes matched by email or name before
+ * (revoked, expired, unused) are no longer the family's: they now stay exactly as they were.
+ */
 describe('the family’s invite codes, in every state', () => {
   const DAY = 86400000;
   type Parent = { id: string; email: string; name: string };
-  /** The family's codes: the one they used, and by email (other case; revoked, expired) or unused with no email by name (other case). */
+  /** The family's code: the one they redeemed. */
   async function theirCodes(parent: Parent, tag: string, plannedStudents: object[]) {
-    const base = { codeHint: 'MM-••S3', plannedStudents, expiresAt: new Date(Date.now() + 7 * DAY) };
     await db.invite.deleteMany({ where: { usedById: parent.id } });
-    const rows = [
-      { codeHash: `${tag}-used`, parentName: parent.name, usedAt: new Date(), usedById: parent.id },
-      { codeHash: `${tag}-revoked`, parentName: 'Someone', parentEmail: parent.email.toUpperCase(), revokedAt: new Date() },
-      { codeHash: `${tag}-expired`, parentName: 'Someone', parentEmail: parent.email, expiresAt: new Date(Date.now() - DAY) },
-      { codeHash: `${tag}-by-name`, parentName: parent.name.toUpperCase() },
-      { codeHash: `${tag}-by-name-blank-email`, parentName: parent.name.toLowerCase(), parentEmail: '' },
-    ];
-    const ids: string[] = [];
-    for (const r of rows) ids.push((await db.invite.create({ data: { ...base, ...r } })).id);
-    return ids;
+    const row = await db.invite.create({ data: { codeHint: 'MM-••S3', plannedStudents, expiresAt: new Date(Date.now() + 7 * DAY), codeHash: `${tag}-used`, parentName: parent.name, usedAt: new Date(), usedById: parent.id } });
+    return [row.id];
   }
-  /** Codes that aren't theirs: another email under the same name, or the same name used by someone else. */
+  /**
+   * Codes that aren't theirs: by email (other case; revoked, expired), unused under their name (other case,
+   * blank email), another email under the same name, or the same name used by someone else.
+   */
   async function otherCodes(parent: Parent, tag: string, plannedStudents: object[]) {
     const base = { codeHint: 'MM-••S4', plannedStudents, expiresAt: new Date(Date.now() + 7 * DAY) };
     await db.invite.deleteMany({ where: { usedById: 'u_grace' } });
     const rows = [
+      { codeHash: `${tag}-revoked`, parentName: 'Someone', parentEmail: parent.email.toUpperCase(), revokedAt: new Date() },
+      { codeHash: `${tag}-expired`, parentName: 'Someone', parentEmail: parent.email, expiresAt: new Date(Date.now() - DAY) },
+      { codeHash: `${tag}-by-name`, parentName: parent.name.toUpperCase() },
+      { codeHash: `${tag}-by-name-blank-email`, parentName: parent.name.toLowerCase(), parentEmail: '' },
       { codeHash: `${tag}-other-email`, parentName: parent.name, parentEmail: 'someone.else@example.com' },
       { codeHash: `${tag}-same-name-used`, parentName: parent.name, usedAt: new Date(), usedById: 'u_grace' },
     ];
@@ -268,10 +272,10 @@ describe('the family’s invite codes, in every state', () => {
   }
   const planned = async (ids: string[]) => (await db.invite.findMany({ where: { id: { in: ids } }, orderBy: { id: 'asc' } })).map((i) => i.plannedStudents);
 
-  it('deleting a child takes them off every one of the family’s codes; the codes stay with their other children', async () => {
+  it('deleting a child takes them off the code their parent redeemed, by id; the code stays with their other children, and nobody else’s code changes', async () => {
     as('u_admin');
     const priya = await db.user.findUniqueOrThrow({ where: { id: 'u_priya' } });
-    const kids = [{ firstName: 'Arjun', lastName: 'Patel', grade: 6 }, { firstName: 'Maya', lastName: 'Patel', grade: 1 }];
+    const kids = [{ firstName: 'Arjun', lastName: 'Patel', grade: 6, studentId: 's_arjun' }, { firstName: 'Maya', lastName: 'Patel', grade: 1, studentId: 's_maya' }];
     const theirs = await theirCodes(priya, 's23-child', kids);
     const others = await otherCodes(priya, 's23-child', kids);
 
@@ -284,10 +288,10 @@ describe('the family’s invite codes, in every state', () => {
     expect(listed.flatMap((i) => (i.plannedStudents as { firstName: string }[]).map((p) => p.firstName))).not.toContain('Maya');
   });
 
-  it('deleting a family deletes every one of its codes and leaves other people’s', async () => {
+  it('deleting a family deletes the code it redeemed and leaves every other code, even ones sent to its email', async () => {
     as('u_admin');
     const monique = await db.user.findUniqueOrThrow({ where: { id: 'u_monique' } });
-    const kids = [{ firstName: 'Ava', lastName: 'Johnson', grade: 2 }];
+    const kids = [{ firstName: 'Ava', lastName: 'Johnson', grade: 2, studentId: 's_ava' }];
     const theirs = await theirCodes(monique, 's23-family', kids);
     const others = await otherCodes(monique, 's23-family', kids);
 
@@ -301,7 +305,7 @@ describe('the family’s invite codes, in every state', () => {
   it('a parent is refused and their codes don’t change', async () => {
     as('u_admin');
     const priya = await db.user.findUniqueOrThrow({ where: { id: 'u_priya' } });
-    const kids = [{ firstName: 'Arjun', lastName: 'Patel', grade: 6 }];
+    const kids = [{ firstName: 'Arjun', lastName: 'Patel', grade: 6, studentId: 's_arjun' }];
     const theirs = await theirCodes(priya, 's23-refused', kids);
     as('u_priya');
     fails(await families.deleteStudent({ studentId: 's_arjun' }), 'FORBIDDEN');

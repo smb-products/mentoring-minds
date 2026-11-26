@@ -23,10 +23,14 @@ export type NewNotification = {
   href?: string | null;
   /** The id of the record the push is about (thread, submission, session, report, invite). Only names the push's tag; not stored. */
   about?: string | null;
+  /** S23b: the child this alert is about, stored so deleting the child removes it by id. Passed by the caller. */
+  studentId?: string | null;
+  /** S23b: the family (the parent's user id) this alert is about, stored so deleting the family removes it by id. */
+  parentId?: string | null;
 };
 
 export async function notify({ about, ...n }: NewNotification) {
-  const row = await db.notification.create({ data: { ...n, body: n.body ?? null, href: n.href ?? null, channel: 'IN_APP', sentAt: new Date() } });
+  const row = await db.notification.create({ data: { ...n, body: n.body ?? null, href: n.href ?? null, studentId: n.studentId ?? null, parentId: n.parentId ?? null, channel: 'IN_APP', sentAt: new Date() } });
   afterResponse(() => pushToUser(n.userId, { title: n.title, body: n.body, href: n.href, tag: pushTag(n.type, about) }));
   return row;
 }
