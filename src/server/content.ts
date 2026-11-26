@@ -18,7 +18,7 @@ import { db } from '@/lib/db';
 import { requireActive, requireAdmin, requireStudentAccess, requireUser } from '@/lib/guards';
 import { action, ApiError, found, need, query } from '@/lib/result';
 import { id, ids, optText, parse, text } from '@/lib/validate';
-import { resourceDTO, resourceInclude, resourceTeaser } from '@/lib/dto';
+import { fileDTO, resourceDTO, resourceInclude, resourceTeaser } from '@/lib/dto';
 import { ALLOWED_TYPES, MAX_BYTES, matchesType, readStart, removeObject, storageKeyFor, storedSize, uploadTarget, type AllowedType } from '@/lib/storage';
 import { canReadFile, visibleTo } from '@/lib/files';
 
@@ -65,11 +65,12 @@ export const finishUpload = action(async (input: { fileId: string }) => {
 export const getFileForUser = query(async (input: { fileId: string }) => {
   const user = await requireUser();
   const { fileId } = parse(z.object({ fileId: id }), input);
+  // The account before the lookup, so a locked account can't tell a real file id from a made-up one.
+  if (user.role !== 'ADMIN' && user.status !== 'ACTIVE') throw new ApiError('NOT_ACTIVE', 'Enter your invite code to open files.');
   const { file, allowed } = await canReadFile(user, fileId);
   found(file, 'File');
-  if (user.role !== 'ADMIN' && user.status !== 'ACTIVE') throw new ApiError('NOT_ACTIVE', 'Enter your invite code to open files.');
   need(allowed, 'You don’t have access to this file.', 'FORBIDDEN');
-  return { ...file, url: `/api/files/${file.id}` };
+  return fileDTO(file);
 });
 
 /* ── Resources ──────────────────────────────────────────── */
