@@ -127,14 +127,28 @@ function merge(a: Shape | null, b: Shape | null): Shape | null {
   return a;
 }
 
-/** Problems with `real` given the screens were built on `mock`. */
-function compare(mock: Shape | null, real: Shape | null, path = '', out: { missing: string[]; type: string[]; extra: string[] } = { missing: [], type: [], extra: [] }) {
-  if (!mock || !real || mock.t === 'null' || real.t === 'null') return out; // nullable: either side may be empty
+/**
+ * Problems with `real` given the screens were built on `mock`.
+ * A key the mock returns is required in the real result even when its value is null or [].
+ * A null in the mock is a nullable field: the real side may hold any value there. A null in
+ * the real result where the mock has a list or an object is a type problem (the screen would
+ * call `.map` or read a field on it). Lists: both sides run on the same data, so when only
+ * one side has elements that is reported too, and element shapes are compared when both do.
+ */
+function compare(mock: Shape | null, real: Shape | null, path = '', out: { missing: string[]; type: string[]; extra: string[]; empty: string[] } = { missing: [], type: [], extra: [], empty: [] }) {
+  if (!mock || mock.t === 'null') return out; // nullable in the mock: the real side may be anything
+  if (!real || real.t === 'null') {
+    if (mock.t === 'array' || mock.t === 'object') out.type.push(`${path || '(root)'}: mock ${mock.t}, real null`);
+    return out; // a nullable scalar
+  }
   if (mock.t !== real.t) {
     out.type.push(`${path || '(root)'}: mock ${mock.t}, real ${real.t}`);
     return out;
   }
-  if (mock.t === 'array' && real.t === 'array') return compare(mock.of, real.of, `${path}[]`, out);
+  if (mock.t === 'array' && real.t === 'array') {
+    if (!mock.of !== !real.of) out.empty.push(`${path}[]: ${mock.of ? 'mock has elements, real is empty' : 'mock is empty, real has elements'}`);
+    return compare(mock.of, real.of, `${path}[]`, out);
+  }
   if (mock.t === 'object' && real.t === 'object') {
     for (const k of Object.keys(mock.keys)) {
       if (!(k in real.keys)) out.missing.push(`${path}.${k}`);
@@ -166,10 +180,13 @@ async function callReal(ns: string, fn: string, input: unknown, user: string): P
 const report: string[] = [];
 const extras = new Set<string>();
 
-/** Calls both, asserts both succeed (or both fail with the same code), and compares shapes. */
-async function check(ns: string, fn: string, input: unknown, user: string) {
+/**
+ * Calls both, asserts both succeed (or both fail with the same code), and compares shapes.
+ * `realInput` is for rows each side created itself (their ids differ).
+ */
+async function check(ns: string, fn: string, input: unknown, user: string, realInput: unknown = input) {
   const label = `${ns}.${fn} (${user})`;
-  const [m, r] = [await callMock(ns, fn, input, user), await callReal(ns, fn, input, user)];
+  const [m, r] = [await callMock(ns, fn, input, user), await callReal(ns, fn, realInput, user)];
   if (!m.ok || !r.ok) {
     expect(r.ok, `${label}: mock ${m.ok ? 'ok' : `${m.code} “${m.error}”`}, real ${r.ok ? 'ok' : `${r.code} “${r.error}”`}`).toBe(m.ok);
     if (!m.ok && !r.ok) expect(sameCode(m, r), `${label}: mock ${m.code}, real ${r.code}`).toBe(true);
@@ -178,7 +195,7 @@ async function check(ns: string, fn: string, input: unknown, user: string) {
   const diff = compare(shapeOf(m.data), shapeOf(r.data));
   diff.missing = diff.missing.filter((x) => !ALLOWED_MISSING.some((a) => a.path.test(x) && a.when(user)));
   diff.extra.forEach((x) => extras.add(`${ns}.${fn}${x}`));
-  const problems = [...diff.missing.map((x) => `missing in real: ${x}`), ...diff.type.map((x) => `different type: ${x}`)];
+  const problems = [...diff.missing.map((x) => `missing in real: ${x}`), ...diff.type.map((x) => `different type: ${x}`), ...diff.empty.map((x) => `different list: ${x}`)];
   if (problems.length) report.push(`${label}\n    ${problems.join('\n    ')}`);
   expect(problems, label).toEqual([]);
   return r;
@@ -295,6 +312,13 @@ describe('writes match the mock', () => {
     await check('scheduling', 'completeSession', { sessionId: 'ses_live', attendance: 'PRESENT', summary: 'Good session', skillIds: [], redoItemIds: [], clearRedoIds: [] }, ADMIN);
     await check('scheduling', 'addTimeOff', { startsAt: new Date(Date.now() + 40 * 86400000).toISOString(), endsAt: new Date(Date.now() + 41 * 86400000).toISOString(), reason: 'Conference' }, ADMIN);
     await check('scheduling', 'updateSettings', { joinOpensMin: 10 }, ADMIN);
+    // Her own hours saved back unchanged, so later steps see the same week.
+    const hours = (getDb() as unknown as { availability: { weekday: number; startMin: number; endMin: number; modes: string[] }[] }).availability;
+    await check('scheduling', 'setAvailability', { rows: hours.map(({ weekday, startMin, endMin, modes }) => ({ weekday, startMin, endMin, modes })) }, ADMIN);
+    const day = new Date(Date.now() + 55 * 86400000);
+    day.setUTCHours(17, 0, 0, 0);
+    await check('scheduling', 'createSessionAsAdmin', { studentId: 's_mateo', mode: 'IN_PERSON', locationId: 'loc_studio', startsAt: day.toISOString(), durationMin: 60 }, ADMIN);
+    await check('scheduling', 'removeTimeOff', { timeOffId: 'to_1' }, ADMIN);
     expect(id).toBeTruthy();
   });
 
@@ -304,6 +328,9 @@ describe('writes match the mock', () => {
     await check('families', 'setTextSize', { textSize: 'LARGE' }, 'u_ana');
     await check('families', 'addStudent', { parentId: 'u_grace', firstName: 'June', grade: 1 }, ADMIN);
     await check('families', 'resetParentPassword', { parentId: 'u_daniel' }, ADMIN);
+    await check('families', 'setParentStatus', { parentId: 'u_daniel', status: 'PAUSED' }, ADMIN);
+    await check('families', 'setParentStatus', { parentId: 'u_daniel', status: 'ACTIVE' }, ADMIN);
+    await check('fast', 'deleteResult', { id: 'fr_sofia_PM1_2026' }, 'u_daniel');
     await check('fast', 'saveResult', { studentId: 's_mateo', schoolYear: '2026–27', window: 'PM2', scaleScore: 300, level: 3 }, 'u_ana');
     await check('fast', 'saveResult', { studentId: 's_ava', schoolYear: '2026–27', window: 'PM2', scaleScore: 600, percentile: 50 }, 'u_monique');
     await check('books', 'setHasBook', { studentId: 's_lucia', hasBook: true }, 'u_ana');
@@ -320,10 +347,14 @@ describe('writes match the mock', () => {
     await check('assignments', 'returnSubmission', { submissionId: 'sb_chidi_t1', feedback: 'Redo #19' }, ADMIN);
     await check('assignments', 'markPracticeDone', { submissionId: 'sb_noah_fldoe' }, 'u_grace');
     await check('books', 'addRedo', { studentId: 's_lucia', test: 'T1', numbers: [2] }, ADMIN);
+    const mc = await db.bookItem.findFirstOrThrow({ where: { bookId: 'book_g5', test: 'T1', format: 'MC' }, orderBy: { number: 'asc' } });
+    await check('books', 'saveAnswerKey', { bookId: 'book_g5', test: 'T1', rows: [{ number: mc.number, format: 'MC', answer: mc.answer, benchmarkCode: mc.benchmarkCode }] }, ADMIN);
   });
 
   it('reports, messages, invites, content, skills, notifications', async () => {
+    await check('reports', 'createDraft', { studentId: 's_eli' }, ADMIN);
     await check('reports', 'updateReport', { reportId: 'rep_eli_1', summary: 'Eli is improving.' }, ADMIN);
+    await check('reports', 'setRatings', { reportId: 'rep_eli_1', ratings: [{ skillId: 'sk_fractions', rating: 3 }, { skillId: 'sk_mult_div', rating: 2, comment: 'Getting there' }] }, ADMIN);
     await check('reports', 'publishReport', { reportId: 'rep_eli_1' }, ADMIN);
     await check('messages', 'sendMessage', { body: 'Thank you!' }, 'u_ana');
     await check('messages', 'sendMessage', { conversationId: 'conv_ana', body: 'You’re welcome' }, ADMIN);
@@ -331,19 +362,27 @@ describe('writes match the mock', () => {
     await check('invites', 'createInvite', { parentName: 'New Family', plannedStudents: [{ firstName: 'Kai', lastName: 'Lee', grade: 4 }] }, ADMIN);
     await check('invites', 'revokeInvite', { inviteId: 'inv_sam' }, ADMIN);
     await check('invites', 'restoreInvite', { inviteId: 'inv_sam' }, ADMIN);
+    await check('invites', 'regenerateInvite', { inviteId: 'inv_sam' }, ADMIN);
     await check('invites', 'redeemInvite', { code: 'MM-9RT2' }, 'u_lena');
     await check('content', 'createResource', { title: 'Bring your book', kind: 'NOTE', body: { text: 'Bring it!' } }, ADMIN);
-    await check('content', 'setSharing', { resourceId: 'res_mult', visibility: 'SELECTED', studentIds: ['s_eli'] }, ADMIN);
+    await check('content', 'updateResource', { resourceId: 'res_mult', title: 'Multiplication facts', studentIds: ['s_eli', 's_noah'] }, ADMIN);
+    await check('content', 'setSharing',{ resourceId: 'res_mult', visibility: 'SELECTED', studentIds: ['s_eli'] }, ADMIN);
     await check('content', 'setPublishStatus', { resourceId: 'res_ratio_intro', status: 'PUBLISHED' }, ADMIN);
     await check('content', 'deleteResource', { resourceId: 'res_counting' }, ADMIN);
     await check('content', 'restoreResource', { resourceId: 'res_counting' }, ADMIN);
     await check('taxonomy', 'upsertSkill', { name: 'Telling time', strand: 'M', gradeMin: 1, gradeMax: 3 }, ADMIN);
+    await check('taxonomy', 'archiveSkill', { skillId: 'sk_counting' }, ADMIN);
+    await check('taxonomy', 'archiveSkill', { skillId: 'sk_counting', archived: false }, ADMIN);
+    await check('notifications', 'markRead', { notificationId: 'n9' }, 'u_monique');
     await check('notifications', 'markAllRead', {}, 'u_monique');
     await check('notifications', 'runDailyReminders', {}, ADMIN);
   });
 
   it('AI drafts (Claude stubbed)', async () => {
-    await check('ai', 'draftSessionNote', { sessionId: 'ses_15', transcript: 'Noah did great with fractions today.' }, ADMIN);
+    // The mock's stand-in reads the words; the stub always answers T1 #2 to redo, so the recap says so.
+    const note = await check('ai', 'draftSessionNote', { sessionId: 'ses_15', transcript: 'Noah did great with fractions today. He missed number 2 on test 1.' }, ADMIN);
+    const mockDrafts = (getDb() as unknown as { aiDrafts: { id: string }[] }).aiDrafts;
+    await check('ai', 'discardDraft', { draftId: mockDrafts[mockDrafts.length - 1].id }, ADMIN, { draftId: (note as { data: { draftId: string } }).data.draftId });
     await check('ai', 'readAnswerKeyPage', { bookId: 'book_g5', test: 'T4', fromNumber: 1, photoName: 'page.jpg', image: { mediaType: 'image/jpeg', base64: 'A'.repeat(400) } }, ADMIN);
   });
 
@@ -357,14 +396,28 @@ describe('writes match the mock', () => {
 
 import { readFileSync } from 'node:fs';
 
+/** Plain functions in the mock that change data: the adapter treats them as writes. */
+const NOT_READS: Record<string, string> = {
+  'notifications.runDailyReminders': 'It sends reminders (a write). No screen calls it; the daily cron does.',
+};
+
 describe('live adapter (src/ui/api/live.js)', () => {
+  it('never lists a write as a read', () => {
+    const src = readFileSync('src/ui/api/live.js', 'utf8');
+    const listed = Function(`return ${src.slice(src.indexOf('export const READS = ') + 'export const READS = '.length, src.indexOf('};', src.indexOf('export const READS')) + 1)}`)() as Record<string, string[]>;
+    for (const key of Object.keys(NOT_READS)) {
+      const [ns, fn] = key.split('.');
+      expect(listed[ns], key).not.toContain(fn);
+    }
+  });
+
   it('treats exactly the mock’s reads as reads', async () => {
     // A read in the mock is `export async function x`; a write is `export const x = action(`.
     const src = readFileSync('src/ui/api/live.js', 'utf8');
     const listed = Function(`return ${src.slice(src.indexOf('export const READS = ') + 'export const READS = '.length, src.indexOf('};', src.indexOf('export const READS')) + 1)}`)() as Record<string, string[]>;
     for (const ns of Object.keys(MODULES)) {
       const mock = readFileSync(`src/mock/server/${ns}.js`, 'utf8');
-      const reads = [...mock.matchAll(/^export async function (\w+)/gm)].map((m) => m[1]).filter((n) => !HELPERS.has(n));
+      const reads = [...mock.matchAll(/^export async function (\w+)/gm)].map((m) => m[1]).filter((n) => !HELPERS.has(n) && !NOT_READS[`${ns}.${n}`]);
       expect(listed[ns]?.slice().sort(), ns).toEqual(reads.sort());
     }
   });
