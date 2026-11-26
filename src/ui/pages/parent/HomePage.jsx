@@ -15,7 +15,7 @@ import { useResultToast } from '../../components/ui/Toast';
 import { areaColor, Avatar, Empty, Figures, PageHeader, Row, Section, SkillMeter, subjectBg } from '../../components/ui/Display';
 import { PageLoading } from '../../components/ui/Display';
 import { cn } from '../../lib/cn';
-import { fmtDate, fmtDue, fmtTimeRange, greeting, isToday, isTomorrow } from '../../lib/format';
+import { dayOfMonth, fmtDate, fmtDateWith, fmtDue, fmtTimeRange, greeting, isToday, isTomorrow } from '../../lib/format';
 import { Link, useRouter } from '../../lib/router';
 
 /** /parent/home — data: dashboard.getParentOverview({ studentId }) */
@@ -82,14 +82,14 @@ export default function ParentHomePage() {
         {next ? (
           <button type="button" onClick={() => setSelected(next)} className="surface group relative flex items-stretch gap-5 overflow-hidden rounded-[14px] p-5 text-left @3xl/page:p-6">
             <div className="band tabular flex w-[5.5rem] shrink-0 flex-col items-center justify-center rounded-xl py-3 shadow-raised">
-              <span className="text-[12.5px] font-bold text-ink-muted">{new Date(next.startsAt).toLocaleDateString(undefined, { month: 'short' })}</span>
-              <span className="text-[34px] font-extrabold leading-none">{new Date(next.startsAt).getDate()}</span>
-              <span className="mt-1 text-[12.5px] font-bold text-ink-muted">{new Date(next.startsAt).toLocaleDateString(undefined, { weekday: 'short' })}</span>
+              <span className="text-[12.5px] font-bold text-ink-muted">{fmtDateWith(next.startsAt, { month: 'short' })}</span>
+              <span className="text-[34px] font-extrabold leading-none">{dayOfMonth(next.startsAt)}</span>
+              <span className="mt-1 text-[12.5px] font-bold text-ink-muted">{fmtDateWith(next.startsAt, { weekday: 'short' })}</span>
             </div>
             <div className="min-w-0 flex-1 py-0.5">
               <p className="text-[13px] font-extrabold text-muted-foreground">Next session</p>
               <p className="mt-1 text-[20px] font-extrabold leading-snug tracking-[-0.01em] @3xl/page:text-[22px]">
-                {isToday(next.startsAt) ? 'Today' : isTomorrow(next.startsAt) ? 'Tomorrow' : new Date(next.startsAt).toLocaleDateString(undefined, { weekday: 'long' })}, {fmtTimeRange(next.startsAt, next.endsAt)}
+                {isToday(next.startsAt) ? 'Today' : isTomorrow(next.startsAt) ? 'Tomorrow' : fmtDateWith(next.startsAt, { weekday: 'long' })}, {fmtTimeRange(next.startsAt, next.endsAt)}
               </p>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                 <Place session={next} forParent className="text-[14px]" />

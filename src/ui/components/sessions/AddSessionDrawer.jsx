@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, useAction, useQuery } from '../../api';
-import { fullName, gradeLabel } from '../../lib/format';
+import { fromDateTimeInput, fullName, gradeLabel, toDateInput } from '../../lib/format';
 import { Button } from '../ui/Button';
 import { Field, Input, Segmented, Select } from '../ui/Form';
 import { Drawer } from '../ui/Overlay';
 import { useResultToast } from '../ui/Toast';
-
-const toLocalDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 /** Admin: book a session directly (phone / in-person bookings). Calls scheduling.createSessionAsAdmin. */
 export function AddSessionDrawer({ open, onClose, defaultDate }) {
@@ -19,7 +17,7 @@ export function AddSessionDrawer({ open, onClose, defaultDate }) {
   const [create, saving] = useAction(api.scheduling.createSessionAsAdmin);
 
   useEffect(() => {
-    if (open) set({ date: toLocalDate(defaultDate ? new Date(defaultDate) : new Date(Date.now() + 86400000)) });
+    if (open) set({ date: toDateInput(defaultDate ? new Date(defaultDate) : new Date(Date.now() + 86400000)) });
   }, [open, defaultDate]);
 
   const student = students.find((s) => s.id === form.studentId);
@@ -38,7 +36,7 @@ export function AddSessionDrawer({ open, onClose, defaultDate }) {
             variant="primary"
             disabled={saving || !form.studentId}
             onClick={async () => {
-              const startsAt = new Date(`${form.date}T${form.time}`).toISOString();
+              const startsAt = fromDateTimeInput(form.date, form.time).toISOString();
               const res = await create({ studentId: form.studentId, mode: form.mode, locationId: form.locationId, address: form.address, startsAt, durationMin: form.durationMin });
               if (show(res, 'Session added', `${student.firstName}’s family has been notified.`)) onClose();
             }}

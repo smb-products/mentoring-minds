@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CalendarSearch } from 'lucide-react';
 import { api, useAction, useQuery } from '../../api';
 import { cn } from '../../lib/cn';
-import { addDays, fmtLongDay, fmtTime, sameDay, startOfDay } from '../../lib/format';
+import { addDays, dayOfMonth, fmtDay, fmtLongDay, fmtTime, fmtWeekday, hourOf, sameDay, startOfDay } from '../../lib/format';
 import { Button } from '../ui/Button';
 import { Empty } from '../ui/Display';
 import { Field, Input, Segmented, Textarea } from '../ui/Form';
@@ -66,9 +66,9 @@ export function RequestSessionDrawer({ open, onClose, student }) {
   const location = locations.find((l) => l.id === form.locationId);
   const daySlots = days.find((d) => day && sameDay(d.day, day))?.slots ?? [];
   const groups = [
-    ['Morning', daySlots.filter((s) => new Date(s.startsAt).getHours() < 12)],
-    ['Afternoon', daySlots.filter((s) => new Date(s.startsAt).getHours() >= 12 && new Date(s.startsAt).getHours() < 17)],
-    ['Evening', daySlots.filter((s) => new Date(s.startsAt).getHours() >= 17)],
+    ['Morning', daySlots.filter((s) => hourOf(s.startsAt) < 12)],
+    ['Afternoon', daySlots.filter((s) => hourOf(s.startsAt) >= 12 && hourOf(s.startsAt) < 17)],
+    ['Evening', daySlots.filter((s) => hourOf(s.startsAt) >= 17)],
   ].filter(([, l]) => l.length);
 
   return (
@@ -86,7 +86,7 @@ export function RequestSessionDrawer({ open, onClose, student }) {
             <div className="mr-auto min-w-0">
               {slot ? (
                 <>
-                  <p className="truncate text-[14.5px] font-extrabold">{new Date(slot.startsAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} at {fmtTime(slot.startsAt)}</p>
+                  <p className="truncate text-[14.5px] font-extrabold">{fmtDay(slot.startsAt)} at {fmtTime(slot.startsAt)}</p>
                   <p className="truncate text-[13px] text-muted-foreground">{form.durationMin} minutes, {form.mode === 'VIDEO' ? 'video call' : location?.kind === 'HOME' ? 'at your home' : location?.name}</p>
                 </>
               ) : (
@@ -159,8 +159,8 @@ export function RequestSessionDrawer({ open, onClose, student }) {
                       }}
                       className={cn('flex w-[4.25rem] shrink-0 flex-col items-center rounded-xl py-2 transition-colors', selected ? 'band shadow-raised' : 'border border-border bg-card hover:bg-muted')}
                     >
-                      <span className={cn('text-[12px] font-bold', selected ? 'text-ink-muted' : 'text-muted-foreground')}>{d.toLocaleDateString(undefined, { weekday: 'short' })}</span>
-                      <span className="tabular text-[21px] font-extrabold leading-tight">{d.getDate()}</span>
+                      <span className={cn('text-[12px] font-bold', selected ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
+                      <span className="tabular text-[21px] font-extrabold leading-tight">{dayOfMonth(d)}</span>
                       <span className={cn('text-[11px] font-bold', selected ? 'text-ink-muted' : 'text-muted-foreground')}>{list.length} open</span>
                     </button>
                   );
