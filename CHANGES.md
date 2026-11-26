@@ -3,6 +3,29 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: Javaris's decisions (S6, S9, D5) and new S10, S11, S12
+
+- **S6 (new, held zero):** retire `DEMO_MODE`. Sign-in is always on, and dev signs in with the demo accounts
+  after `npm run db:seed:demo`. Why: since W8 removed `src/mock`, demo mode is a persona with no data (Zero's
+  spec). Approved: Javaris, 2026-11-26.
+- **S9 (new, held zero):** a paused parent can open Messages and message Vienne. Everything else stays locked,
+  and preview parents are unchanged. Why: the paused wording says "Message Vienne to turn it back on", and
+  `getThread` and `sendMessage` refused them (P-product audit). Approved: Javaris, 2026-11-26.
+- **P-ops, D5:** production migrations are manual. Production builds don't migrate, merges build Staged
+  deployments, and Javaris migrates and then promotes. Atlas implements it in the P-ops audit. P-ops gets a
+  check for it and touches `scripts/vercel-build.mjs`, `tests/vercel-build.test.ts` and
+  `docs/PRODUCTION_SETUP.md`. Why: RULES (production migrate is Javaris's); finding S-ops1. Approved: Javaris,
+  2026-11-26.
+- **`.claude/settings.json` (#52):** leads can read their worktrees in `.wt/`. Logged with #52. Approved:
+  Javaris, 2026-11-26.
+- **S10 (new, after S6 and S9):** a parent paused while signed in sees the paused screen on the next
+  navigation, without a reload. Why: Rigg's FYI on S8 (#50). Approved: Axis; Zero reviews.
+- **S11 (new, held zero):** the demo seed refuses a database that doesn't look like dev, test or preview,
+  unless `--force`. Why: finding S-ops2 (P-ops, #42); dev uses the demo seed after S6. Approved: Axis; Zero
+  reviews.
+- **S12 (new, held zero):** `engines.node` is pinned to `22.x`, the version CI tests on. Why: finding S-ops3
+  (P-ops, #42). Approved: Axis; Zero reviews.
+
 ## 2026-11-26: S8 from the P-product audit
 
 - **S8 (new, after P-product, lanes):** preview and paused parents get their screen on every parent route, not
