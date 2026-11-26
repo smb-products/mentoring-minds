@@ -47,12 +47,12 @@ notes: Done before production exists: the setup checklist, the cron decision, ro
 
   `tests/vercel-build.test.ts` covers the three cases. Open: Vercel's docs don't say whether a Promote turns
   auto-assignment back on. The checklist says to look after each promote, and check 7 below verifies it.
-- **S-ops2: the demo seed's production guard ignores the URL.** `prisma/seed.ts` refuses `--demo` only when
+- **S-ops2 (became S11, #59; reopened by #62 for `?host=`): the demo seed's production guard ignores the URL.** `prisma/seed.ts` refuses `--demo` only when
   `VERCEL_ENV` or `NODE_ENV` is `production`. A laptop shell with the production URL in `DATABASE_URL`
   loads the demo families into production. Fix: refuse `--demo` unless the database's host is local, or its
   name contains `test`, `dev` or `preview`, or the database has no admin yet; `--force` still overrides.
   Files: prisma/seed.ts (held for Zero), a test.
-- **S-ops3: Node version.** `package.json` `"engines": ">=20.9"` lets Vercel pick its newest Node (26), and CI
+- **S-ops3 (became S12, #58, merged): Node version.** `package.json` `"engines": ">=20.9"` lets Vercel pick its newest Node (26), and CI
   tests on 22. Pin `"22.x"` in `engines` (Vercel follows it), or move CI and engines to 24 or 26 together.
   The setup checklist pins 22.x in the Vercel settings in the meantime. Files: package.json (held for Zero).
 - **S-ops4 (after launch): move the daily job to Vercel Schedules.** Use a private `function` target with

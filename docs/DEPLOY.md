@@ -105,10 +105,11 @@ A bad deployment goes back to the previous one in about a minute, without a rebu
 1. **Vercel → Deployments**, then the last good **Production** deployment, **⋯ → Instant Rollback**, and confirm.
 2. Production now serves that build. Merges to main still build Staged deployments, as always (**Releasing**).
 3. Fix forward on main, then promote the fixed deployment (**Releasing**, step 3). Then check that
-   auto-assign is still off (step 4): Vercel turns it back on when a promote ends a rollback.
+   auto-assign is still off (step 4). Vercel's docs say a promote after a rollback turns auto-assign back
+   on. They don't say what an ordinary promote does. P-ops check 7 records what it does here.
 
-A rollback changes code only, never the database. If the bad deployment applied a migration, the old code
-runs against the new schema. Migrations here only add, so that works, but check the migration first (see
+A rollback changes code only, never the database. If Javaris applied a migration for the bad deployment,
+the old code runs against the new schema. Migrations here only add, so that works, but check the migration first (see
 **Changing the database later**). Rehearsal, on a preview: `plan/reports/P-ops.md`.
 
 ## Restoring the database
@@ -200,4 +201,4 @@ No limit in the app yet, and what covers it:
 
 - **Content-Security-Policy with script nonces.** `next.config.ts` sets a starter policy: no framing, no plugins, no `<base>` changes. A full `script-src` policy needs per-request nonces (Next.js `proxy.ts` + `headers()`). Worth doing once the app is live, then testing every screen.
 - **Email password reset and address confirmation.** Needs an email service (for example Resend, free for this volume). Until then Vienne resets passwords, and Google sign-in is the way to prove an address.
-- **Rate limiting** on sign-up and sign-in by IP (for example Vercel Firewall rate-limit rules on `/sign-in` and `/api/auth/*`). Accounts already lock after repeated wrong passwords or codes.
+- **Rate limiting** on sign-up and sign-in by IP (for example Vercel Firewall rate-limit rules on `/sign-in` and `/api/auth/*`). Accounts already lock after repeated wrong passwords or codes. Kept for later (Javaris, 2026-11-26). **The risk while it waits:** the shared invite-code limit (`GLOBAL_REDEEM_FAILURES_PER_HOUR`, above) can be tripped on purpose, and then no new family can enter a code until the hour passes. Families already unlocked aren't affected, and Vienne is told. If it happens, add the Firewall rule on `/sign-in` then: it takes minutes and needs no deploy.
