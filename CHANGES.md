@@ -3,6 +3,13 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: P-sec's guard-first check reads the guard names from guards.ts
+
+- **`tests/integration/p-sec.test.ts` (merged in #54):** "only a guard may come first" now accepts any
+  no-input guard exported from `src/lib/guards.ts` (`export async function requireX()`), instead of a fixed
+  list of three. Why: S9 (#56) adds `requireCanMessage`, so main plus S9 failed the check in the merge queue
+  although each passed alone. The check is unchanged otherwise. Approved: Axis; Zero reviews.
+
 
 ## 2026-11-26: D5, production migrations are manual (P-ops)
 
