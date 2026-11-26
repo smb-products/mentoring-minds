@@ -258,6 +258,13 @@ class Kit(unittest.TestCase):
         self.kit("plan.py", "reopen", "A", "--note", "holdout 2 fails")
         shown = json.loads(self.kit("plan.py", "show", "A").stdout)
         self.assertEqual(shown["notes"], ["holdout 2 fails"])
+        # Held until a lead writes the failing case into its checks: no lane builds it blind.
+        self.assertIn("A          needs_checks", self.kit("plan.py", "board").stdout)
+        self.assertEqual(self.kit("plan.py", "claim", "--agent", "soap").stdout.split(), ["B"])
+        self.assertIn("A reopened by its holdout (holdout 2 fails)", self.kit("msg.py", "inbox", "axis").stdout)
+        self.kit("plan.py", "set", "B", "merged")  # B shares A's folder: out of the way
+        self.kit("plan.py", "set", "A", "ready")
+        self.assertEqual(self.kit("plan.py", "claim", "--agent", "fantem").stdout.split(), ["A"])
 
     def test_reused_worktree_is_refreshed_and_reinstalled_on_lockfile_change(self):
         log = self.tmp / "setup.log"
@@ -313,6 +320,8 @@ class Kit(unittest.TestCase):
         self.kit("plan.py", "refresh", env={"GH_MERGED": old})
         self.kit("plan.py", "reopen", "A", "--note", "holdout 1 fails")
         self.kit("plan.py", "refresh", env={"GH_MERGED": old})  # the old PR must not flip it back
+        self.assertIn("A          needs_checks", self.kit("plan.py", "board").stdout)
+        self.kit("plan.py", "set", "A", "ready")
         self.assertIn("A          ready", self.kit("plan.py", "board").stdout)
         r = self.kit("lane.py", "--agent", "soap", "--once")
         self.assertIn("f/A-r1", run(["git", "ls-remote", "origin"], self.repo).stdout, r.stdout + r.stderr)

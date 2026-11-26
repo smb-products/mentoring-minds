@@ -7,7 +7,9 @@ different worktrees never conflict on a tracked file.
           [--any-host]                              ignore LANES_ON and drain (the cutover reserves a proof feature)
   plan.py export [ids…] | plan.py merge-in          move feature records between hosts (cutover)
   plan.py set <id> <status> [--pr N] [--cost USD] [--session S] [--note TEXT]
-  plan.py reopen <id> --note TEXT                   a checker found a failing holdout: next round, fresh branch
+  plan.py reopen <id> --note TEXT                   a checker found a failing holdout: next round, fresh branch,
+                                                    held as needs_checks until a lead writes the case into its
+                                                    checks and runs `plan.py set <id> ready`
   plan.py refresh                                   mark merged PRs; checking → checked; heal conflicting lane PRs (needs gh)
   plan.py ready                                     "<build> <check>": features ready to claim (read-only)
   plan.py show <id>                                 the feature as JSON, for a prompt
@@ -19,6 +21,7 @@ Status: ready → doing → review (PR open, auto-merge on) → merged → check
         `set <id> checking` records the checker's branch (AVEL_BRANCH); refresh marks it checked
         once that PR merges, and tells OSA once if its CI fails.
         doing → ready (retry, resumes the session) | stuck (needs Javaris) | hold (needs a lead)
+        reopen → needs_checks (no lane claims it) → ready once a lead has updated its checks
 Claims: only on the LANES_ON host, and none while .git/avel/drain exists (a cutover is moving lanes away).
 Checkers take a batch only with CHECK_MIN merged features waiting, or once the oldest has waited
 CHECK_WAIT_MIN minutes; CHECK_BATCH is the most per batch.
@@ -322,8 +325,13 @@ def main(a):
                    session=arg(a, "--session"), note=arg(a, "--note"), hbranch=hbranch)
     elif cmd == "reopen" and len(a) >= 2:
         s = state()["features"].get(a[1], {})
-        set_status(a[1], "ready", note=arg(a, "--note", "holdout failed"), attempts=0, session="",
+        note = arg(a, "--note", "holdout failed")
+        set_status(a[1], "needs_checks", note=note, attempts=0, session="",
                    round=s.get("round", 0) + 1, reopened_from=s.get("pr") or 0)
+        f = next((x for x in features() if x["id"] == a[1]), {})
+        from msg import send
+        send(f.get("held") or "leads", f"{a[1]} reopened by its holdout ({note}); no lane claims it yet. Write the "
+             f"failing case into its checks (plan/holdouts/{a[1]}.*), then kit/plan.py set {a[1]} ready.", "lane")
     elif cmd == "ready":
         print(*ready_counts())
         return 0 if any(ready_counts()) else 1

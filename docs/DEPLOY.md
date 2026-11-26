@@ -124,6 +124,31 @@ Neon keeps a history window: 6 hours on Free, up to 7 days on Launch. You can re
 
 Rehearsal timings: `plan/reports/P-ops.md`.
 
+## Deleting a family or a child on request
+
+A parent can ask for their family, or one child, to be removed (S23). The app deletes for good, so
+**Javaris** approves each request first. **Vienne** then runs it in the app.
+
+1. **Check the request.** It comes from the parent on that account, through a message in the app or from the
+   email the account uses. It says whether it covers the whole family or one child.
+2. **Javaris approves** it. Keep the request and the approval somewhere private, never in this repo.
+3. **Save anything Vienne must keep first**, such as a report she owes the school. Nothing can be downloaded
+   once the delete runs.
+4. **Vienne:** Families → the family. Use **Delete family** at the top, or **Delete** on the child's card.
+   Read the list of what goes, tap **Continue**, type the name exactly as shown, then delete.
+5. **Afterwards:**
+   - The family or child is gone from every screen.
+   - Files only they used are removed from Blob just after the delete. Library resources stay, but they're
+     no longer shared with them.
+   - A deleted parent's account is gone, so they can't sign in.
+   - Vienne's alerts that name them go too. They're matched by name, so an alert naming another child with
+     the same first name also goes (a known trade-off in `plan/reports/S23.md`).
+6. **Tell the parent it's done.** Neon's history still holds the old rows until the restore window passes
+   (up to 7 days, **Restoring the database**). Say that everything is gone within that window.
+
+A mistaken delete can come back only from Neon's history, inside that window. Only Javaris restores
+(**Restoring the database**), and he copies back only that family's rows, never all of `main`.
+
 ## Environment variables
 
 | Variable | Where | What |
@@ -170,7 +195,7 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). **Lanes**; `p-product.spec.ts` runs it once S8 removes its two `fixme`s.
 - [ ] Real locations decided. The production seed (`PRODUCTION_SETUP.md` Part 6) waits on it, so the demo locations never reach production. **Javaris**.
 - [ ] The library sends families no other family's children (S15) and Vienne's email can't be squatted before the seed (S19). **Lanes**; both before the production seed.
-- [ ] Deleting a family or a child on request (S23). **Lanes**; **Axis** writes the runbook here once it merges. Deleting real data stays Javaris's call.
+- [ ] Deleting a family or a child on request (S23): merged, and the runbook is **Deleting a family or a child on request**. Ticked once its holdouts pass. Deleting real data stays Javaris's call.
 - [x] Firewall rate limit on sign-up and sign-in: **after launch** (Javaris, 2026-11-26). Accepted risk: throwaway accounts can pause invite codes for everyone for up to an hour (`GLOBAL_REDEEM_FAILURES_PER_HOUR`).
 
 ## Limits

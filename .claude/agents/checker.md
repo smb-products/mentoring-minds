@@ -14,6 +14,7 @@ For each feature in the batch, read its checks and write 1–3 holdouts in `test
 Run them plus `npm run typecheck`.
 - **All pass:** `kit/plan.py set <id> checking`. If there's nothing new to commit, set it to `checked`.
 - **One fails for real:** move the file to `plan/holdouts/` and run `kit/plan.py reopen <id> --note "<test>: <what fails>"`.
+  The feature then waits (`needs_checks`) until a lead writes the failing case into its checks.
   A holdout that needs a product-code change is a reopen. Never patch product code.
 - **Fails once, then passes on a rerun:** it's a flake. Message the leads. Don't reopen.
 

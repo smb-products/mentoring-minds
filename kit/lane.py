@@ -293,6 +293,10 @@ def build_one(agent, fid):
                   f"Write {report} (first line `status: done` or `status: stuck`), commit, "
                   f"`git push -u origin {branch}`, then `gh pr create --head {branch} --fill` with the "
                   f"checks and any `amend:` lines in the body. Don't merge.")
+        holdouts = sorted(str(p.relative_to(wt)) for p in (wt / "plan" / "holdouts").glob(f"{fid}.*"))
+        if st.get("round") and holdouts:
+            prompt += (f"\n\nThis is a redo: a holdout reopened it. {', '.join(holdouts)} must pass on your "
+                       f"branch. Don't edit it; it is the checker's.")
         res = claude(agent, "build", prompt, wt, env)
     cost, sid = res.get("total_cost_usd", 0), res.get("session_id")
     status = report_status(wt / report)

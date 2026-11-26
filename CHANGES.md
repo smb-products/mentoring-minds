@@ -3,6 +3,23 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: follow-ups after P-review, and reopens wait for their checks
+
+- **S24 (new), signing out never shows or logs an error:** from Rigg's flake in the S10 batch (the S6 holdout
+  logs a failed read at sign-out). RULES gives a flake a lead ticket. Not held.
+- **S25 (new), the file routes refuse a must-change password:** from S21's report. `/api/files/[id]` and
+  `/api/files/blob` check only the session, so S21's rule stops at server functions. Held for Zero, after S23.
+- **S26 (new), push tags by subject:** from Rigg's S16 note. One tag per type means a second family's message
+  replaces the first one on Vienne's phone. Held for Zero.
+- **Kit, reopen waits for its checks:** `plan.py reopen` now sets `needs_checks`, which no lane claims, and
+  tells the feature's lead. The lead writes the failing case into its checks, then runs `plan.py set <id> ready`.
+  A redo's build prompt names its holdout in `plan/holdouts/`. Why: S19 and then S17 were rebuilt before their
+  failing case was in the checks (OSA's suggestion). Kit tests cover it.
+- **DEPLOY, S23 runbook:** a new section, **Deleting a family or a child on request**. The Before launch item
+  points to it.
+
+Approved: Axis; Zero reviews.
+
 ## 2026-11-26: S17 reopened, the rejected-upload case
 
 - **S17 check 3:** every reservation counts toward the day, including one whose bytes `finishUpload` rejects
