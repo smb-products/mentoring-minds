@@ -3,6 +3,13 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: P-sec's "only a guard before parse()" reads the guard list from guards.ts
+
+- **P-sec, `tests/integration/p-sec.test.ts`:** the check that only a guard runs before `parse()` takes the guard
+  names from `src/lib/guards.ts`, not a fixed list of three. Why: S9's new `requireCanMessage` is a guard, and the
+  fixed list failed S9 in the merge queue (#56). Nothing else in the test changes. Approved: Zero (the test's
+  author); Axis reviews.
+
 ## 2026-11-26: the guard skips PRs already in the merge queue
 
 - **Kit, `kit/watch.py`:** a green held PR that's already in the merge queue no longer wakes a lead. Why: a

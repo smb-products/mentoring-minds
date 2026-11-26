@@ -123,7 +123,9 @@ function sourceExports() {
   return out;
 }
 
-const GUARD = /^(const \w+ = )?await require(User|Active|Admin)\(\);$/;
+/** Every guard in src/lib/guards.ts, read from the file, so a new guard (S9's requireCanMessage) counts as one. */
+const GUARDS = [...read('src/lib/guards.ts').matchAll(/^export async function (require\w+)\(/gm)].map((m) => m[1]);
+const GUARD = new RegExp(`^(const \\w+ = )?await (${GUARDS.join('|')})\\(\\);$`);
 
 describe('endpoints: every src/server export', () => {
   it('is found in the source and at runtime, wrapped in action() or query()', async () => {
