@@ -74,6 +74,24 @@ describe('W6: leaks and the wrong person', () => {
     expect(valuesOf(seen, 'adminNotes')).toEqual([]);
   });
 
+  it('a parent’s own request and cancel send back no private student note and no video link', async () => {
+    await db.student.update({ where: { id: 's_noah' }, data: { adminNotes: 'HOLDOUT-ADMIN-NOTE' } });
+    await db.settings.update({ where: { id: 1 }, data: { defaultMeetingUrl: link } });
+    as('u_grace');
+    const from = new Date(Date.now() + 3 * 86400000).toISOString();
+    const to = new Date(Date.now() + 20 * 86400000).toISOString();
+    const slots = ok(await scheduling.getOpenSlots({ durationMin: 45, mode: 'VIDEO', from, to }));
+    const requested = ok(await scheduling.requestSession({ studentId: 's_noah', mode: 'VIDEO', startsAt: new Date(slots[0].startsAt).toISOString(), durationMin: 45 }));
+    as('u_admin');
+    ok(await scheduling.confirmSession({ sessionId: requested.id }));
+    as('u_grace');
+    const cancelled = ok(await scheduling.cancelSession({ sessionId: requested.id }));
+    for (const [what, sent] of [['request', requested], ['cancel', cancelled]] as const) {
+      expect(JSON.stringify(sent), what).not.toContain('HOLDOUT-ADMIN-NOTE');
+      expect(JSON.stringify(sent), what).not.toContain(link);
+    }
+  });
+
   it('wrong booking input is refused and saves nothing', async () => {
     const before = await db.session.count();
     as('u_grace');
