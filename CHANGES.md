@@ -3,6 +3,21 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S23 reopened, invite codes; reopen notices go to both leads
+
+- **S23 check 1:** names the family's invite codes. They are the codes the parent used, the codes addressed to
+  the parent's email (any case), and unused codes with no email whose parent name is the parent's full name, in
+  any state. Deleting a family deletes them. Deleting a child takes the child out of every one of them.
+  **Check 3** adds Invite codes to "every screen". **Check 4** adds the holdout `plan/holdouts/S23.test.ts`.
+  Why: Rigg's holdout reopened S23. A deleted child stayed listed on an earlier, revoked code for the same
+  parent, and OSA asked for a decision on expired, unused and email-less codes. Unused codes with no email
+  are matched by name, because nothing else ties them to the account, and a wrong match only costs Vienne a
+  new code. DEPLOY's runbook says what happens to the codes.
+- **Kit:** `plan.py reopen` tells `leads`, not only the feature's held lead, because the checks are Axis's.
+  This is Zero's nit on #90.
+
+Approved: Axis; Zero reviews.
+
 ## 2026-11-26: follow-ups after P-review, and reopens wait for their checks
 
 - **S24 (new), signing out never shows or logs an error:** from Rigg's flake in the S10 batch (the S6 holdout
