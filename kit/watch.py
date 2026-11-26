@@ -134,7 +134,7 @@ def queued():
 
 def held(memo, here):
     code, out = sh(["gh", "pr", "list", "--state", "open", "--limit", "100",
-                    "--json", "number,headRefName,headRefOid,statusCheckRollup,autoMergeRequest,isDraft,labels"])
+                    "--json", "number,headRefName,headRefOid,statusCheckRollup,autoMergeRequest,isDraft,labels,mergeable"])
     if code:
         return
     in_queue = queued()
@@ -147,6 +147,8 @@ def held(memo, here):
         owner = (claimed[0] if claimed else None) or held_by.get(re.sub(r"-r\d+$", "", p["headRefName"])) or default
         checks = p.get("statusCheckRollup") or []
         if p.get("autoMergeRequest") or p["number"] in in_queue or p.get("isDraft") or not checks:
+            continue
+        if p.get("mergeable") == "CONFLICTING":  # its green checks are stale: it waits on its author's merge of main
             continue
         if any((c.get("conclusion") or c.get("state") or "").upper() not in ("SUCCESS", "NEUTRAL", "SKIPPED") for c in checks):
             continue

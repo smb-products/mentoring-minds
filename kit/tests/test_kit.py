@@ -228,10 +228,10 @@ class Kit(unittest.TestCase):
 
     def test_watch_wakes_the_seat_that_claimed_a_held_pr(self):
         old = "2026-01-01T00:00:00Z"
-        pr = lambda n, labels: {"number": n, "headRefName": f"h/rigg-{n}", "headRefOid": f"sha{n}", "isDraft": False,
+        pr = lambda n, labels, mergeable="MERGEABLE": {"number": n, "headRefName": f"h/rigg-{n}", "headRefOid": f"sha{n}", "isDraft": False, "mergeable": mergeable,
                                 "autoMergeRequest": None, "labels": [{"name": l} for l in labels],
                                 "statusCheckRollup": [{"name": "check", "conclusion": "SUCCESS", "completedAt": old}]}
-        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, []), pr(16, ["owner:axis"])])
+        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, []), pr(16, ["owner:axis"]), pr(17, ["owner:axis"], "CONFLICTING")])
         queue = json.dumps({"data": {"repository": {"mergeQueue": {"entries": {"nodes": [{"pullRequest": {"number": 16}}]}}}}})
         (self.tmp / "bin" / "tmux").write_text("#!/usr/bin/env bash\nexit 0\n")  # every seat is up; never the real tmux
         (self.tmp / "bin" / "tmux").chmod(0o755)
@@ -241,6 +241,7 @@ class Kit(unittest.TestCase):
         self.assertNotIn("PR #14", zero)  # claimed by axis: zero isn't woken for it
         self.assertIn("PR #15", zero)     # unclaimed and not in the plan: HELD_OWNER
         self.assertNotIn("PR #16", axis + zero)  # already in the merge queue: waiting on CI, not on a lead
+        self.assertNotIn("PR #17", axis + zero)  # conflicts with main: waiting on its author, not a lead to merge
 
     def test_checker_skips_tickets_a_seat_runs_itself(self):
         self.kit("plan.py", "set", "E", "merged")  # role ops: no holdouts

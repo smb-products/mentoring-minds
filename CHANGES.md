@@ -7,7 +7,10 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 
 - **Kit, `kit/watch.py`:** a green held PR that's already in the merge queue no longer wakes a lead. Why: a
   queued PR's `autoMergeRequest` is null, so #39 and #40 pinged Axis while they waited on the queue's own CI.
-  The queue is read with one GraphQL query (`gh pr list` can't show it). Approved: Axis; Zero reviews.
+  The queue is read with one GraphQL query (`gh pr list` can't show it). It also skips a PR that conflicts
+  with main: its green check is stale and it waits on its author's merge, not a lead (Zero, on #46).
+  Approved: Axis; Zero reviews.
+
 ## 2026-11-26: Javaris's decisions (S6, S9, D5) and new S10, S11, S12
 
 - **S6 (new, held zero):** retire `DEMO_MODE`. Sign-in is always on, and dev signs in with the demo accounts
