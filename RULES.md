@@ -69,6 +69,8 @@ Build what's sensible and put one line in the PR body: `amend: <id> check 3 shou
 `kit/msg.py send <to> "<text>"` (a name, `leads`, `builders`, `checkers`, `ops`, `all`); `kit/msg.py inbox`.
 One line, naming the feature or PR. A seat isn't woken until its pane shows it working. Start a message that
 needs no action with `FYI`. It doesn't count as unread when the guard looks for a frozen seat.
+Messages can end up on the public Ops issue: never put in one where a person lives, works or meets, or the
+details of a security problem that isn't fixed yet. Name the ticket and say "details in the report" instead.
 
 ## Never
 - Real family data or photos anywhere: the repo is public. Demo data only.
