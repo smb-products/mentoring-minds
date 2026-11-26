@@ -49,7 +49,7 @@ const NETWORK = 'We couldn’t reach the server. Check your connection and try a
 const STALE = 'The app was just updated. Reload the page to keep going.';
 
 /** A server function that threw instead of returning a Result, as a plain Result. */
-function thrown(e) {
+export function thrown(e) {
   const text = `${e?.name ?? ''} ${e?.message ?? ''}`;
   if (/Failed to find Server Action|UnrecognizedActionError|Server Action .* was not found|failed-to-find-server-action/i.test(text)) return { ok: false, error: STALE, code: 'STALE' };
   return { ok: false, error: NETWORK, code: 'NETWORK' };

@@ -4,7 +4,8 @@ import { KeyRound, LogOut, Moon, Sun } from 'lucide-react';
 import { signOutNow } from '@/app/(auth)/sign-in/actions';
 import { ChangePasswordForm } from '@/components/family/ChangePasswordForm';
 import { useAction } from '../../api';
-import { live } from '../../api/live';
+import { live, thrown } from '../../api/live';
+import { signingOut } from '../../api/live-hooks';
 import { forgetPush } from '../messages/push';
 import { useResultToast } from '../ui/Toast';
 import { Avatar } from '../ui/Display';
@@ -80,9 +81,19 @@ export function AccountPanel() {
         <button
           type="button"
           onClick={async () => {
+            // The screen's reads end with the session: one that fails from here on shows no error.
+            const resume = signingOut();
             // A shared family phone stops getting this parent's alerts. Never blocks signing out.
             await forgetPush({ remove: live.notifications.removePushSubscription });
-            await signOutNow();
+            try {
+              await signOutNow();
+            } catch (e) {
+              // Signed out: the redirect to the sign-in page arrives as this error, and Next.js handles it.
+              if (String(e?.digest ?? '').startsWith('NEXT_REDIRECT')) throw e;
+              // Still signed in (no connection, or the app was just updated): the screen carries on.
+              resume();
+              show(thrown(e));
+            }
           }}
           className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[14px] font-bold text-foreground hover:bg-muted"
         >

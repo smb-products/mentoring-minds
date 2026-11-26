@@ -31,38 +31,79 @@ export function refused(error) {
   return true;
 }
 
+/**
+ * Signing out (S24): the queries on screen when sign-out starts, and any that mount before it is over,
+ * belong to a session that is ending. They don't fetch or refetch, and any answer still on its way (data
+ * or error) is dropped, so a read that fails because the session just ended shows nothing and logs
+ * nothing. It is over once the address changes (the sign-in page has replaced the screen, even after
+ * the sign-out call returned): queries that mount from then on (the next person to sign in) run as usual.
+ */
+const onScreen = new Set();
+let leaving = null; // { from: the address sign-out started on, watch: the timer that sees it change }
+const here = () => globalThis.location?.pathname;
+
+function left() {
+  clearInterval(leaving?.watch);
+  leaving = null;
+}
+
+/** Call before signing out. Returns resume(), for when signing out failed: the screen's queries run again. */
+export function signingOut() {
+  left();
+  const from = here();
+  leaving = { from, watch: setInterval(() => here() !== from && left(), 50) };
+  onScreen.forEach((q) => (q.ended = true));
+  return () => {
+    left();
+    onScreen.forEach((q) => {
+      q.ended = false;
+      q.run?.();
+    });
+  };
+}
+
 export function useQuery(fn, deps = []) {
   const [state, setState] = useState({ data: undefined, error: null, loading: true });
   const fnRef = useRef(fn);
   fnRef.current = fn;
+  const self = useRef(null);
+  if (!self.current) self.current = { ended: false, run: null };
 
   useEffect(() => {
+    const me = self.current;
+    if (leaving && here() !== leaving.from) left();
+    if (leaving) me.ended = true;
     let alive = true;
     let seq = 0;
     let hasData = false; // a good answer for these deps: kept when a later refetch fails
     const run = () => {
+      if (me.ended) return;
       const mine = ++seq; // ignore answers from older runs that finish late
       Promise.resolve()
         .then(() => fnRef.current())
         .then(
           (data) => {
-            if (!alive || mine !== seq) return;
+            if (!alive || mine !== seq || me.ended) return;
             hasData = true;
             setState({ data, error: null, loading: false, hasData: true });
           },
           (error) => {
-            if (!alive || mine !== seq) return;
+            if (!alive || mine !== seq || me.ended) return;
             // Paused while signed in: stay loading while the shell swaps in the paused screen.
             if (refused(error)) return;
             setState((prev) => (hasData ? { ...prev, error, loading: false } : { data: undefined, error, loading: false, hasData: false }));
           },
         );
     };
+    me.run = run;
     run();
     listeners.add(run);
+    onScreen.add(me);
     return () => {
       alive = false;
+      me.run = null;
       listeners.delete(run);
+      onScreen.delete(me);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
