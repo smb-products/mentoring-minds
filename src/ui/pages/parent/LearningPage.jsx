@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { BookOpen, ClipboardList, ExternalLink, FileText, RotateCcw, Trophy } from 'lucide-react';
 import { api, useQuery } from '../../api';
 import { ChildSwitcher } from '../../components/shell/ChildSwitcher';
+import { LockedPage, useLocked } from '../../components/shell/Locked';
 import { useShell } from '../../components/shell/ShellContext';
 import { Button } from '../../components/ui/Button';
 import { AreaTag, Empty, PageHeader, Row, Section, Stars, StatusBadge } from '../../components/ui/Display';
@@ -19,6 +20,10 @@ const KIND = { BOOK: 'In the book', PRACTICE: 'Practice' };
 
 /** /parent/learning — data: assignments.listForStudent, content.listResourcesForStudent */
 export default function ParentLearningPage() {
+  return useLocked() ? <LockedPage title="Learning" /> : <ParentLearning />;
+}
+
+function ParentLearning() {
   const { activeStudent: kid } = useShell();
   const { navigate } = useRouter();
   const { data: work = [] } = useQuery(() => (kid ? api.assignments.listForStudent({ studentId: kid.id }) : []), [kid?.id]);

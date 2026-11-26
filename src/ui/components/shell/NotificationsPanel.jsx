@@ -6,7 +6,7 @@ import { fmtAgo } from '../../lib/format';
 import { useRouter } from '../../lib/router';
 import { useResultToast } from '../ui/Toast';
 import { needsHomeScreen, pushOffer, turnOnPush } from '../messages/push';
-import { useShell } from './ShellContext';
+import { unlessLocked, useShell } from './ShellContext';
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 const HOME_SCREEN = 'On iPhone, alerts only work once the app is added to your Home Screen (Share, then Add to Home Screen) and opened from there.';
@@ -64,7 +64,7 @@ const ICONS = {
 
 export function useUnreadNotifications() {
   const { source: api } = useShell();
-  const { data } = useQuery(() => api.notifications.listForUser(), [api]);
+  const { data } = useQuery(() => api.notifications.listForUser().catch(unlessLocked([])), [api]);
   return (data ?? []).filter((n) => !n.readAt).length;
 }
 
@@ -72,7 +72,7 @@ export function useUnreadNotifications() {
 export function NotificationsPanel({ onDone }) {
   const { navigate } = useRouter();
   const { source: api } = useShell();
-  const { data = [] } = useQuery(() => api.notifications.listForUser(), [api]);
+  const { data = [] } = useQuery(() => api.notifications.listForUser().catch(unlessLocked([])), [api]);
   const unread = data.filter((n) => !n.readAt).length;
 
   return (

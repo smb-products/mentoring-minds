@@ -7,6 +7,7 @@ import { ParentSessionDrawer } from '../../components/sessions/ParentSessionDraw
 import { RequestSessionDrawer } from '../../components/sessions/RequestSessionDrawer';
 import { SessionRow } from '../../components/sessions/SessionParts';
 import { ChildSwitcher } from '../../components/shell/ChildSwitcher';
+import { LockedPage, useLocked } from '../../components/shell/Locked';
 import { useShell } from '../../components/shell/ShellContext';
 import { Button } from '../../components/ui/Button';
 import { Empty, PageHeader, Section } from '../../components/ui/Display';
@@ -14,6 +15,10 @@ import { PageLoading } from '../../components/ui/Display';
 
 /** /parent/sessions — data: scheduling.listSessions({ studentId }) */
 export default function ParentSessionsPage() {
+  return useLocked() ? <LockedPage title="Sessions" /> : <ParentSessions />;
+}
+
+function ParentSessions() {
   const { activeStudent: kid } = useShell();
   const { data: sessions = [] } = useQuery(() => (kid ? api.scheduling.listSessions({ studentId: kid.id }) : []), [kid?.id]);
   const [tab, setTab] = useState('upcoming');
