@@ -6,6 +6,8 @@
  *   - reads unwrap their Result and throw on failure, exactly like the mock's reads
  *     (the error carries .code, and its message is the server's plain-language one);
  *   - writes return the Result as-is and tell useQuery to re-run (live-hooks.changed);
+ *   - a call that throws (network drop, redeploy under an open tab) fails like any other:
+ *     code 'NETWORK' or 'STALE' with a plain message, thrown by reads, returned by writes;
  *   - content.uploadFile({ file }) runs the 3-step upload (src/lib/upload-client.ts).
  *
  * To switch an area over, list it in LIVE in src/ui/api/index.js.
@@ -43,9 +45,27 @@ export const READS = {
   taxonomy: ['listSubjects'],
 };
 
+const NETWORK = 'We couldn’t reach the server. Check your connection and try again.';
+const STALE = 'The app was just updated. Reload the page to keep going.';
+
+/** A server function that threw instead of returning a Result, as a plain Result. */
+function thrown(e) {
+  const text = `${e?.name ?? ''} ${e?.message ?? ''}`;
+  if (/Failed to find Server Action|UnrecognizedActionError|Server Action .* was not found|failed-to-find-server-action/i.test(text)) return { ok: false, error: STALE, code: 'STALE' };
+  return { ok: false, error: NETWORK, code: 'NETWORK' };
+}
+
+async function call(fn, input) {
+  try {
+    return await fn(input);
+  } catch (e) {
+    return thrown(e);
+  }
+}
+
 function asRead(fn) {
   return async (input) => {
-    const r = await fn(input);
+    const r = await call(fn, input);
     if (r.ok) return r.data;
     const error = new Error(r.error);
     error.code = r.code;
@@ -55,7 +75,7 @@ function asRead(fn) {
 
 function asWrite(fn) {
   return async (input) => {
-    const r = await fn(input);
+    const r = await call(fn, input);
     if (r.ok) changed();
     return r;
   };
@@ -72,9 +92,11 @@ export const live = {
   books: wrap('books', books),
   content: {
     ...wrap('content', content),
-    /** Same call as the mock's, plus the File itself: upload({ file, filename, mimeType, sizeBytes }). */
-    uploadFile: async ({ file }) => {
-      const r = await uploadFile(file);
+    /** Same call as the mock's, plus the File itself: upload({ file, filename, mimeType, sizeBytes }).
+     *  mimeType stands in when the phone sends a blank file.type.
+     *  @param {{ file: File, filename?: string, mimeType?: string, sizeBytes?: number }} input */
+    uploadFile: async ({ file, mimeType }) => {
+      const r = await call(() => uploadFile(file, mimeType));
       if (r.ok) changed();
       return r;
     },

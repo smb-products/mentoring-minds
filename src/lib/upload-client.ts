@@ -8,10 +8,11 @@ const FAILED = 'The upload didn’t finish. Check your connection and try again.
 /**
  * The screens' `api.content.uploadFile` when live (docs/WIRING.md). Uploads a File in
  * three steps — reserve, send the bytes straight to storage, confirm — and returns the
- * same Result shape as the mock: { ok: true, data: FileAsset }.
+ * same Result shape as the mock: { ok: true, data: FileAsset }. `mimeType` is the caller's
+ * type, used when the browser leaves file.type blank (some phones do).
  */
-export async function uploadFile(file: File): Promise<Result<Awaited<ReturnType<typeof finishUpload>> extends Result<infer T> ? T : never>> {
-  const reserved = await createUpload({ filename: file.name, mimeType: file.type, sizeBytes: file.size });
+export async function uploadFile(file: File, mimeType?: string): Promise<Result<Awaited<ReturnType<typeof finishUpload>> extends Result<infer T> ? T : never>> {
+  const reserved = await createUpload({ filename: file.name, mimeType: file.type || mimeType || '', sizeBytes: file.size });
   if (!reserved.ok) return reserved;
   const { upload, file: asset } = reserved.data;
   try {

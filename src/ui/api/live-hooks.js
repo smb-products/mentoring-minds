@@ -22,13 +22,21 @@ export function useQuery(fn, deps = []) {
   useEffect(() => {
     let alive = true;
     let seq = 0;
+    let hasData = false; // a good answer for these deps: kept when a later refetch fails
     const run = () => {
       const mine = ++seq; // ignore answers from older runs that finish late
       Promise.resolve()
         .then(() => fnRef.current())
         .then(
-          (data) => alive && mine === seq && setState({ data, error: null, loading: false }),
-          (error) => alive && mine === seq && setState({ data: undefined, error, loading: false }),
+          (data) => {
+            if (!alive || mine !== seq) return;
+            hasData = true;
+            setState({ data, error: null, loading: false, hasData: true });
+          },
+          (error) => {
+            if (!alive || mine !== seq) return;
+            setState((prev) => (hasData ? { ...prev, error, loading: false } : { data: undefined, error, loading: false, hasData: false }));
+          },
         );
     };
     run();
@@ -42,7 +50,9 @@ export function useQuery(fn, deps = []) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  if (state.error) throw state.error;
+  // No data yet: the page's ErrorBoundary shows the problem. With data on screen, a failed
+  // refetch (a paused parent's badges getting NOT_ACTIVE, say) keeps it and sets state.error.
+  if (state.error && !state.hasData) throw state.error;
   return state;
 }
 
