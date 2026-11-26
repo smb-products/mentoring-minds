@@ -19,4 +19,5 @@ Run them plus `npm run typecheck`.
 
 Commit, push, open one PR for the batch, and queue it with `gh pr merge --auto`. Commits and PRs carry no
 Claude trailers. Holdouts test what a user or a request sees, never ports, timings or internal names.
-Demo data only. Don't read `.env` files.
+Demo data only. Don't read `.env` files. Your lane's own databases and ports are already in the environment
+(`TEST_DATABASE_URL`, `E2E_DATABASE_URL`, `E2E_PORT`): use them as they are, never the shared `mm_test` or port 3200.

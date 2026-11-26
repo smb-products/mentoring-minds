@@ -11,6 +11,7 @@ FEATURES = {"features": [
     {"id": "E", "title": "ops only", "role": "ops", "deps": [], "touches": [], "checks": []},
 ]}
 FAKE_CLAUDE = """#!/usr/bin/env bash
+[ -n "$CLAUDE_ENV_LOG" ] && env > "$CLAUDE_ENV_LOG"
 if [ -n "$HANG_ONCE" ] && [[ " $* " != *" --resume "* ]]; then
   echo '{"type":"system","subtype":"init","session_id":"s-hung"}'
   sleep 300 & echo $! > "$HANG_ONCE"; wait; exit 1
@@ -342,6 +343,31 @@ class Kit(unittest.TestCase):
         seen = {line.split("=", 1)[0] for line in log.read_text().splitlines()}
         self.assertTrue(seen & {"PATH", "HOME"}, seen)  # the fake tmux ran
         self.assertFalse(seen & {"OPS_ISSUE", "PROJECT", "LEADS", "CHECK_MIN"}, "project.env reached tmux")
+
+    def test_lanes_get_their_own_databases_and_ports(self):
+        made = self.tmp / "created.txt"
+        with open(self.repo / "kit" / "project.env", "a") as fh:
+            fh.write('LANE_DB_VARS="TEST_DATABASE_URL E2E_DATABASE_URL UNSET_URL"\n'
+                     'LANE_PORT_VARS="E2E_PORT=3210 PORT=3010"\n'
+                     f"LANE_DB_CREATE_CMD='echo {{db}} >> {made}'\n")
+        base = {"TEST_DATABASE_URL": "postgresql://postgres:pw@127.0.0.1:54330/mm_test",
+                "E2E_DATABASE_URL": "postgresql://postgres:pw@127.0.0.1:54330/mm_e2e_test?schema=public"}
+        log = self.tmp / "claude.env"
+        r = self.kit("lane.py", "--agent", "soap", "--once", env={**base, "CLAUDE_ENV_LOG": str(log)})
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        seen = dict(line.split("=", 1) for line in log.read_text().splitlines() if "=" in line)
+        self.assertEqual(seen["TEST_DATABASE_URL"], "postgresql://postgres:pw@127.0.0.1:54330/mm_test_soap")
+        self.assertEqual(seen["E2E_DATABASE_URL"],
+                         "postgresql://postgres:pw@127.0.0.1:54330/mm_e2e_test_soap?schema=public")
+        self.assertEqual((seen["E2E_PORT"], seen["PORT"]), ("3210", "3010"))
+        self.assertNotIn("UNSET_URL", seen)
+        self.assertEqual(sorted(made.read_text().split()), ["mm_e2e_test_soap", "mm_test_soap"])
+        probe = ("import json, sys; sys.path.insert(0, 'kit'); import lane; "
+                 "print(json.dumps({a: lane.lane_env(a)[0] for a in ('fantem', 'rigg')}))")
+        other = json.loads(run([sys.executable, "-c", probe], self.repo, {**self.env, **base}).stdout)
+        self.assertEqual(other["fantem"]["E2E_PORT"], "3211")  # BUILDERS then CHECKERS: no two lanes share one
+        self.assertEqual(other["rigg"]["E2E_PORT"], "3212")
+        self.assertTrue(other["rigg"]["TEST_DATABASE_URL"].endswith("/mm_test_rigg"))
 
     def test_ci_scope(self):
         sys.path.insert(0, str(KIT))

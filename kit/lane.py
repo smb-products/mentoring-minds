@@ -11,9 +11,11 @@ turns on auto-merge, claims the next. Exits when nothing is ready, so the machin
 Exit 3 means the lane stopped itself: Claude or GitHub isn't logged in on this host (or a run cost $0).
 The feature goes back to ready without using up an attempt. Each lane writes its state
 (busy | waiting | idle | stopped) to .git/avel/lanes/<agent>.json; the guard reads that, not the screen.
+Lanes on one host never share a test database or a server port: see lane_env().
 """
-import json, os, re, signal, subprocess, sys, threading, time
+import json, os, re, signal, subprocess, sys, threading, time, zlib
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import avel_dir, git, glob_hit, load_env, report_status, root, sh, words, write_json
 import heal, msg, plan
@@ -73,6 +75,46 @@ def worktree(branch, path):
             if code:
                 raise RuntimeError(f"setup failed in {path}: {out[-300:]}")
     return path
+
+
+def lane_env(agent):
+    """What keeps lanes on one host apart: its own databases and server ports (project.env).
+      LANE_DB_VARS    URLs whose database gets the lane's name: mm_e2e_test → mm_e2e_test_soap
+      LANE_PORT_VARS  VAR=base pairs; the lane's port is base + its place in BUILDERS CHECKERS
+    Returns (env overrides, database names to create)."""
+    lanes = words(ENV.get("BUILDERS", "")) + words(ENV.get("CHECKERS", ""))
+    n = lanes.index(agent) if agent in lanes else len(lanes) + zlib.crc32(agent.encode()) % 40
+    tag = re.sub(r"\W", "_", agent.lower())
+    out, dbs = {}, []
+    for var in words(ENV.get("LANE_DB_VARS", "")):
+        u = urlsplit(os.environ.get(var) or "")
+        db = u.path.lstrip("/")
+        if not (u.scheme and db):
+            continue
+        db = db if db.endswith(f"_{tag}") else f"{db}_{tag}"
+        out[var] = urlunsplit(u._replace(path=f"/{db}"))
+        dbs.append(db)
+    for pair in words(ENV.get("LANE_PORT_VARS", "")):
+        var, _, base = pair.partition("=")
+        if base.isdigit():
+            out[var] = str(int(base) + n)
+    return out, sorted(set(dbs))
+
+
+_CREATED = set()
+
+
+def ensure_dbs(agent, dbs):
+    """LANE_DB_CREATE_CMD ({db}) once per database per lane process. "already exists" is fine."""
+    cmd = ENV.get("LANE_DB_CREATE_CMD")
+    for db in dbs:
+        if not cmd or db in _CREATED:
+            continue
+        code, out = sh(cmd.replace("{db}", db))
+        if code and "already exists" not in out:
+            log(agent, f"could not create database {db}: {out.strip()[:160]}")
+            continue
+        _CREATED.add(db)
 
 
 def claude(agent, role, prompt, cwd, extra_env, session=None):
@@ -142,7 +184,9 @@ def run_claude(agent, role, prompt, cwd, extra_env, session, silent):
         cmd += ["--model", ENV["CHECK_MODEL"]]
     if session:
         cmd += ["--resume", session]
-    env = dict(os.environ, **extra_env, PATH=f"{KIT}:{os.environ.get('PATH', '')}")
+    own, dbs = lane_env(agent)
+    ensure_dbs(agent, dbs)
+    env = {**os.environ, **own, **extra_env, "PATH": f"{KIT}:{os.environ.get('PATH', '')}"}
     p = subprocess.Popen(cmd, cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT, text=True, start_new_session=True)
     seen = {"t": time.monotonic(), "sid": session, "result": None, "tail": ""}
