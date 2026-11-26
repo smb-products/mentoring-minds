@@ -3,6 +3,41 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S1 widened, new S5b, same FORBIDDEN for S3 and S4, WC narrowed, W6 and W7 outside touches
+
+- **S1, checks 4 and 5 (new):** `listSessions` sends `meetingUrl` as null to a family whose status isn't ACTIVE
+  (its sessions are still listed). `joinCall` calls `requireActive` before any lookup, and gives the same
+  `FORBIDDEN` for a missing session id as for another family's. Why: Rigg's W6 holdout review (#23), confirmed
+  by Zero. A paused parent could get the video link inside the join window, and `joinCall` looked the session
+  up before its guard. Approved: Zero.
+- **S5b (new lead ticket, after S5):** `redeemInvite` reads the account's failure count again inside the
+  advisory lock, and a right code is checked against `GLOBAL_REDEEM_FAILURES_PER_HOUR` under the same lock.
+  The daily `cleanUp` deletes `RedeemFailure` rows older than a day. Why: parallel tries from one account
+  undercount `MAX_FAILURES` (Zero, older than S5). S5's global check runs outside the lock, so a burst could
+  let a right code through past the limit (Rigg's S5 review). No limit changes. Approved: Zero.
+- **S3, check 2:** another family's submission id gets the same `FORBIDDEN` (not `NOT_FOUND`) as a missing one.
+  Why: `tests/integration/permissions.test.ts` (locked) expects `FORBIDDEN`, as in S2. From the amend on #22;
+  the plan text now matches what merged. Approved: Zero.
+- **S4, checks 1 and 2:** `getReport` calls `requireActive` first. A missing report id and another family's
+  report (draft or published) get the same `FORBIDDEN`. A family's own report that isn't published yet still gets
+  `NOT_FOUND`, and so does Vienne for a missing id. Why: Rigg's W7 holdout (#26, merged) and
+  `permissions.test.ts` lock `FORBIDDEN` for another family's report, so the old `NOT_FOUND` wording couldn't pass.
+  Soap was told before S4's PR. Approved: Axis; Zero reviews.
+- **WC, touches and check 4:** touches are `tests/contract/`, `src/ui/api/live.js` and the report, not all of
+  `src/server/`, and WC is no longer held. A gap a new case finds is marked `it.skip` with a `// GAP:` line
+  and listed in the report, and a lead adds an S ticket for the server fix. Why: `src/server/` overlapped every
+  S ticket, so no lane could claim WC (OSA). Approved: Axis; Zero reviews.
+- **W6 r1 (#25), outside W6's touches:** `src/ui/lib/format.js` and the scheduling screens show dates and times in
+  Settings.timezone (Miami), not the device's zone, plus `tests/format-zone.test.ts`. The plan's W6 touches now
+  list them. Why: W6 check 8 (Rigg's holdout, #23) can't pass from `src/server` alone. `format.js` writes in the
+  zone by hand, matching the schema default; it has to read it if the timezone ever becomes editable. Approved
+  after the fact: Axis.
+- **W7 (#24), `tests/integration/w2-families-invites.test.ts` (merged):** two switch tests now assert every area
+  is live, since from W7 none is left on the mock. Guard tests unchanged. Approved after the fact: Zero.
+- **Kit, `kit/watch.py`:** a green held PR wakes the seat in its `owner:<seat>` label first, then the plan's
+  `held`, then `HELD_OWNER`. Why: Zero was woken for #12, #14 and #17, which Axis had already claimed.
+  Approved: Axis; Zero reviews.
+
 ## 2026-11-26: W3 spec amend, W4 browser, holdout specs, lane drafts
 
 - **S2, check 2:** a family gets the same `FORBIDDEN` (not `NOT_FOUND`) for another family's result id as
