@@ -16,6 +16,14 @@ import { loadSettings, schoolYearOf } from '@/lib/settings';
 const VALID_DAYS = 14;
 const MAX_FAILURES = 10;
 const LOCK_MS = 60 * 60 * 1000;
+/**
+ * Codes are short (32^4), so wrong codes are also counted across all accounts: more
+ * than this many in the last hour pauses code entry for everyone until it drops.
+ */
+const GLOBAL_REDEEM_FAILURES_PER_HOUR = 30;
+const GLOBAL_WINDOW_MS = 60 * 60 * 1000;
+const GLOBAL_LOCKED = 'Too many tries right now. Try again in an hour, or ask Vienne to check the code.';
+const REDEEM_LIMIT_ALERT = 'INVITE_GUESSING';
 const MATH = 'sub_math';
 
 type Planned = { firstName: string; lastName?: string; grade: number; school?: string | null };
@@ -101,15 +109,37 @@ export const redeemInvite = action(async (input: { code: string }) => {
   // A code must not undo Vienne pausing an account.
   need(user.status !== 'PAUSED', 'Your account is paused. Message Vienne to turn it back on.', 'FORBIDDEN');
   const now = new Date();
+  const hourAgo = new Date(now.getTime() - GLOBAL_WINDOW_MS);
+  // Locked refusals add no RedeemFailure row, so a locked account can't keep the global count up.
+  if ((await db.redeemFailure.count({ where: { at: { gt: hourAgo } } })) > GLOBAL_REDEEM_FAILURES_PER_HOUR) throw new ApiError('LOCKED', GLOBAL_LOCKED);
   if (user.redeemLockedUntil && user.redeemLockedUntil > now) throw new ApiError('LOCKED', 'Too many tries. Wait an hour, or ask Vienne to check the code.');
 
   const inv = await db.invite.findUnique({ where: { codeHash: hashCode(code) } });
   if (!inv || statusOf(inv, now) !== 'ACTIVE') {
     const failures = user.redeemFailures + 1;
-    await db.user.update({
-      where: { id: user.id },
-      data: failures >= MAX_FAILURES ? { redeemFailures: 0, redeemLockedUntil: new Date(now.getTime() + LOCK_MS) } : { redeemFailures: failures },
+    const alert = await db.$transaction(async (tx) => {
+      // One failure at a time, so exactly one of them is the one that reaches the limit.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(7300530001)`;
+      const recent = await tx.redeemFailure.count({ where: { at: { gt: hourAgo } } });
+      if (recent > GLOBAL_REDEEM_FAILURES_PER_HOUR) return 'LOCKED' as const;
+      await tx.redeemFailure.create({ data: { userId: user.id, at: now } });
+      await tx.user.update({
+        where: { id: user.id },
+        data: failures >= MAX_FAILURES ? { redeemFailures: 0, redeemLockedUntil: new Date(now.getTime() + LOCK_MS) } : { redeemFailures: failures },
+      });
+      if (recent + 1 <= GLOBAL_REDEEM_FAILURES_PER_HOUR) return false;
+      // The limit was just reached: tell Vienne, unless she was already told this hour.
+      return (await tx.notification.count({ where: { type: REDEEM_LIMIT_ALERT, createdAt: { gt: hourAgo } } })) === 0;
     });
+    if (alert === 'LOCKED') throw new ApiError('LOCKED', GLOBAL_LOCKED);
+    if (alert) {
+      await notifyAdmins({
+        type: REDEEM_LIMIT_ALERT,
+        title: 'Invite codes paused for an hour',
+        body: `More than ${GLOBAL_REDEEM_FAILURES_PER_HOUR} wrong invite codes were tried in the last hour, so code entry is paused for everyone. If a family is waiting, check their code or make a new one.`,
+        href: '/admin/families',
+      });
+    }
     throw new ApiError('INVALID_CODE', 'That code isn’t valid. Check it with Vienne.');
   }
 

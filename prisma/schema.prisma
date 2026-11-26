@@ -197,6 +197,18 @@ model User {
   inviteUsed    Invite?            @relation("InviteUsedBy")
   fastEntered   FastResult[]
   pushSubs      PushSubscription[]
+  redeemFails   RedeemFailure[]
+}
+
+/// One wrong invite code. Counted across all accounts so many free accounts can't
+/// share the guessing (src/server/invites.ts, GLOBAL_REDEEM_FAILURES_PER_HOUR).
+model RedeemFailure {
+  id     String   @id @default(cuid())
+  userId String
+  at     DateTime @default(now())
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([at])
 }
 
 /// Auth.js linked logins (Google).
