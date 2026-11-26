@@ -3,6 +3,15 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S17 reopened, the rejected-upload case
+
+- **S17 check 3:** every reservation counts toward the day, including one whose bytes `finishUpload` rejects
+  (INVALID) and one never finished. Removing a rejected upload never gives the slot back. Check 4 adds the
+  holdout `plan/holdouts/S17.test.ts`, and a hint names the cause and one way to fix it. Why: Rigg's holdout
+  reopened S17 because `finishUpload` deletes a rejected file's row and the cap counts rows, so a parent at the
+  cap could keep reserving by sending files that fail the check. The case goes into the checks before attempt 2
+  is built. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: P-review: report, S15–S23, Javaris's decisions
 
 - **P-review (OSA):** the report is `plan/reports/P-review.md`. Approved: OSA's review; Axis committed it.
