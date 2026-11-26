@@ -1,0 +1,82 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm test*)",
+      "Bash(npm ci*)",
+      "Bash(npx vitest *)",
+      "Bash(npx prisma *)",
+      "Bash(npx playwright *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(git show *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr list*)",
+      "Bash(python3 kit/*)",
+      "Bash(kit/*)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(grep *)",
+      "Bash(rg *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.miosa)",
+      "Read(./package-lock.json)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Read(./node_modules/**)",
+      "Read(./.next/**)",
+      "Read(./.wt/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/kit/hooks/push_guard.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/kit/hooks/stuck.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/kit/hooks/done_check.py",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  },
+  "includeCoAuthoredBy": false
+}

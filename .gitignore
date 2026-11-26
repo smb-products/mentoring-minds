@@ -12,3 +12,12 @@ next-env.d.ts
 test-results/
 playwright-report/
 .e2e-auth/
+
+# Kit: lane worktrees, python caches, Windows download markers
+.wt/
+.claude/worktrees/
+__pycache__/
+*.pyc
+*:Zone.Identifier
+.env.*
+!.env.example
