@@ -2,9 +2,10 @@
 """kit/watch.py: one pass of the guard's alerts. Reads plan state and lane state files, not screen text.
 
   watch.py --lanes    a lane idle WATCH_IDLE_MIN (5) with ready work → OSA
-  watch.py --seats    a held PR green and waiting WATCH_HELD_MIN (10) → wake its lead (HELD_OWNER, zero)
+  watch.py --seats    a held PR green and waiting WATCH_HELD_MIN (10) → wake its lead (the feature's `held`
+                      in plan/features.json, else HELD_OWNER, zero). Drafts are skipped: not ready yet.
                       a seat with an unsent prompt for WATCH_UNSENT_MIN (5), or no transcript write for
-                      WATCH_STALE_MIN (30) with unread inbox → OSA (osa's own → ops)
+                      WATCH_STALE_MIN (30) with unread inbox (FYI messages don't count) → OSA (osa's own → ops)
 
 Each alert fires once per episode (state in .git/avel/watch.json). Seat checks need the seats' tmux
 sessions on this machine, so the guard on a MIOSA workspace skips them; on the laptop run
@@ -78,9 +79,14 @@ def transcript_age(seat):
     return time.time() - f.stat().st_mtime if f.exists() else None
 
 
+FYI = re.compile(r"^\s*(\w+:\s*)?fyi\b", re.I)  # "FYI …" or "atlas: FYI …": nothing to do, so not a backlog
+
+
 def unread(seat, all_msgs):
+    """Unread messages that ask for something. An idle seat with only FYIs waiting isn't frozen."""
     seen = set(read_json(avel_dir() / "msg-cursor.json", {}).get(seat, []))
-    return sum(1 for m in all_msgs if msg.for_agent(m, seat) and m["id"] not in seen and m["from"] != seat)
+    return sum(1 for m in all_msgs if msg.for_agent(m, seat) and m["id"] not in seen and m["from"] != seat
+               and not FYI.match(m.get("text") or ""))
 
 
 def seats(memo):
@@ -115,8 +121,11 @@ def held(memo, here):
                     "--json", "number,headRefName,headRefOid,statusCheckRollup,autoMergeRequest,isDraft"])
     if code:
         return
-    owner = ENV.get("HELD_OWNER", "zero")
+    default = ENV.get("HELD_OWNER", "zero")
+    held_by = {f"f/{f['id']}": f.get("held") for f in plan.features() if f.get("held")}
     for p in json.loads(out or "[]"):
+        # A feature's PR goes to the lead the plan names (`held`, also on f/<id>-r<n> after a reopen).
+        owner = held_by.get(re.sub(r"-r\d+$", "", p["headRefName"])) or default
         checks = p.get("statusCheckRollup") or []
         if p.get("autoMergeRequest") or p.get("isDraft") or not checks:
             continue

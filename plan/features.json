@@ -59,13 +59,17 @@
       "hints": [
         "src/lib/upload-client.ts is Zero's path, so this PR is held for Zero. Keep the change to taking an optional mimeType.",
         "Don't change what the screens read: a successful read still returns r.data, and a write still returns the { ok, data | error, code } result."
-      ]
+      ],
+      "held": "zero"
     },
     {
       "id": "W1",
       "title": "Skills and FAST results live (taxonomy, fast)",
       "spec": "tests/e2e/w1-taxonomy-fast.spec.ts",
-      "deps": ["W0", "WA"],
+      "deps": [
+        "W0",
+        "WA"
+      ],
       "touches": [
         "src/ui/api/index.js",
         "src/server/taxonomy.ts",
@@ -81,13 +85,19 @@
         "Entering PM1 2026–27 for Lucia a second time shows 'PM1 2026–27 is already entered. Edit that one instead.' and leaves exactly one row.",
         "npm run test:e2e -- w1 passes on a production build; w0 and auth still pass; npm run test:contract is green."
       ],
-      "hints": ["Screens don't change. A contract gap is fixed in src/server/taxonomy.ts or fast.ts (held for Zero)."]
+      "hints": [
+        "Screens don't change. A contract gap is fixed in src/server/taxonomy.ts or fast.ts (held for Zero)."
+      ],
+      "held": "zero"
     },
     {
       "id": "W2",
       "title": "Families and invites live (families, invites)",
       "spec": "tests/e2e/w2-families-invites.spec.ts",
-      "deps": ["W0", "WA"],
+      "deps": [
+        "W0",
+        "WA"
+      ],
       "touches": [
         "src/ui/api/index.js",
         "src/server/families.ts",
@@ -106,13 +116,17 @@
       "hints": [
         "resetParentPassword returns the password to show once; never log or store it in plain text.",
         "Invite limits live in src/server/invites.ts: VALID_DAYS (14), MAX_FAILURES (10), LOCK_MS. Don't change them."
-      ]
+      ],
+      "held": "zero"
     },
     {
       "id": "W3",
       "title": "Messages and alerts live (messages, notifications), plus the push button",
       "spec": "tests/e2e/w3-messages-notifications.spec.ts",
-      "deps": ["W0", "WA"],
+      "deps": [
+        "W0",
+        "WA"
+      ],
       "touches": [
         "src/ui/api/index.js",
         "src/server/messages.ts",
@@ -133,13 +147,19 @@
         "'Sign out' first removes this device's push subscription (notifications.removePushSubscription), so a shared family phone stops getting the last parent's alerts. A failure there never blocks signing out.",
         "npm run test:e2e -- w3 passes on a production build; w0 and auth still pass; npm run test:contract is green."
       ],
-      "hints": ["On iPhone push only works once the app is added to the Home Screen: say so in plain words next to the button, not in an error."]
+      "hints": [
+        "On iPhone push only works once the app is added to the Home Screen: say so in plain words next to the button, not in an error."
+      ],
+      "held": "zero"
     },
     {
       "id": "W4",
       "title": "Book answer keys and the library live (books, content), files open",
       "spec": "tests/e2e/w4-books-content.spec.ts",
-      "deps": ["W0", "WA"],
+      "deps": [
+        "W0",
+        "WA"
+      ],
       "touches": [
         "src/ui/api/index.js",
         "src/server/books.ts",
@@ -162,13 +182,17 @@
       "hints": [
         "Upload limits are src/lib/storage.ts ALLOWED_TYPES and MAX_BYTES (25 MB). Don't change them.",
         "In e2e and dev, uploads go to ./uploads, never Blob. Lanes have no BLOB_READ_WRITE_TOKEN."
-      ]
+      ],
+      "held": "zero"
     },
     {
       "id": "W5",
       "title": "Assignments live: assign, answer sheet with a photo, Vienne checks",
       "spec": "tests/e2e/w5-assignments.spec.ts",
-      "deps": ["W2", "W4"],
+      "deps": [
+        "W2",
+        "W4"
+      ],
       "touches": [
         "src/ui/api/index.js",
         "src/server/assignments.ts",
@@ -189,13 +213,16 @@
       "hints": [
         "Schema fields used: Submission.status (ASSIGNED | SUBMITTED | GRADED), RedoItem.clearedAt, Notification.type ASSIGNMENT_GIVEN.",
         "The answer sheet saves a draft every 600 ms and each save re-runs the reads on screen. If that's slow on a phone, note it in the report; don't redesign it here."
-      ]
+      ],
+      "held": "zero"
     },
     {
       "id": "W6",
       "title": "Scheduling live (scheduling)",
       "spec": "tests/e2e/w6-scheduling.spec.ts",
-      "deps": ["W2"],
+      "deps": [
+        "W2"
+      ],
       "touches": [
         "src/ui/api/index.js",
         "src/server/scheduling.ts",
@@ -216,13 +243,16 @@
       "hints": [
         "Schema fields used: Session.status, Session.declineReason, Session.meetingUrl, Session.callStartedAt, Settings.joinOpensMin (default 15), Settings.timezone.",
         "No screen calls scheduling.rescheduleSession, so reschedule isn't part of this ticket."
-      ]
+      ],
+      "held": "zero"
     },
     {
       "id": "W7",
       "title": "Reports and the AI helpers live (reports, ai)",
       "spec": "tests/e2e/w7-reports-dashboard-ai.spec.ts",
-      "deps": ["W6"],
+      "deps": [
+        "W6"
+      ],
       "touches": [
         "src/ui/api/index.js",
         "src/server/reports.ts",
@@ -239,13 +269,18 @@
         "AI calls stay capped per day by AI_DAILY_LIMIT (src/lib/ai/prompts.ts), with MODEL and EFFORT from the same file. Don't change them.",
         "npm run test:e2e -- w7 passes on a production build; w0–w6 and auth still pass; npm run test:contract is green."
       ],
-      "hints": ["Lanes have no ANTHROPIC_API_KEY: the no-key path is what the lane proves. Never add a key to any file."]
+      "hints": [
+        "Lanes have no ANTHROPIC_API_KEY: the no-key path is what the lane proves. Never add a key to any file."
+      ],
+      "held": "zero"
     },
     {
       "id": "S1",
       "title": "Time off is admin-only (listTimeOff)",
       "spec": "tests/integration/s1-timeoff.test.ts (new)",
-      "deps": ["W6"],
+      "deps": [
+        "W6"
+      ],
       "touches": [
         "src/server/scheduling.ts",
         "tests/integration/s1-timeoff.test.ts",
@@ -257,13 +292,18 @@
         "getOpenSlots still leaves out times inside Vienne's time off for families, without sending the time off itself.",
         "Permission test for each of the above in tests/integration/s1-timeoff.test.ts. The w6 spec and npm run test:contract stay green."
       ],
-      "hints": ["Held for Zero (src/server)."]
+      "hints": [
+        "Held for Zero (src/server)."
+      ],
+      "held": "zero"
     },
     {
       "id": "S2",
       "title": "FAST edits keep who entered the result; deleteResult guards first",
       "spec": "tests/integration/s2-fast-edit.test.ts (new)",
-      "deps": ["W1"],
+      "deps": [
+        "W1"
+      ],
       "touches": [
         "src/server/fast.ts",
         "tests/integration/s2-fast-edit.test.ts",
@@ -274,13 +314,18 @@
         "fast.deleteResult runs its guard before any database lookup. A family gets the same NOT_FOUND for another family's result id as for a missing one.",
         "Permission tests for both in tests/integration/s2-fast-edit.test.ts. The w1 spec and npm run test:contract stay green."
       ],
-      "hints": ["Schema fields used: FastResult.enteredById, FastResult.enteredAt. Held for Zero (src/server)."]
+      "hints": [
+        "Schema fields used: FastResult.enteredById, FastResult.enteredAt. Held for Zero (src/server)."
+      ],
+      "held": "zero"
     },
     {
       "id": "S3",
       "title": "Assignment writes guard before any lookup",
       "spec": "tests/integration/s3-assignments-guard.test.ts (new)",
-      "deps": ["W5"],
+      "deps": [
+        "W5"
+      ],
       "touches": [
         "src/server/assignments.ts",
         "tests/integration/s3-assignments-guard.test.ts",
@@ -291,13 +336,18 @@
         "A family gets the same NOT_FOUND for another family's submission id as for a missing one, so ids can't be probed.",
         "A permission test for each function in tests/integration/s3-assignments-guard.test.ts. The w5 spec and npm run test:contract stay green."
       ],
-      "hints": ["Held for Zero (src/server)."]
+      "hints": [
+        "Held for Zero (src/server)."
+      ],
+      "held": "zero"
     },
     {
       "id": "S4",
       "title": "getReport guards before any lookup",
       "spec": "tests/integration/s4-report-guard.test.ts (new)",
-      "deps": ["W7"],
+      "deps": [
+        "W7"
+      ],
       "touches": [
         "src/server/reports.ts",
         "tests/integration/s4-report-guard.test.ts",
@@ -308,13 +358,18 @@
         "A family gets the same NOT_FOUND for another family's report id (draft or published) as for a missing one.",
         "Permission tests in tests/integration/s4-report-guard.test.ts. The w7 spec and npm run test:contract stay green."
       ],
-      "hints": ["Held for Zero (src/server)."]
+      "hints": [
+        "Held for Zero (src/server)."
+      ],
+      "held": "zero"
     },
     {
       "id": "S5",
       "title": "Invite codes can't be brute-forced across accounts",
       "spec": "tests/integration/s5-redeem.test.ts (new)",
-      "deps": ["W2"],
+      "deps": [
+        "W2"
+      ],
       "touches": [
         "src/server/invites.ts",
         "prisma/schema.prisma",
@@ -323,7 +378,8 @@
         "plan/reports/S5.md"
       ],
       "checks": [
-        "Every failed redeemInvite adds a row to a new RedeemFailure table (userId, at; indexed on at), made by a committed migration (npx prisma migrate dev --name redeem-failures).",
+        "Every failed redeemInvite adds a row to a new RedeemFailure table (userId, at; indexed on at; userId references User with onDelete: Cascade), made by a committed migration (npx prisma migrate dev --name redeem-failures).",
+        "A refusal while locked, whether by the global limit or the per-account one, adds no RedeemFailure row, so a locked account can't keep the global count up.",
         "Once there are more than GLOBAL_REDEEM_FAILURES_PER_HOUR (30, a constant in src/server/invites.ts) failures in the last hour across all accounts, every redeem returns code LOCKED with 'Too many tries right now. Try again in an hour, or ask Vienne to check the code.', a correct code included.",
         "Vienne gets one alert when the limit is first reached in an hour, sent after the transaction commits (lib/notify.ts), never one per try.",
         "The per-account limit (MAX_FAILURES, LOCK_MS) and the MM-XXXX code shape stay as they are; the w2 spec checks the shape.",
@@ -332,15 +388,19 @@
       "hints": [
         "Why: 32^4 ≈ 1.05M codes, free accounts and a per-account lock only, so 1,000 accounts could try 3M+ codes in a code's 14 days (VALID_DAYS).",
         "Notification.type is a String, so the alert needs no enum change. Held for Zero (prisma, src/server)."
-      ]
+      ],
+      "held": "zero"
     },
     {
       "id": "WC",
       "title": "Contract check covers the writes the screens use",
       "spec": "tests/contract/contract.test.ts",
-      "deps": ["W7"],
+      "deps": [
+        "W7"
+      ],
       "touches": [
         "tests/contract/",
+        "src/ui/api/live.js",
         "src/server/",
         "plan/reports/WC.md"
       ],
@@ -353,13 +413,25 @@
       "hints": [
         "Runs after W7 so its src/server fixes never collide with a ticket in flight. Held for Zero (src/server).",
         "src/ui/api/live.js is outside touches except for the READS line."
-      ]
+      ],
+      "held": "zero"
     },
     {
       "id": "W8",
       "title": "Delete src/mock; index.js exports live directly",
       "spec": "all of tests/e2e",
-      "deps": ["W0", "WA", "W1", "W2", "W3", "W4", "W5", "W6", "W7", "WC"],
+      "deps": [
+        "W0",
+        "WA",
+        "W1",
+        "W2",
+        "W3",
+        "W4",
+        "W5",
+        "W6",
+        "W7",
+        "WC"
+      ],
       "touches": [
         "src/mock/",
         "src/ui/",
@@ -377,7 +449,10 @@
         "live-hooks.js no longer subscribes to the mock.",
         "npm run typecheck, npm test and the whole browser suite (npm run build:e2e && npm run test:e2e) pass, with no spec skipped for an area being on the mock."
       ],
-      "hints": ["prisma/ is Zero's path, so this PR is held for Zero to merge. That's expected. Leave docs/ alone: a lead updates WIRING.md after."]
+      "hints": [
+        "prisma/ is Zero's path, so this PR is held for Zero to merge. That's expected. Leave docs/ alone: a lead updates WIRING.md after."
+      ],
+      "held": "zero"
     }
   ]
 }

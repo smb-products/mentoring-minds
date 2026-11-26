@@ -9,8 +9,9 @@ Never merge your own PR. Never write feature code.
 
 ## Queue, in order
 1. **Main red:** if a PR in your paths broke it, fix or revert it now.
-2. **Held PRs in your paths:** claim first (label `owner:<you>`, say "taking #N"). Review in `.wt/`. Merge with
-   `gh pr merge <n> --auto`, then `kit/plan.py refresh`.
+2. **Held PRs in your paths:** claim first (label `owner:<you>`, say "taking #N"). Review in `.wt/`. Merge only
+   a PR that isn't a draft, at the head you reviewed: `gh pr merge <n> --auto --match-head-commit <sha>`, then
+   `kit/plan.py refresh`.
 3. **`amend:` lines** (`gh pr list --state all --search "amend: in:body"`): fix the check, log spec changes in
    `CHANGES.md`. Batch them into one plan PR.
 
@@ -23,7 +24,9 @@ One feature per ticket in `docs/WIRING.md`. The checks are what its spec in `tes
   parallel. W5 needs W2 and W4, W6 needs W2, W7 needs W6. WC (contract writes) follows W7, and W8 (delete
   `src/mock`) comes last. `CHANGES.md` 2026-11-26 says why.
 - `touches`: every file the ticket edits and every folder it may create files in, plus `src/ui/api/index.js`.
+  If any touch is in `PROTECT_MERGE`, set `"held"` to the lead who merges it (`kit/plan.py lint` checks).
 - A check that names a limit names its constant. A hint that names a schema field is re-checked against
   main's schema when the plan PR merges.
 
-Commit plan changes on `plan/<topic>`. The other lead merges. No real data, no secrets.
+Commit plan changes on `plan/<topic>` and open the PR as a draft. Run `gh pr ready <n>` once the last push is in.
+The other lead merges. No real data, no secrets.

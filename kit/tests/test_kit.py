@@ -386,6 +386,29 @@ class Kit(unittest.TestCase):
         self.assertIn("EVENT stuck A", r.stdout)
         self.assertIn("CAP hard $0 reached", r.stdout)
 
+    def test_plan_lint_wants_held_for_protected_touches(self):
+        fs = {"features": [
+            {"id": "H", "touches": ["prisma/schema.prisma"]},                  # held path, no lead named
+            {"id": "I", "touches": ["prisma/schema.prisma"], "held": "zero"},  # fine
+            {"id": "J", "touches": ["prisma/"], "held": "bob"},                # a folder holding one; bob isn't a lead
+            {"id": "K", "touches": ["src/k.ts"], "held": "axis"},              # nothing held here
+        ]}
+        (self.tmp / "held.json").write_text(json.dumps(fs))
+        r = self.kit("plan.py", "lint", str(self.tmp / "held.json"))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("H: touches prisma/schema.prisma (PROTECT_MERGE)", r.stdout)
+        self.assertNotIn("I:", r.stdout)
+        self.assertIn("J: touches prisma/", r.stdout)
+        self.assertIn("K: \"held\" is set but no touch is in PROTECT_MERGE", r.stdout)
+
+    def test_fyi_messages_never_make_a_seat_look_frozen(self):
+        self.kit("msg.py", "send", "atlas", "FYI #2 is queued", env={"AVEL_AGENT": "axis"})
+        self.kit("msg.py", "send", "atlas", "zero: fyi, plan merged", env={"AVEL_AGENT": "zero"})
+        code = "import sys; sys.path.insert(0, 'kit'); import msg, watch; print(watch.unread('atlas', msg.read_all()))"
+        self.assertEqual(run([sys.executable, "-c", code], self.repo, self.env).stdout.strip(), "0")
+        self.kit("msg.py", "send", "atlas", "please merge #3", env={"AVEL_AGENT": "osa"})
+        self.assertEqual(run([sys.executable, "-c", code], self.repo, self.env).stdout.strip(), "1")
+
     def test_messages_groups_cursor_and_gh(self):
         self.kit("msg.py", "send", "builders", "pull main", env={"AVEL_AGENT": "axis"})
         self.kit("msg.py", "send", "osa", "A stuck", env={"AVEL_AGENT": "soap"})
