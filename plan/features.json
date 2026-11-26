@@ -565,7 +565,7 @@
         "plan/reports/S6.md"
       ],
       "checks": [
-        "src/lib/demo.ts is deleted, and `git grep -n -e DEMO_MODE -e isDemo -- src scripts playwright.config.ts tests .env.example` finds nothing.",
+        "src/lib/demo.ts is deleted, and `git grep -n -e DEMO_MODE -e isDemo -- src scripts playwright.config.ts tests .env.example ':!*.md'` finds nothing (docs, including tests/e2e/README.md, are the leads').",
         "Sign-in is always on, exactly as in a build without DEMO_MODE today: signed out, every /admin and /parent page and / go to /sign-in; the Google button shows only when Google sign-in is configured; the email form signs in. Nothing in the app behaves differently for a build that never set DEMO_MODE.",
         "The account menu keeps theme, text size and sign-out for a signed-in user and loses the demo user switch. No other change to how anything looks.",
         "src/lib/env-check.ts no longer mentions DEMO_MODE, and tests/env-check.test.ts matches it. .env.example drops DEMO_MODE and says to sign in with the demo accounts after `npm run db:seed:demo`.",
@@ -573,7 +573,7 @@
       ],
       "hints": [
         "Approved by Javaris 2026-11-26, as Zero specced it after W8: with src/mock gone, DEMO_MODE gives a persona with no data, because every screen calls the server, which needs a session.",
-        "Held for Zero (src/lib). Docs (AGENTS, README, WIRING, DEPLOY, tests/e2e/README) are the leads': Axis updates them after S6 merges. Leave the comment in .github/workflows/ci.yml for Atlas.",
+        "Held for Zero (src/lib). Docs (AGENTS, README, WIRING, DEPLOY, tests/e2e/README.md) are the leads': Axis updates them after S6 merges. Leave the comment in .github/workflows/ci.yml for Atlas.",
         "ShellContext's DemoContext also carries the theme: keep the theme, drop the demo user. Don't print the demo password anywhere new; prisma/seed.ts already prints it after a demo seed."
       ],
       "held": "zero"

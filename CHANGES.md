@@ -25,6 +25,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   reviews.
 - **S12 (new, held zero):** `engines.node` is pinned to `22.x`, the version CI tests on. Why: finding S-ops3
   (P-ops, #42). Approved: Axis; Zero reviews.
+
 ## 2026-11-26: leads can read their worktrees in `.wt/`
 
 - **Kit, `.claude/settings.json`:** the `Read(./.wt/**)` deny is narrowed to the `.env` files, `node_modules`
