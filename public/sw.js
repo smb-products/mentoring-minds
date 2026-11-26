@@ -45,6 +45,8 @@ self.addEventListener('push', (event) => {
       body: data.body,
       icon: '/icons/icon-192.png',
       badge: '/icons/badge-96.png',
+      // A newer notification with the same tag replaces the older one, and still alerts.
+      ...(data.tag ? { tag: data.tag, renotify: true } : {}),
       data: { href: data.href || '/' },
     }),
   );
