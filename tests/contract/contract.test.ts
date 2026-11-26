@@ -1,5 +1,5 @@
 /**
- * THE WIRING CHECKER. The screens were built against the mock (src/mock). This calls
+ * THE WIRING CHECKER. The screens were built against the mock (frozen in tests/contract/mock). This calls
  * each mock function and its real twin (src/server) on identical data — the mock's
  * own records are loaded into Postgres — as the same user, and compares the shapes
  * of what comes back: every field the screens can read from the mock must be there,
@@ -30,20 +30,20 @@ vi.mock('@anthropic-ai/sdk', () => ({
   },
 }));
 
-import { getDb, setSessionUser } from '@/mock/core';
-import * as mAi from '@/mock/server/ai';
-import * as mAssignments from '@/mock/server/assignments';
-import * as mBooks from '@/mock/server/books';
-import * as mContent from '@/mock/server/content';
-import * as mDashboard from '@/mock/server/dashboard';
-import * as mFamilies from '@/mock/server/families';
-import * as mFast from '@/mock/server/fast';
-import * as mInvites from '@/mock/server/invites';
-import * as mMessages from '@/mock/server/messages';
-import * as mNotifications from '@/mock/server/notifications';
-import * as mReports from '@/mock/server/reports';
-import * as mScheduling from '@/mock/server/scheduling';
-import * as mTaxonomy from '@/mock/server/taxonomy';
+import { getDb, setSessionUser } from './mock/core';
+import * as mAi from './mock/server/ai';
+import * as mAssignments from './mock/server/assignments';
+import * as mBooks from './mock/server/books';
+import * as mContent from './mock/server/content';
+import * as mDashboard from './mock/server/dashboard';
+import * as mFamilies from './mock/server/families';
+import * as mFast from './mock/server/fast';
+import * as mInvites from './mock/server/invites';
+import * as mMessages from './mock/server/messages';
+import * as mNotifications from './mock/server/notifications';
+import * as mReports from './mock/server/reports';
+import * as mScheduling from './mock/server/scheduling';
+import * as mTaxonomy from './mock/server/taxonomy';
 import * as rAi from '@/server/ai';
 import * as rAssignments from '@/server/assignments';
 import * as rBooks from '@/server/books';
@@ -416,7 +416,7 @@ describe('live adapter (src/ui/api/live.js)', () => {
     const src = readFileSync('src/ui/api/live.js', 'utf8');
     const listed = Function(`return ${src.slice(src.indexOf('export const READS = ') + 'export const READS = '.length, src.indexOf('};', src.indexOf('export const READS')) + 1)}`)() as Record<string, string[]>;
     for (const ns of Object.keys(MODULES)) {
-      const mock = readFileSync(`src/mock/server/${ns}.js`, 'utf8');
+      const mock = readFileSync(`tests/contract/mock/server/${ns}.js`, 'utf8');
       const reads = [...mock.matchAll(/^export async function (\w+)/gm)].map((m) => m[1]).filter((n) => !HELPERS.has(n) && !NOT_READS[`${ns}.${n}`]);
       expect(listed[ns]?.slice().sort(), ns).toEqual(reads.sort());
     }

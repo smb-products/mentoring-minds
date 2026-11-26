@@ -1,4 +1,7 @@
 /**
+ * FROZEN COPY (W8): the in-browser mock the screens were built on, kept only so
+ * npm run test:contract can compare it with src/server. Nothing in src/ imports it.
+ *
  * Mock data layer core. In production these pieces are:
  *   db        -> Prisma client (lib/db.ts)
  *   auth()    -> Auth.js session (lib/auth.ts)

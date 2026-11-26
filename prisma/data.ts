@@ -1,5 +1,5 @@
 /**
- * Loads the prototype's data (src/mock/seed.js) into the database, with the same ids.
+ * Loads the prototype's data (prisma/demo/seed.js) into the database, with the same ids.
  *   loadReference — what production needs on day one: settings, the Math subject and
  *                   Vienne's skills, the books (tests only, no answers), locations, hours.
  *   loadDemo      — everything else: the demo families, sessions, homework, results…
@@ -11,7 +11,7 @@ import path from 'node:path';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { codeHint, hashCode } from '../src/lib/codes-core';
 // The prototype's seed is plain JS; its rows use the Prisma field names (docs/CONTRACT.md).
-import { createSeed } from '../src/mock/seed.js';
+import { createSeed } from './demo/seed.js';
 
 type Row = Record<string, unknown>;
 type Seed = Record<string, Row[] | Row>;

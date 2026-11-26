@@ -1,29 +1,24 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { api, auth, useQuery } from '../../api';
-import { live } from '../../api/live';
+import { api, useQuery } from '../../api';
 
 /**
  * Signed-in user, their children (parents), the selected child and the layout mode.
- * `sessionUser` is the Auth.js session user AppRoot passes in (absent in demo mode, where
- * the mock's demo account is used). Selected child lives in state.
+ * `sessionUser` is the Auth.js session user AppRoot passes in (in demo mode, a stand-in
+ * for the demo account). Selected child lives in state.
  */
 const ShellContext = createContext(null);
 const LayoutContext = createContext('desktop');
 
 export function ShellProvider({ sessionUser, children }) {
-  // Demo mode: re-read the mock's signed-in user on every change (text size, name…).
-  const fresh = useQuery(() => (sessionUser ? null : { ...auth() }), [Boolean(sessionUser)]);
-  const user = sessionUser ?? (fresh.data?.id === auth()?.id ? fresh.data : auth());
+  const user = sessionUser;
   useEffect(() => {
     const root = document.getElementById('mm-root');
     if (root) root.dataset.text = user.textSize || 'NORMAL';
   }, [user.textSize]);
   const role = user.role === 'ADMIN' ? 'admin' : 'parent';
-  // The shell's own reads (family, badges, the bell). A signed-in person the mock doesn't
-  // know (a new sign-up) reads them from the real server, so the shell still works for them.
-  const source = sessionUser && auth()?.id !== sessionUser.id ? live : api;
-  // Signed in: the account's own family always comes from the real server.
-  const families = sessionUser ? live.families : api.families;
+  // The shell's own reads (family, badges, the bell).
+  const source = api;
+  const families = api.families;
   const family = useQuery(() => (role === 'parent' ? families.getFamily({ parentId: user.id }) : null), [user.id, families]);
   const students = family.data?.students ?? [];
   const [activeStudentId, setActiveStudentId] = useState(null);
