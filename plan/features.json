@@ -621,7 +621,7 @@
         "plan/reports/S10.md"
       ],
       "checks": [
-        "When Vienne pauses a parent who is signed in, the next in-app navigation or refused read or write shows the paused notice and the locked pages, with no full reload: no Sessions list, no \"Request a session\", no \"Fill in answers\".",
+        "When Vienne pauses a parent who is signed in, the next refused read or write shows the paused notice and the locked pages, with no full reload: no Sessions list, no \"Request a session\", no \"Fill in answers\". Home, Learning and Progress refuse on their first read, so moving to one of them is enough. Sessions isn't refused (scheduling.listSessions serves a family its own sessions without the video link, on purpose), so there it's the next refused write, such as \"Send request\".",
         "Un-pausing works the same way back: the next refused-free load shows the normal pages again (a reload is fine here).",
         "No uncaught page error and no error screen on the way. Vienne and an ACTIVE parent see no change and make no extra requests on every navigation.",
         "tests/holdout/S8.spec.ts, tests/e2e/p-product.spec.ts, the S9 spec and the whole browser suite pass."
@@ -733,6 +733,7 @@
       ],
       "touches": [
         "src/server/content.ts",
+        "src/server/assignments.ts",
         "src/lib/dto.ts",
         "tests/integration/s15-library-dto.test.ts",
         "tests/integration/leaks.test.ts",
@@ -740,13 +741,13 @@
         "plan/reports/S15.md"
       ],
       "checks": [
-        "content.listResourcesForStudent, and every other read a family can call that returns a resource, sends a family DTO: no sharedWith, no shares, and no raw file row (at most the file's id, filename, mimeType and sizeBytes, as S13's file DTO). Vienne's reads keep sharedWith.",
+        "content.listResourcesForStudent, assignments.listForStudent (which sends the raw Resource row today), and every other read a family can call that returns a resource, sends a family DTO: no sharedWith, no shares, and no raw file row (at most the file's id, filename, mimeType and sizeBytes, as S13's file DTO). Vienne's reads keep sharedWith.",
         "As Ana, with a resource shared with Ana's child and another family's child, the response contains neither the other child's name nor any parentId but Ana's. tests/integration/leaks.test.ts gains that case, so the leak sweep catches it from now on.",
         "Every field the parent screens read from a resource still arrives (src/ui/pages/parent/). The whole browser suite, npm test and npm run test:contract pass; if the contract compares keys with the frozen mock, add ALLOWED_MISSING exceptions for the keys the family shape drops (sharedWith, the file row) and say why in the report (the frozen mock is never edited)."
       ],
       "hints": [
         "From the P-review (plan/reports/P-review.md), finding 1. A launch blocker. resourceDTO (src/lib/dto.ts) is Vienne's shape; families need their own.",
-        "Held for Zero (src/server, src/lib). After S13, which also edits content.ts and dto.ts."
+        "Held for Zero (src/server, src/lib). After S13, which also edits content.ts and dto.ts. S18 waits on this one (assignments.ts)."
       ],
       "held": "zero"
     },
@@ -803,7 +804,9 @@
       "id": "S18",
       "title": "A practice assignment only uses a resource its students can see",
       "spec": "tests/integration/s18-practice-visibility.test.ts (new)",
-      "deps": [],
+      "deps": [
+        "S15"
+      ],
       "touches": [
         "src/server/assignments.ts",
         "tests/integration/s18-practice-visibility.test.ts",
@@ -816,7 +819,7 @@
       ],
       "hints": [
         "From the P-review (plan/reports/P-review.md), finding 5.",
-        "Held for Zero (src/server)."
+        "Held for Zero (src/server). After S15, which also edits assignments.ts."
       ],
       "held": "zero"
     },

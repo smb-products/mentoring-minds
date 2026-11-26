@@ -18,6 +18,11 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **S13 check 4 (amend in S13's report), and S15 check 3 the same way:** the contract exception goes in
   `ALLOWED_MISSING`, because the real DTO drops keys the frozen mock has. It isn't an extra key like `.url`.
   Approved: Axis; Zero reviews.
+- **S15 touches and check 1, S18 deps (Zero, on #72):** S15 also covers `assignments.listForStudent`, which sends
+  families the raw Resource row, so it touches `src/server/assignments.ts`, and S18 waits for it. Approved: Zero.
+- **S10 check 1 (amend in S10's report, after the fact):** the paused screen comes on the next *refused* read or
+  write. Sessions isn't refused, on purpose (`listSessions` never sends a paused family the video link), so
+  there it's the next refused write. Approved: Zero (no S ticket); Axis.
 
 ## 2026-11-26: docs after S6, S12 touches
 
