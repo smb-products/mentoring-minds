@@ -12,6 +12,7 @@ different worktrees never conflict on a tracked file.
   plan.py ready                                     "<build> <check>": features ready to claim (read-only)
   plan.py show <id>                                 the feature as JSON, for a prompt
   plan.py board                                     who is on what, and cost so far
+  plan.py lint [file]                               ids, deps and cycles in plan/features.json (CI runs it)
 
 Status: ready → doing → review (PR open, auto-merge on) → merged → checking (holdout PR open) → checked
         `set <id> checking` records the checker's branch (AVEL_BRANCH); refresh marks it checked
@@ -22,6 +23,7 @@ Checkers take a batch only with CHECK_MIN merged features waiting, or once the o
 CHECK_WAIT_MIN minutes; CHECK_BATCH is the most per batch.
 """
 import json, os, sys, time
+from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import avel_dir, load_env, locked, now, read_json, root, sh, write_json
 
@@ -222,6 +224,49 @@ def board():
         print(f"PRs merged today: {today[0]} feature (f/*), {today[1]} process (everything else)")
 
 
+def lint(path):
+    """Problems in a features file: what CI checks on a plan change, before a lane trips on it."""
+    try:
+        fs = json.loads(path.read_text())["features"]
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        return [f"{path}: not a features file ({e.__class__.__name__}: {e})"]
+    if not isinstance(fs, list):
+        return [f"{path}: \"features\" must be a list"]
+    probs, ids = [], set()
+    for n, f in enumerate(fs):
+        fid = f.get("id") if isinstance(f, dict) else None
+        if not isinstance(fid, str) or not fid.strip():
+            probs.append(f"feature #{n + 1}: needs a string id")
+            continue
+        if fid in ids:
+            probs.append(f"{fid}: duplicate id")
+        ids.add(fid)
+        for key in ("deps", "touches", "checks"):
+            if not isinstance(f.get(key, []), list):
+                probs.append(f"{fid}: {key} must be a list")
+    deps = {}
+    for f in fs:
+        if isinstance(f, dict) and isinstance(f.get("id"), str) and isinstance(f.get("deps", []), list):
+            deps.setdefault(f["id"], []).extend(f.get("deps") or [])
+    for fid, ds in deps.items():
+        probs += [f"{fid}: depends on unknown {d}" for d in ds if d not in ids]
+
+    def cycle(fid, path_):
+        if fid in path_:
+            return path_[path_.index(fid):] + [fid]
+        for d in deps.get(fid, []):
+            if c := cycle(d, path_ + [fid]):
+                return c
+        return None
+    seen = set()
+    for fid in deps:
+        c = cycle(fid, [])
+        if c and frozenset(c) not in seen:
+            seen.add(frozenset(c))
+            probs.append("dependency cycle: " + " → ".join(c))
+    return probs
+
+
 def arg(args, name, default=None):
     return args[args.index(name) + 1] if name in args and args.index(name) + 1 < len(args) else default
 
@@ -264,6 +309,16 @@ def main(a):
         print(json.dumps(f, indent=2))
     elif cmd == "board":
         board()
+    elif cmd == "lint":
+        # This checkout's plan (a lead's worktree, CI), not the shared one in the main checkout.
+        here = Path(sh(["git", "rev-parse", "--show-toplevel"])[1].strip() or ".")
+        f = here / "plan" / "features.json" if len(a) < 2 else Path(a[1])
+        if not f.exists():
+            print(f"lint: no {f}, nothing to check")
+            return 0
+        probs = lint(f)
+        print("\n".join(probs) or f"lint: {f} ok")
+        return 1 if probs else 0
     elif cmd == "export":
         fs = state()["features"]
         print(json.dumps({i: fs[i] for i in (a[1:] or fs) if i in fs}))

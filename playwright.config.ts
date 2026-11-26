@@ -44,6 +44,8 @@ export default defineConfig({
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
     // Parents mostly use phones: specs tagged @phone run here too.
     { name: 'phone', grep: /@phone/, use: { ...devices['Pixel 7'] } },
+    // The checker's browser tests for merged tickets (tests/holdout/*.spec.ts).
+    { name: 'holdout', testDir: 'tests/holdout', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined

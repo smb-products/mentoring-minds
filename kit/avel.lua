@@ -25,7 +25,8 @@ local function seat(dir, s) return { 'bash', '-lc', 'cd ' .. q(dir) .. ' && kit/
 -- A lane pane: attach to the lane's tmux session once it exists; never start it here.
 -- With LANES_ON=miosa, hand over to seat.sh, which attaches to the lane in the workspace.
 local function lane_seat(dir, s)
-  local script = 'cd ' .. q(dir) .. ' && set -a && . kit/project.env && set +a && '
+  -- Sourced, not exported: tmux must never see project.env (kit/seat.sh says why).
+  local script = 'cd ' .. q(dir) .. ' && . kit/project.env && '
     .. 'if [ "${LANES_ON:-local}" = miosa ]; then exec kit/seat.sh ' .. s .. '; fi; '
     .. 'n="$PROJECT-' .. s .. '"; while true; do '
     .. 'if tmux has-session -t "$n" 2>/dev/null; then tmux attach -t "$n"; '

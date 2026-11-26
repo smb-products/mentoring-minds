@@ -9,6 +9,7 @@ const at = (p: string) => fileURLToPath(new URL(p, import.meta.url));
  *               default postgresql://postgres@localhost:5432/mm_test). One file at a
  *               time: each test file starts from a fresh copy of the demo data.
  * contract    — the wiring checker: each mock function vs its real twin.
+ * holdout     — the checker's tests for merged tickets (tests/holdout/*.test.ts).
  */
 export default defineConfig({
   resolve: { alias: { '@': at('./src'), 'server-only': at('./tests/stubs/server-only.ts') } },
@@ -25,6 +26,11 @@ export default defineConfig({
       {
         extends: true,
         test: { name: 'contract', include: ['tests/contract/**/*.test.ts'], setupFiles: ['tests/integration/setup.ts'], fileParallelism: false, testTimeout: 60000, hookTimeout: 60000 },
+      },
+      // The checker's tests (tests/holdout/<id>.test.ts): integration tests written after a ticket merges.
+      {
+        extends: true,
+        test: { name: 'holdout', include: ['tests/holdout/**/*.test.ts'], setupFiles: ['tests/integration/setup.ts'], fileParallelism: false, testTimeout: 30000, hookTimeout: 60000 },
       },
     ],
   },
