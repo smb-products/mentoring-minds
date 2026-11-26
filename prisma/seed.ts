@@ -1,8 +1,11 @@
 /**
  * npm run db:seed        → day-one data for production: settings (Miami time, FAST
  *                          windows), Math + Vienne's skills, the books (tests only),
- *                          locations, weekly hours, and Vienne's admin account.
- * npm run db:seed:demo   → the same plus the prototype's demo families (development only).
+ *                          weekly hours, Vienne's admin account, and her real locations from
+ *                          SEED_LOCATIONS_FILE (a JSON file outside the repo; required while
+ *                          the database has no location yet). No demo location is added.
+ * npm run db:seed:demo   → the same with the demo locations, plus the prototype's demo
+ *                          families (development only).
  *                          Refuses, before connecting, unless DATABASE_URL is local or its
  *                          database name says test, dev, demo or preview (see demoSeedRefusal).
  *
@@ -13,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
-import { DEMO_CODES, DEMO_PASSWORD, ensureAdmin, loadDemo, loadReference } from './data';
+import { DEMO_CODES, DEMO_PASSWORD, ensureAdmin, loadDemo, seedReference } from './data';
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
 const SAFE_NAME = /test|dev|demo|preview/i;
@@ -67,7 +70,8 @@ async function main() {
       console.log(`Demo loaded. Sign in as vienne@example.com or any demo parent (e.g. ana.mendoza@example.com) with password: ${DEMO_PASSWORD}`);
       console.log(`Demo invite codes: ${Object.values(DEMO_CODES).join(', ')} (some are used or expired on purpose)`);
     } else {
-      await loadReference(db);
+      // Checks SEED_LOCATIONS_FILE before anything is written.
+      console.log(await seedReference(db, { locationsFile: process.env.SEED_LOCATIONS_FILE }));
       const email = process.env.ADMIN_EMAIL;
       if (email) {
         await ensureAdmin(db, { email, name: process.env.ADMIN_NAME ?? 'Vienne Elliott', password: process.env.ADMIN_PASSWORD });

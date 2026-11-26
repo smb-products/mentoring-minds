@@ -1,14 +1,18 @@
 /**
  * Loads the prototype's data (prisma/demo/seed.js) into the database, with the same ids.
  *   loadReference — what production needs on day one: settings, the Math subject and
- *                   Vienne's skills, the books (tests only, no answers), locations, hours.
+ *                   Vienne's skills, the books (tests only, no answers), hours. The demo
+ *                   locations only with { demo: true }.
+ *   seedReference — the production seed: loadReference plus the real locations, read from
+ *                   SEED_LOCATIONS_FILE (a JSON file outside the repo, so they never land in git).
  *   loadDemo      — everything else: the demo families, sessions, homework, results…
  * Used by prisma/seed.ts and by the integration tests.
  */
 import bcrypt from 'bcryptjs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { Prisma, type PrismaClient } from '@prisma/client';
+import { fileURLToPath } from 'node:url';
+import { LocationKind, Prisma, type PrismaClient } from '@prisma/client';
 import { codeHint, hashCode } from '../src/lib/codes-core';
 // The prototype's seed is plain JS; its rows use the Prisma field names (docs/CONTRACT.md).
 import { createSeed } from './demo/seed.js';
@@ -60,10 +64,115 @@ export async function loadReference(db: PrismaClient, seed = prototypeSeed(), { 
   await db.settings.upsert({ where: { id: 1 }, update: {}, create: toData('Settings', { ...settings, defaultMeetingUrl: demo ? settings.defaultMeetingUrl : null }) as Prisma.SettingsCreateInput });
   await insert(db, 'Subject', rows(seed, 'subjects'));
   await insert(db, 'Skill', rows(seed, 'skills'));
-  await insert(db, 'Location', rows(seed, 'locations'));
+  if (demo) await insert(db, 'Location', rows(seed, 'locations'));
   if (!(await db.availability.count())) await insert(db, 'Availability', rows(seed, 'availability'));
   await insert(db, 'Book', rows(seed, 'books'));
   await insert(db, 'Tag', rows(seed, 'tags'));
+}
+
+/** Limits for the locations file (the address limit is the same as a session's address). */
+export const LOCATION_NAME_MAX = 80;
+export const LOCATION_ADDRESS_MAX = 200;
+export const LOCATIONS_MAX = 50;
+const KINDS = Object.values(LocationKind) as string[];
+
+export type SeedLocation = { name: string; kind: LocationKind; address: string | null };
+
+/** The checkout this file is in. A locations file inside it could be committed by mistake. */
+const CHECKOUT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+const FORMAT = `a list like [{ "name": "…", "kind": "LIBRARY", "address": "…" }], where kind is ${KINDS.join(', ')} and address is optional`;
+const sameName = (name: string) => name.trim().toLowerCase();
+
+/**
+ * Checks the locations file's text. Throws a plain message naming the problem and which
+ * entry has it; never the names or addresses themselves (seed output can end up in logs).
+ */
+export function parseLocations(text: string): SeedLocation[] {
+  const refuse = (problem: string) => new Error(`The locations file isn’t right: ${problem}. Nothing was saved. It should be ${FORMAT}.`);
+  let list: unknown;
+  try {
+    list = JSON.parse(text);
+  } catch {
+    // JSON.parse's own message quotes the text, so it isn't shown.
+    throw refuse('it isn’t valid JSON');
+  }
+  if (!Array.isArray(list)) throw refuse('it isn’t a list');
+  if (!list.length) throw refuse('the list is empty');
+  if (list.length > LOCATIONS_MAX) throw refuse(`it has ${list.length} locations, more than ${LOCATIONS_MAX}`);
+  const seen = new Map<string, number>();
+  return list.map((entry: unknown, i) => {
+    const n = `location ${i + 1}`;
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) throw refuse(`${n} isn’t a { name, kind, address } entry`);
+    const { name, kind, address, ...rest } = entry as Record<string, unknown>;
+    const extra = Object.keys(rest);
+    if (extra.length) throw refuse(`${n} has ${extra.length === 1 ? 'a field' : 'fields'} it doesn’t know: ${extra.map((k) => JSON.stringify(k.slice(0, 40))).join(', ')}`);
+    if (typeof name !== 'string' || !name.trim()) throw refuse(`${n} has no name`);
+    if (name.trim().length > LOCATION_NAME_MAX) throw refuse(`${n}’s name is longer than ${LOCATION_NAME_MAX} characters`);
+    if (typeof kind !== 'string' || !KINDS.includes(kind)) throw refuse(`${n}’s kind must be one of ${KINDS.join(', ')}`);
+    if (address !== undefined && address !== null) {
+      if (typeof address !== 'string' || !address.trim()) throw refuse(`${n}’s address is blank (leave it out if there isn’t one)`);
+      if (address.trim().length > LOCATION_ADDRESS_MAX) throw refuse(`${n}’s address is longer than ${LOCATION_ADDRESS_MAX} characters`);
+    }
+    const first = seen.get(sameName(name));
+    if (first) throw refuse(`locations ${first} and ${i + 1} have the same name`);
+    seen.set(sameName(name), i + 1);
+    return { name: name.trim(), kind: kind as LocationKind, address: typeof address === 'string' ? address.trim() : null };
+  });
+}
+
+const within = (p: string, root: string) => {
+  const rel = path.relative(root, p);
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+};
+
+/** Reads and checks SEED_LOCATIONS_FILE. Refuses a file inside the checkout, so real places stay out of git. */
+export async function readLocationsFile(file: string, checkout = CHECKOUT): Promise<SeedLocation[]> {
+  const inside = new Error(
+    'Refusing the locations file: SEED_LOCATIONS_FILE points inside the app’s folder, where it could be committed and the real places would end up in git. Nothing was saved. Move it outside the repo (your home folder, say) and run again.',
+  );
+  const full = path.resolve(file);
+  const root = await realpath(checkout).catch(() => checkout);
+  if (within(full, checkout) || within(full, root)) throw inside;
+  let text: string;
+  try {
+    if (within(await realpath(full), root)) throw inside; // a link that leads back into the repo
+    text = await readFile(full, 'utf8');
+  } catch (e) {
+    if (e === inside) throw e;
+    const code = (e as NodeJS.ErrnoException).code;
+    const why = code === 'ENOENT' ? 'there’s no file there' : code === 'EISDIR' ? 'it’s a folder, not a file' : code === 'EACCES' ? 'this account isn’t allowed to read it' : 'it couldn’t be read';
+    throw new Error(`Can’t read the locations file SEED_LOCATIONS_FILE names: ${why}. Nothing was saved. Check the path and run again.`);
+  }
+  return parseLocations(text);
+}
+
+/** Adds the locations whose name (ignoring case and spaces at the ends) isn't there yet. Existing ones are never changed. */
+export async function addLocations(db: PrismaClient, list: SeedLocation[]) {
+  return db.$transaction(async (tx) => {
+    const have = new Set((await tx.location.findMany({ select: { name: true } })).map((l) => sameName(l.name)));
+    const fresh = list.filter((l) => !have.has(sameName(l.name)));
+    if (fresh.length) await tx.location.createMany({ data: fresh });
+    return { added: fresh.length, skipped: list.length - fresh.length };
+  });
+}
+
+export const NO_LOCATIONS =
+  'Refusing to seed: there are no locations yet, and SEED_LOCATIONS_FILE isn’t set. Nothing was saved. ' +
+  `Put Vienne’s locations in a JSON file outside the repo (${FORMAT}) and run again with SEED_LOCATIONS_FILE=/path/to/locations.json.`;
+
+/**
+ * The production seed's data (npm run db:seed): checks the locations file before writing
+ * anything, then loads the day-one data and adds the new locations. Returns the line to
+ * print: counts only, never names or addresses (the output can end up in logs).
+ */
+export async function seedReference(db: PrismaClient, { locationsFile, checkout }: { locationsFile?: string; checkout?: string } = {}) {
+  const list = locationsFile?.trim() ? await readLocationsFile(locationsFile.trim(), checkout) : null;
+  if (!list && !(await db.location.count())) throw new Error(NO_LOCATIONS);
+  await loadReference(db);
+  if (!list) return 'Locations: none added (SEED_LOCATIONS_FILE isn’t set; the ones already there are kept).';
+  const { added, skipped } = await addLocations(db, list);
+  return `Locations: ${added} added, ${skipped} skipped (already there, left as they are).`;
 }
 
 /**
