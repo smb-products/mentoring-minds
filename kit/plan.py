@@ -53,7 +53,10 @@ def host():
 
 
 def overlaps(a, b):
-    """Two touch lists clash if any path equals or contains the other (folders end in /)."""
+    """Two touch lists clash if any path equals or contains the other (folders end in /).
+    SHARED_TOUCHES are files every feature edits on its own lines (merge-safe): they never clash."""
+    shared = set(ENV.get("SHARED_TOUCHES", "").split())
+    a, b = [x for x in a if x not in shared], [y for y in b if y not in shared]
     return any(x == y or x.startswith(y.rstrip("/") + "/") or y.startswith(x.rstrip("/") + "/")
                for x in a for y in b)
 

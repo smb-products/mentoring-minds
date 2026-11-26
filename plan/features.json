@@ -1,0 +1,234 @@
+{
+  "about": "One feature per wiring ticket in docs/WIRING.md. Checks restate what the ticket's spec in tests/e2e/ asserts. Every ticket also keeps auth.spec.ts, w0 and the earlier tickets' specs green, plus npm run typecheck and npm run test:contract. src/ui/api/index.js is in SHARED_TOUCHES (kit/project.env): each ticket uncomments only its own lines under its own // Wn header, so parallel tickets merge cleanly. New integration tests go in their own file (tests/integration/wN-*.test.ts), never in a shared one. Don't edit tests/contract/contract.test.ts: if a new contract case is needed, say so under notes in the report and a lead adds it.",
+  "features": [
+    {
+      "id": "W0",
+      "title": "Sign-in wired into the screens (WIRING Step 1), no areas live",
+      "spec": "tests/e2e/w0-sign-in-wired.spec.ts",
+      "deps": [],
+      "touches": [
+        "src/ui/api/index.js",
+        "src/ui/AppRoot.jsx",
+        "src/app/(admin)/admin/layout.tsx",
+        "src/app/(parent)/parent/layout.tsx",
+        "src/ui/components/shell/",
+        "src/components/family/",
+        "tests/e2e/change-password.spec.ts",
+        "plan/reports/W0.md"
+      ],
+      "checks": [
+        "src/ui/api/index.js is in the Step 2 form, with every area on its own commented-out line under a ticket header, in this order: // W1 'taxonomy' 'fast'; // W2 'families' 'invites'; // W3 'messages' 'notifications'; // W4 'books' 'content'; // W5 'assignments'; // W6 'scheduling' 'dashboard'; // W7 'reports' 'ai'. Committed with none uncommented, so tests/e2e/support/live.ts liveAreas() is empty and every screen still runs on the mock.",
+        "Both group layouts pass session.user into <AppRoot user={…}>. AppRoot takes the role from user.role (not the URL) and the text size from user.textSize, and calls setSessionUser(user.id) while any area is on the mock.",
+        "Each parent sees their own family: signed in as Grace, /parent/home shows Noah and not Mateo; as Ana, the 'Choose a child' tablist shows Mateo and Lucia (phone width too).",
+        "The account panel shows the signed-in email (grace.kim@example.com) and has no 'Demo account' radiogroup.",
+        "Choosing 'Larger' text sets #mm-root data-text to XLARGE, saves User.textSize = XLARGE, and survives a reload (router.refresh() after the save).",
+        "'Sign out' calls signOutNow() from src/app/(auth)/sign-in/actions.ts and lands on /sign-in; /parent/home afterwards redirects to /sign-in (phone width too).",
+        "A preview parent (Tom, status PREVIEW) sees 'Enter your invite code' and an 'Invite code' field (InviteCodeForm) until they redeem a code.",
+        "When session.user.mustChangePassword is true, the parent is asked for a new password before anything else; it calls families.changePassword({ currentPassword, newPassword }) with the temporary password as currentPassword, and goes to /sign-in if the result has signInAgain: true. The account panel has a 'Change password' row that uses the same call. Covered by a new tests/e2e/change-password.spec.ts that uses requiresSignInWired().",
+        "Proof with no areas live: the w0 spec skips while LIVE is empty, so uncomment one area (e.g. 'taxonomy') locally, run npm run build:e2e && npm run test:e2e -- w0 auth change-password, then comment it back before committing. Say in the report that you did."
+      ],
+      "hints": [
+        "families stays on the mock until W2, so account-level calls (families.setTextSize, families.changePassword) go to the real server directly via live.families from src/ui/api/live.js, not through api.families.",
+        "Schema fields used: User.textSize (TextSize: NORMAL | LARGE | XLARGE), User.mustChangePassword, User.status (PREVIEW | ACTIVE | PAUSED).",
+        "InviteCodeForm (src/components/family) already calls redeemInvite from @/server/invites; it only needs to be shown for PREVIEW parents.",
+        "Name the new spec without a leading w: tests/e2e/w*.spec.ts is locked."
+      ]
+    },
+    {
+      "id": "W1",
+      "title": "Skills and FAST results live (taxonomy, fast)",
+      "spec": "tests/e2e/w1-taxonomy-fast.spec.ts",
+      "deps": ["W0"],
+      "touches": [
+        "src/ui/api/index.js",
+        "src/server/taxonomy.ts",
+        "src/server/fast.ts",
+        "tests/integration/w1-taxonomy-fast.test.ts",
+        "plan/reports/W1.md"
+      ],
+      "checks": [
+        "In src/ui/api/index.js, only 'taxonomy' and 'fast' under // W1 are uncommented.",
+        "Content → Skills: Vienne adds 'Rounding to the nearest ten' (toast 'Skill added'), archives it (it disappears), and Undo brings it back.",
+        "Vienne adds a FAST result on Ana's family page and sees 'Score 215. Entered by Vienne'; Ana sees 'Score 215' on Progress with no console errors.",
+        "Ana enters Lucia's PM2 result of 236 on her phone: one FastResult row with window PM2, scaleScore 236, enteredById u_ana; Vienne's family page shows 'Score 236. Entered by Ana'.",
+        "Entering PM1 2026–27 for Lucia a second time shows 'PM1 2026–27 is already entered. Edit that one instead.' and leaves exactly one row.",
+        "npm run test:e2e -- w1 passes on a production build; w0 and auth still pass; npm run test:contract is green."
+      ],
+      "hints": ["Screens don't change. A contract gap is fixed in src/server/taxonomy.ts or fast.ts."]
+    },
+    {
+      "id": "W2",
+      "title": "Families and invites live (families, invites)",
+      "spec": "tests/e2e/w2-families-invites.spec.ts",
+      "deps": ["W0"],
+      "touches": [
+        "src/ui/api/index.js",
+        "src/server/families.ts",
+        "src/server/invites.ts",
+        "tests/integration/w2-families-invites.test.ts",
+        "plan/reports/W2.md"
+      ],
+      "checks": [
+        "In src/ui/api/index.js, only 'families' and 'invites' under // W2 are uncommented.",
+        "Vienne invites a family ('Invite family' → 'Create code') and gets a code shaped MM-XXXX. The new parent creates an account, sees 'Enter your invite code'; a wrong code shows 'That code isn’t valid. Check it with Vienne.'; the right one unlocks the app and shows Pablo. The user is ACTIVE with one student, Pablo, grade 4. Vienne's Families list shows Rosa Diaz. No console errors for the new parent.",
+        "'Reset password' on Daniel's family page shows a temporary password once (mm-xxxxxx-xxxxxx). Daniel's open session on another device goes to /sign-in on its next page, his old password is refused ('don’t match'), and the temporary one signs him in.",
+        "'Pause' sets Daniel to PAUSED right away and shows 'Make active'; 'Undo' sets him back to ACTIVE.",
+        "Searching the Families list for Grace shows Grace Kim and not Ana Mendoza (phone width too).",
+        "npm run test:e2e -- w2 passes on a production build; w0 and auth still pass; npm run test:contract is green."
+      ],
+      "hints": [
+        "resetParentPassword returns the password to show once; never log or store it in plain text.",
+        "Invite limits live in src/server/invites.ts: VALID_DAYS (14), MAX_FAILURES (10), LOCK_MS. Don't change them."
+      ]
+    },
+    {
+      "id": "W3",
+      "title": "Messages and alerts live (messages, notifications), plus the push button",
+      "spec": "tests/e2e/w3-messages-notifications.spec.ts",
+      "deps": ["W0"],
+      "touches": [
+        "src/ui/api/index.js",
+        "src/server/messages.ts",
+        "src/server/notifications.ts",
+        "src/ui/components/shell/NotificationsPanel.jsx",
+        "src/ui/components/messages/",
+        "tests/integration/w3-messages-notifications.test.ts",
+        "plan/reports/W3.md"
+      ],
+      "checks": [
+        "In src/ui/api/index.js, only 'messages' and 'notifications' under // W3 are uncommented.",
+        "Ana sends a message from /parent/messages: it shows in the thread, the box clears, and the Message row belongs to the conversation with parentId u_ana. Vienne's Alerts show 'Ana Mendoza sent a message'; opening it shows the thread; Vienne replies 'Yes, please bring it.' and Ana sees the reply (phone width too). No console errors for Vienne.",
+        "Opening Daniel Reyes's thread as Vienne marks it read up to the conversation's lastMessageAt.",
+        "'Mark all as read' in Alerts leaves Vienne (u_admin) with no unread notifications (readAt null count is 0).",
+        "A parent only ever sees their own conversation: another family's message text never appears.",
+        "A 'Turn on notifications' button calls PushManager.subscribe with NEXT_PUBLIC_VAPID_PUBLIC_KEY and sends subscription.toJSON() plus navigator.userAgent to notifications.savePushSubscription. It only shows where PushManager exists and permission isn't already granted, and it never asks for permission without a tap. No console errors when the key is unset.",
+        "npm run test:e2e -- w3 passes on a production build; w0 and auth still pass; npm run test:contract is green."
+      ],
+      "hints": ["On iPhone push only works once the app is added to the Home Screen: say so in plain words next to the button, not in an error."]
+    },
+    {
+      "id": "W4",
+      "title": "Book answer keys and the library live (books, content), files open",
+      "spec": "tests/e2e/w4-books-content.spec.ts",
+      "deps": ["W0"],
+      "touches": [
+        "src/ui/api/index.js",
+        "src/server/books.ts",
+        "src/server/content.ts",
+        "src/ui/pages/parent/LearningPage.jsx",
+        "tests/integration/w4-books-content.test.ts",
+        "plan/reports/W4.md"
+      ],
+      "checks": [
+        "In src/ui/api/index.js, only 'books' and 'content' under // W4 are uncommented.",
+        "Answer key: Vienne changes one answer, taps 'Save 1 change', sees 'Saved', and the BookItem's answer is the new value.",
+        "A family tapping 'We have it' updates Vienne's count, and the button goes away for that family.",
+        "Vienne uploads worksheet.pdf as 'Skip counting by 5s': the Resource is PUBLISHED, kind WORKSHEET, its file is application/pdf with the real size and uploadedAt set. Ana finds it under Mateo → Learning → Library, tapping worksheet.pdf opens /api/files/<fileId> in a new tab (window.open(`/api/files/${r.file.id}`, '_blank', 'noopener') in ResourceViewer replaces the 'File viewing isn’t part of the prototype' toast), and the file comes back 200 with the same bytes. No console errors for Ana.",
+        "A file that only pretends to be a PDF is refused with 'That file isn’t a real PDF. Try another.', stays on /admin/content/new, and no Resource is created.",
+        "Drafts stay hidden from families until published: Ana sees 'Fraction strips worksheet' but not 'Draft: times tables'.",
+        "Deleting a resource can be undone (toast 'Undone').",
+        "npm run test:e2e -- w4 passes on a production build; w0 and auth still pass; npm run test:contract is green."
+      ],
+      "hints": [
+        "Upload limits are src/lib/storage.ts ALLOWED_TYPES and MAX_BYTES (25 MB). Don't change them.",
+        "In e2e and dev, uploads go to ./uploads, never Blob. Lanes have no BLOB_READ_WRITE_TOKEN."
+      ]
+    },
+    {
+      "id": "W5",
+      "title": "Assignments live: assign, answer sheet with a photo, Vienne checks",
+      "spec": "tests/e2e/w5-assignments.spec.ts",
+      "deps": ["W2", "W4"],
+      "touches": [
+        "src/ui/api/index.js",
+        "src/server/assignments.ts",
+        "src/ui/pages/admin/AssignmentPage.jsx",
+        "tests/integration/w5-assignments.test.ts",
+        "plan/reports/W5.md"
+      ],
+      "checks": [
+        "In src/ui/api/index.js, only 'assignments' under // W5 is uncommented.",
+        "Vienne assigns Test 1, #10–14 to Lucia ('Assign to 1 student'): one Assignment titled 'Test 1, #10–14' with one ASSIGNED submission for s_lucia, and one ASSIGNMENT_GIVEN notification for u_ana with that title.",
+        "On Ana's phone, Lucia fills in the answer sheet (one wrong, one written answer with a photo), taps 'Check my answers' and 'Hand it in': the sheet shows 'N-1 of N right' and 'Vienne will check your written answer'. The submission is SUBMITTED, has a photo for #13 with a fileId, marks the missed one correct: false, and has one open RedoItem (clearedAt null) for it. No console errors for Ana.",
+        "The answer key never reaches a family's browser: no json, html or x-component response Ana's page receives contains a key answer. Grading happens on the server (lib/grading.ts), and family reads use bookItemDTO(item, { withAnswer: false }).",
+        "Vienne opens Work → 'Check'; tapping the photo opens /api/files/<fileId> (window.open(`/api/files/${photo.file.id}`, '_blank', 'noopener') replaces the 'Photo viewing isn’t part of the prototype' toast in AssignmentPage.jsx) and it returns 200. 'Save' marks the submission GRADED.",
+        "A test without an answer key can't be assigned yet: 'Add the answer key for Test 2 first so answers can be checked.' and a 'Set up the answer key' button.",
+        "Another family's work photo can't be opened: /api/files/<their fileId> returns 403.",
+        "npm run test:e2e -- w5 passes on a production build; w0–w4 and auth still pass; npm run test:contract is green."
+      ],
+      "hints": ["Schema fields used: Submission.status (ASSIGNED | SUBMITTED | GRADED), RedoItem.clearedAt, Notification.type ASSIGNMENT_GIVEN."]
+    },
+    {
+      "id": "W6",
+      "title": "Scheduling live, with Today and Home (scheduling, dashboard)",
+      "spec": "tests/e2e/w6-scheduling.spec.ts",
+      "deps": ["W2"],
+      "touches": [
+        "src/ui/api/index.js",
+        "src/server/scheduling.ts",
+        "src/server/dashboard.ts",
+        "tests/integration/w6-scheduling-dashboard.test.ts",
+        "plan/reports/W6.md"
+      ],
+      "checks": [
+        "In src/ui/api/index.js, only 'scheduling' and 'dashboard' under // W6 are uncommented. The w6 spec needs dashboard (Today, parent Home), so it goes live here, not in W7.",
+        "Grace requests a video call ('Request a session' → 'Send request'): one more REQUESTED session by u_grace. Vienne confirms it from Today (toast 'Session confirmed'), the session is CONFIRMED, and Grace's screen shows 'Confirmed' (phone width too). No console errors for Vienne.",
+        "Two families asking for the same time: Ana's request goes in (REQUESTED, VIDEO); Grace's for the same slot gets the toast 'That time was just booked.'",
+        "Vienne declines Keisha Brooks's request with the reason 'I’m booked then. Could Thursday work?': the session is DECLINED with that declineReason.",
+        "Grace cancels a session a week away ('Cancel session', then confirm): it is CANCELLED.",
+        "'Join call' on Grace's Home, for a confirmed video session starting inside the join window (Settings.joinOpensMin before startsAt; joinWindow in src/lib/dto.ts), opens the session's meetingUrl in a popup and sets callStartedAt (phone width too). Outside the window, parents never receive meetingUrl.",
+        "Vienne completes a finished session with a note ('Complete session'): it is COMPLETED and Daniel can read 'Equivalent fractions with strips'.",
+        "Slot times and 'today' use Settings.timezone through lib/time.ts (Miami), never the browser's zone or setHours().",
+        "npm run test:e2e -- w6 passes on a production build; w0–w2 and auth still pass (and w3–w5 for any that are merged); npm run test:contract is green."
+      ],
+      "hints": ["Schema fields used: Session.status, Session.declineReason, Session.meetingUrl, Session.callStartedAt, Settings.joinOpensMin (default 15), Settings.timezone."]
+    },
+    {
+      "id": "W7",
+      "title": "Reports and the AI helpers live (reports, ai)",
+      "spec": "tests/e2e/w7-reports-dashboard-ai.spec.ts",
+      "deps": ["W6"],
+      "touches": [
+        "src/ui/api/index.js",
+        "src/server/reports.ts",
+        "src/server/ai.ts",
+        "tests/integration/w7-reports-ai.test.ts",
+        "plan/reports/W7.md"
+      ],
+      "checks": [
+        "In src/ui/api/index.js, only 'reports' and 'ai' under // W7 are uncommented.",
+        "Vienne writes a report for Mateo ('New report' → 'Save draft'): Ana can't see the draft. After 'Publish to family', Ana is told and can read it ('drawing a model'). No console errors for Ana.",
+        "Today: confirming a request ('Confirm', toast 'Session confirmed') lowers the Requests count by one without a reload, matching the REQUESTED future sessions in the database.",
+        "Without ANTHROPIC_API_KEY, 'Talk about it' → 'Write my note' shows 'The AI helper isn’t available right now. Type it in instead, or try again in a minute.'",
+        "With a key and E2E_AI=1 (opt-in, not in lanes), 'Talk about it' turns a recap into a draft note, and nothing is saved until Vienne taps save: no SessionNote contains the recap text from the draft alone.",
+        "AI calls stay capped per day by AI_DAILY_LIMIT (src/lib/ai/prompts.ts), with MODEL and EFFORT from the same file. Don't change them.",
+        "npm run test:e2e -- w7 passes on a production build; w0–w6 and auth still pass; npm run test:contract is green."
+      ],
+      "hints": ["Lanes have no ANTHROPIC_API_KEY: the no-key path is what the lane proves. Never add a key to any file."]
+    },
+    {
+      "id": "W8",
+      "title": "Delete src/mock; index.js exports live directly",
+      "spec": "all of tests/e2e",
+      "deps": ["W0", "W1", "W2", "W3", "W4", "W5", "W6", "W7"],
+      "touches": [
+        "src/mock/",
+        "src/ui/",
+        "src/components/",
+        "src/app/",
+        "prisma/data.ts",
+        "prisma/demo/",
+        "tests/contract/",
+        "plan/reports/W8.md"
+      ],
+      "checks": [
+        "src/mock is gone, and nothing imports from it: src/ui/api/index.js exports live (and the live hooks) directly with no LIVE set, so liveAreas() reports every area. setSessionUser and the mock auth export are gone, and AppRoot no longer calls them.",
+        "Pieces still needed move rather than vanish: the B.E.S.T. reference data (src/mock/best.js) moves into src/ui/api/best.js; the demo seed (src/mock/seed.js) that prisma/data.ts loads moves under prisma/demo/ with the same ids, so npm run db:seed:demo and the e2e reset load the same families.",
+        "The contract check keeps running: the mock functions, core and seed it compares against move under tests/contract/mock/ as a frozen copy, and npm run test:contract is green.",
+        "live-hooks.js no longer subscribes to the mock.",
+        "npm run typecheck, npm test and the whole browser suite (npm run build:e2e && npm run test:e2e) pass, with no spec skipped for an area being on the mock."
+      ],
+      "hints": ["prisma/ is Zero's path, so this PR is held for Zero to merge. That's expected. Leave docs/ alone: a lead updates WIRING.md after."]
+    }
+  ]
+}
