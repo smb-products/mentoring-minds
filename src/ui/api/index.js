@@ -18,7 +18,7 @@ const LIVE = new Set([
   'books',
   'content',
   // W5
-  // 'assignments',
+  'assignments',
   // W6
   // 'scheduling',
   // W7
