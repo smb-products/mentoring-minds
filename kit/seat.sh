@@ -12,6 +12,14 @@ cd "$(git rev-parse --show-toplevel)"
 KIT="$PWD/kit"
 set -a; source "$KIT/project.env"; set +a
 export PATH="$KIT:$PATH"
+# project.env never reaches the tmux server. What is exported when the server starts becomes its global
+# environment, every later session inherits it (stale values, or another project's), and kit/lib.py lets the
+# environment override project.env. So tmux runs without those keys, and a server that has them is scrubbed.
+KIT_KEYS="$(sed -nE 's/^([A-Za-z_][A-Za-z0-9_]*)=.*/\1/p' "$KIT/project.env")"
+tmux() { env $(printf -- '-u %s ' $KIT_KEYS) tmux "$@"; }
+if command tmux info >/dev/null 2>&1; then
+  for k in $KIT_KEYS; do command tmux set-environment -gu "$k" 2>/dev/null || true; done
+fi
 seat="${1:?usage: kit/seat.sh <seat>}"
 name="${PROJECT}-${seat/:/-}"
 
@@ -49,7 +57,7 @@ open_session() {  # name, command
   if [ -n "${TMUX:-}" ] && ! tmux has-session -t "$1" 2>/dev/null; then
     tmux new-session -d -s "$1" "$2"; tmux switch-client -t "$1"
   else
-    exec tmux new-session -A -s "$1" "$2"
+    exec env $(printf -- '-u %s ' $KIT_KEYS) tmux new-session -A -s "$1" "$2"
   fi
 }
 

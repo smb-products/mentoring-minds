@@ -4,12 +4,17 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The merge queue tests each PR on the main it lands on (RULES.md, The loop).
+  merge_group:
 
+# A newer push to a PR replaces its run. Main and the merge queue are never cancelled.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # One job, always reported: `check` is the ruleset's required check, so it must finish (green) even when a
+  # change runs only part of the suite. kit/ci_scope.py decides which part.
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -34,27 +39,81 @@ jobs:
       INVITE_PEPPER: ci-only-pepper
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+        with:
+          fetch-depth: 2  # a PR's merge commit and its base parent
+      # What changed: holdout-only and plan-only changes run only what they touch; kit changes add the kit tests.
+      - id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          QUEUE_BASE: ${{ github.event.merge_group.base_sha }}
+        run: |
+          case "$EVENT" in
+            pull_request) base="$(git rev-parse HEAD^1)";;
+            merge_group)  git fetch -q --no-tags --depth=1 origin "$QUEUE_BASE"; base="$QUEUE_BASE";;
+            *)            base="";;
+          esac
+          if [ -n "$base" ]; then
+            git diff --name-only "$base" HEAD | tee "$RUNNER_TEMP/changed.txt"
+            python3 kit/ci_scope.py < "$RUNNER_TEMP/changed.txt" > "$RUNNER_TEMP/scope.txt"
+          else
+            python3 kit/ci_scope.py --full < /dev/null > "$RUNNER_TEMP/scope.txt"
+          fi
+          sed 's/^/scope: /' "$RUNNER_TEMP/scope.txt"
+          cat "$RUNNER_TEMP/scope.txt" >> "$GITHUB_OUTPUT"
+
+      - if: steps.scope.outputs.kit == 'true'
+        run: |
+          git config --global user.name ci && git config --global user.email ci@localhost
+          python3 kit/tests/test_kit.py
+      - if: steps.scope.outputs.plan == 'true'
+        run: python3 kit/plan.py lint
+
+      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout == 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout == 'true'
+        run: npm ci
+
+      # The whole app suite. npm test and npm run test:e2e include every holdout.
       # Proves the migrations apply cleanly from empty, exactly as on Vercel.
-      - run: npx prisma migrate deploy
+      - if: steps.scope.outputs.app == 'true'
+        run: npx prisma migrate deploy
       # Fails if schema.prisma changed without a migration (uses a throwaway database).
-      - run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_shadow'
-      - run: npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url postgresql://postgres:postgres@localhost:5432/mm_shadow --exit-code
-      - run: npm run typecheck
-      - run: npm test
+      - if: steps.scope.outputs.app == 'true'
+        run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_shadow'
+      - if: steps.scope.outputs.app == 'true'
+        run: npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url postgresql://postgres:postgres@localhost:5432/mm_shadow --exit-code
+      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout == 'true'
+        run: npm run typecheck
+      - if: steps.scope.outputs.app == 'true'
+        run: npm test
+      # Holdout-only: just the holdouts that changed (vitest makes its own tables from prisma/migrations).
+      # Paths go through env, never ${{ }} in a script: a fork PR picks its own file names.
+      - if: steps.scope.outputs.app != 'true' && steps.scope.outputs.holdout_tests != ''
+        env:
+          FILES: ${{ steps.scope.outputs.holdout_tests }}
+        run: npx vitest run --project holdout $FILES
+
       # A production build with sign-in on (DEMO_MODE not "true"), for the browser tests.
-      - run: npm run build:e2e
+      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != ''
+        run: npm run build:e2e
+      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != ''
+        run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_e2e_test'
+      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != ''
+        run: npx playwright install --with-deps chromium
       # Browser tests (tests/e2e): sign-in always; each wiring area once it's listed in LIVE.
-      - run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_e2e_test'
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - if: steps.scope.outputs.app == 'true'
+        run: npm run test:e2e
+      - if: steps.scope.outputs.app != 'true' && steps.scope.outputs.holdout_specs != ''
+        env:
+          FILES: ${{ steps.scope.outputs.holdout_specs }}
+        run: npx playwright test --project=holdout $FILES
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+          if-no-files-found: ignore

@@ -49,6 +49,17 @@ esac
 """
 
 
+KIT_KEYS = {line.split("=", 1)[0].strip() for line in (KIT / "project.env").read_text().splitlines()
+            if "=" in line and not line.lstrip().startswith("#")} | {
+            "PROJECT", "LEADS", "BUILDERS", "CHECKERS", "OPS", "MSG_BACKEND", "OPS_ISSUE", "PROTECT_WRITE",
+            "PROTECT_MERGE", "MAX_ATTEMPTS", "LANE_WAIT_MAX_MIN", "WATCHDOG_SILENT_MIN", "LANES_ON", "CHECK_MIN",
+            "CHECK_WAIT_MIN"}
+FAKE_TMUX = """#!/usr/bin/env bash
+[ "$1" = info ] && exit 1   # no server running yet
+env > "$TMUX_ENV_LOG"
+"""
+
+
 def run(args, cwd, env=None, inp=None):
     return subprocess.run(args, cwd=cwd, env=env, input=inp, capture_output=True, text=True)
 
@@ -86,7 +97,9 @@ class Kit(unittest.TestCase):
         for name, body in (("claude", FAKE_CLAUDE), ("gh", FAKE_GH)):
             (bin_ / name).write_text(body)
             (bin_ / name).chmod(0o755)
-        self.env = {k: v for k, v in os.environ.items() if not k.startswith("AVEL_")}
+        # Hermetic: a seat's environment can carry project.env keys (CHECK_MIN, OPS_ISSUE…), which would override
+        # the test repo's project.env.
+        self.env = {k: v for k, v in os.environ.items() if not k.startswith("AVEL_") and k not in KIT_KEYS}
         self.env.update(PATH=f"{bin_}:{os.environ['PATH']}", GH_LOG=str(self.tmp / "gh.log"))
 
     def tearDown(self):
@@ -306,6 +319,53 @@ class Kit(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout)  # in the workspace, protection is checked on the laptop
         today = json.dumps([{"headRefName": "f/A", "number": 7}, {"headRefName": "plan/x", "number": 8}])
         self.assertIn("PRs merged today: 1 feature (f/*), 1 process", self.kit("plan.py", "board", env={"GH_MERGED": today}).stdout)
+
+    def test_seat_keeps_project_env_out_of_tmux(self):
+        (self.tmp / "bin" / "tmux").write_text(FAKE_TMUX)
+        (self.tmp / "bin" / "tmux").chmod(0o755)
+        log = self.tmp / "tmux.env"
+        env = {k: v for k, v in self.env.items() if k != "TMUX"}
+        r = run(["bash", "kit/seat.sh", "board"], self.repo, {**env, "TMUX_ENV_LOG": str(log), "OPS_ISSUE": "2"})
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        seen = {line.split("=", 1)[0] for line in log.read_text().splitlines()}
+        self.assertTrue(seen & {"PATH", "HOME"}, seen)  # the fake tmux ran
+        self.assertFalse(seen & {"OPS_ISSUE", "PROJECT", "LEADS", "CHECK_MIN"}, "project.env reached tmux")
+
+    def test_ci_scope(self):
+        sys.path.insert(0, str(KIT))
+        from ci_scope import scope
+        yes = lambda p: True
+        full = scope(["src/a.ts", "kit/lane.py"], exists=yes)
+        self.assertEqual((full["app"], full["kit"], full["holdout"]), (True, True, False))
+        self.assertTrue(scope([], exists=yes)["app"])  # unknown diff: everything
+        self.assertTrue(scope(["kit/x.py"], full=True, exists=yes)["app"])  # main always runs everything
+        kit = scope(["kit/lane.py"], exists=yes)
+        self.assertEqual((kit["app"], kit["kit"], kit["plan"]), (False, True, False))
+        plan = scope(["plan/features.json", "plan/reports/A.md"], exists=yes)
+        self.assertEqual((plan["app"], plan["plan"], plan["holdout"]), (False, True, False))
+        h = scope(["tests/holdout/A.test.ts", "tests/holdout/B.spec.ts", "plan/holdouts/C.test.ts"],
+                  exists=lambda p: p != "tests/holdout/gone.test.ts")
+        self.assertEqual((h["app"], h["plan"], h["holdout_tests"], h["holdout_specs"]),
+                         (False, False, "tests/holdout/A.test.ts", "tests/holdout/B.spec.ts"))
+        moved = scope(["tests/holdout/gone.test.ts", "plan/holdouts/gone.test.ts"], exists=lambda p: False)
+        self.assertEqual((moved["app"], moved["holdout"]), (False, False))  # parked: nothing to run
+        self.assertTrue(scope(["tests/holdout/helpers.ts"], exists=yes)["app"])  # a helper can break any holdout
+        out = run([sys.executable, "kit/ci_scope.py"], self.repo, self.env, inp="plan/features.json\n").stdout
+        self.assertIn("app=false\n", out)
+        self.assertIn("plan=true\n", out)
+
+    def test_plan_lint(self):
+        self.assertEqual(self.kit("plan.py", "lint").returncode, 0)
+        bad = {"features": [{"id": "A", "deps": ["B"]}, {"id": "B", "deps": ["A"]}, {"id": "A", "deps": ["Z"]},
+                            {"title": "no id"}, {"id": "C", "touches": "src/"}]}
+        (self.tmp / "bad.json").write_text(json.dumps(bad))
+        r = self.kit("plan.py", "lint", str(self.tmp / "bad.json"))
+        self.assertEqual(r.returncode, 1)
+        for want in ("A: duplicate id", "depends on unknown Z", "feature #4: needs a string id",
+                     "C: touches must be a list", "dependency cycle"):
+            self.assertIn(want, r.stdout)
+        (self.tmp / "broken.json").write_text("{")
+        self.assertIn("not a features file", self.kit("plan.py", "lint", str(self.tmp / "broken.json")).stdout)
 
     def test_guard_one_pass_then_hard_cap(self):
         self.kit("plan.py", "set", "A", "stuck")
