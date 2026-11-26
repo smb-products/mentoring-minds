@@ -104,6 +104,11 @@ export const draftSessionNote = action(async (input: { sessionId: string; transc
   return { draftId, note: out.note, homework: out.homework, skills: validSkills.map((x) => ({ ...x, name: skills.find((k) => k.id === x.skillId)!.name })), redo, unsure };
 });
 
+// Below serverActions.bodySizeLimit (4 MB, next.config.ts), so this plain message comes back instead of a failed send.
+// The page checks the same number before sending.
+const MAX_PHOTO = 4_000_000;
+const PHOTO_TOO_BIG = 'That photo is too big to send. Take it a little closer to the page, or use a smaller photo.';
+
 type PageOut = { test: string; items: { number: number; answer: string | null; format: 'MC' | 'MULTI' | 'NUMERIC' | 'OPEN'; benchmarkCode: string | null; confident: boolean }[] };
 
 /** B. Read one photographed answer-key page. The image is not stored. */
@@ -115,7 +120,7 @@ export const readAnswerKeyPage = action(async (input: { bookId: string; test: st
       test: testKey,
       fromNumber: z.number().int().min(1).default(1),
       image: z.object(
-        { mediaType: z.enum(['image/jpeg', 'image/png', 'image/webp'], 'Use a JPG, PNG or WebP photo'), base64: z.string().min(100, 'Take or choose a photo of the page').max(5_000_000, 'Use a smaller photo').regex(/^[A-Za-z0-9+/=]+$/, 'That photo didn’t come through. Try again.') },
+        { mediaType: z.enum(['image/jpeg', 'image/png', 'image/webp'], 'Use a JPG, PNG or WebP photo'), base64: z.string().min(100, 'Take or choose a photo of the page').max(MAX_PHOTO, PHOTO_TOO_BIG).regex(/^[A-Za-z0-9+/=]+$/, 'That photo didn’t come through. Try again.') },
         'Take or choose a photo of the page',
       ),
     }),
