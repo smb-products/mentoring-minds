@@ -989,7 +989,7 @@
         "Deleting a child removes their sessions, notes, homework and answers, the assignments only they had, their FAST results, reports and shares, the stored files only their work used, and the alerts linked to them. On the code their parent redeemed, the child comes off the planned children by the student id that redeemInvite stores on each planned entry when it creates the child. Production has no real invites yet (the seed is on hold), so no backfill is needed. The demo seed stores the ids.",
         "Lower-case names (named case): a child typed in lower case ('noah kim') on the code their parent redeemed comes off it, because the match is by id and not by name. On a code nobody redeemed, the name stays: it isn't the family's.",
         "Delete family and Delete child come back on Vienne's family page, the same as before S27. Remove the `test.fixme` that S27's plan PR added to tests/e2e/s23-delete-on-request.spec.ts and tests/holdout/S23.spec.ts, and nothing else in those files. Replace the S27 spec with a check that both buttons show.",
-        "tests/integration/s23b-delete-by-id.test.ts covers every check above. tests/holdout/S23.test.ts and S23.spec.ts pass, and so does tests/integration/s23-delete-on-request.test.ts (only its name-matching cases change, each one named in the report). The first case of plan/holdouts/S23.test.ts passes, along with npm test, npm run test:contract and the whole browser suite. That file's second case (a lower-case name on an unredeemed code) is retired by check 6. Rigg moves the first case to tests/holdout/."
+        "tests/integration/s23b-delete-by-id.test.ts covers every check above. tests/holdout/S23.test.ts (its revoked-code case was retired by a lead for checks 3 and 6) and S23.spec.ts pass, and so does tests/integration/s23-delete-on-request.test.ts (only its name-matching cases change, each one named in the report). The first case of plan/holdouts/S23.test.ts passes, along with npm test, npm run test:contract and the whole browser suite. That file's second case (a lower-case name on an unredeemed code) is retired by check 6. Rigg moves the first case to tests/holdout/."
       ],
       "hints": [
         "Approved by Javaris 2026-11-26: a rewrite of S23 that matches only by ids, with what each delete removes listed and the holdout cases named. Zero wrote the data rules. It replaces S23's familyInvites and dropAlerts name and email matching (src/server/families.ts) after two reopens. Round 2 found that an email match acting as a wildcard let deleteFamily delete another family's code.",
@@ -1016,6 +1016,30 @@
         "Approved by Javaris 2026-11-26: an interim, ahead of S23b, because S23 can match another family's invite code by email (details in plan/reports/S23.md and S23b).",
         "Not held (src/ui only). Hide the buttons, don't restyle anything: one condition, or remove the two buttons and leave a comment pointing at S23b."
       ]
+    },
+    {
+      "id": "S28",
+      "title": "The production seed takes the real locations at seed time and adds no demo ones",
+      "spec": "tests/integration/s28-seed-locations.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "prisma/seed.ts",
+        "prisma/data.ts",
+        "tests/integration/s28-seed-locations.test.ts",
+        "tests/seed-guard.test.ts",
+        "plan/reports/S28.md"
+      ],
+      "checks": [
+        "npm run db:seed (the production seed) adds no demo location. It takes the locations from a JSON file named by SEED_LOCATIONS_FILE: a list of { name, kind, address? }, where kind is a LocationKind (TUTOR, HOME, LIBRARY) and address is optional. The file must be outside the repo: a path inside the checkout is refused, so real places never end up in git. npm run db:seed:demo keeps the demo locations as today.",
+        "The file is validated before anything is written. A missing or unreadable file, bad JSON, an empty list, an unknown kind, a blank or over-long name or address, or the same name twice is refused with a plain message naming the problem, and the database is left unchanged. The limits are named constants. When the database has no location yet and SEED_LOCATIONS_FILE isn't set, the seed refuses the same way. When it already has locations, the variable can be left out.",
+        "Re-running is safe. A location whose name is already there, ignoring case and spaces at the ends, is skipped: it is never duplicated or overwritten, so an edit made since stays. Only new names are added. The seed prints how many it added and how many it skipped, never the names or addresses (the output can end up in logs).",
+        "tests/integration/s28-seed-locations.test.ts covers each case with made-up places only (such as 'Example Library'). tests/seed-guard.test.ts, the S11 and S19 tests and npm test pass."
+      ],
+      "hints": [
+        "Approved by Javaris 2026-11-26: the real locations are entered at seed time and never go in the repo, docs, tests or messages.",
+        "Held for Zero (prisma). Today loadReference (prisma/data.ts) inserts rows(seed, 'locations') in production too. Keep that for the demo path only. Axis updates docs/PRODUCTION_SETUP.md Part 6 (the seed hold) after this merges."
+      ],
+      "held": "zero"
     },
     {
       "id": "S24",
