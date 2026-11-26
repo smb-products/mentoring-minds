@@ -94,16 +94,20 @@ CI fails if `schema.prisma` and the migrations disagree. Vercel applies new migr
 
 ## Before launch
 
-- [ ] `npm run build && npm test` green in CI
-- [ ] Spend limit set in the Claude Console (e.g. $5/month)
-- [ ] Blob store is **Private**, with a read-write token on the connection
-- [ ] `CRON_SECRET` set; after the first 13:00 UTC run, the job shows 200 in Vercel → Schedules → Cron Jobs → View Logs
-- [ ] Vienne signs in with Google and lands on Today (the consent screen is published, not "Testing")
-- [ ] A parent's Gmail address can sign in with Google on a phone
-- [ ] `DEMO_MODE` isn't set anywhere in Vercel → Settings → Environment Variables
-- [ ] Invite code → a test parent redeems it → sees their child
-- [ ] A photo upload from a real iPhone and a real Android phone
-- [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit)
+Who does each one, and what it waits on. Javaris does every click in Vercel, Neon, Google and the Claude Console;
+the audit tickets (P-product, P-ops) check the result. Production setup starts after W8.
+
+- [x] `npm run build && npm test` green in CI: the required `check` job, green on main after W8 (3828ab3). P-product, 2026-11-26.
+- [ ] Spend limit set in the Claude Console (e.g. $5/month). **Javaris**; P-ops checks it next to `AI_DAILY_LIMIT`.
+- [ ] Blob store is **Private**, with a read-write token on the connection. **Javaris** at setup; P-ops checks a raw Blob URL doesn't open.
+- [ ] `CRON_SECRET` set; after the first 13:00 UTC run, the job shows 200 in Vercel → Schedules → Cron Jobs → View Logs. **Javaris** sets it; **Atlas** (P-ops) reads the first run. Waits on the first production deploy.
+- [ ] Vienne signs in with Google and lands on Today (the consent screen is published, not "Testing"). **Javaris with Vienne**, on her account. Waits on Google OAuth setup.
+- [ ] A parent's Gmail address can sign in with Google on a phone. **Javaris**, with a test parent's Gmail. Waits on Google OAuth setup.
+- [ ] `DEMO_MODE` isn't set anywhere in Vercel → Settings → Environment Variables. **Atlas** (P-ops env check); the server also refuses to start in production with it (`src/lib/env-check.ts`).
+- [ ] Invite code → a test parent redeems it → sees their child. Passes on a production build (`w2-families-invites.spec.ts`). **Javaris** repeats it once on the real site.
+- [ ] A photo upload from a real iPhone and a real Android phone. **Javaris**. The emulated part passes on a production build (`p-product.spec.ts`: JPEG sent and opened by Vienne, HEIC and over-`MAX_BYTES` files refused with a plain message). On the iPhone, try one photo from the camera and one from the library (Safari normally sends JPEG; a HEIC gets "Use a PDF, PNG, JPG or WebP file").
+- [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit). **Javaris**; P-ops rehearses one restore into a new branch.
+- [ ] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). **Lanes**; `p-product.spec.ts` runs it once S8 removes its two `fixme`s.
 
 ## Dependency notes
 
