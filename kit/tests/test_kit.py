@@ -394,6 +394,9 @@ class Kit(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout)  # in the workspace, protection is checked on the laptop
         today = json.dumps([{"headRefName": "f/A", "number": 7}, {"headRefName": "plan/x", "number": 8}])
         self.assertIn("PRs merged today: 1 feature (f/*), 1 process", self.kit("plan.py", "board", env={"GH_MERGED": today}).stdout)
+        with open(self.repo / "kit" / "project.env", "a") as fh:
+            fh.write("LANES_ON=miosa\nMSG_BACKEND=fs\n")
+        self.assertIn("FAIL  MSG_BACKEND=fs but LANES_ON=miosa", run(["bash", "kit/preflight.sh"], self.repo, self.env).stdout)
 
     def test_seat_keeps_project_env_out_of_tmux(self):
         (self.tmp / "bin" / "tmux").write_text(FAKE_TMUX)
