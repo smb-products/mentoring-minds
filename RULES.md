@@ -44,6 +44,11 @@ Javaris clicked it through as Vienne and as a parent.
 ## Ownership
 - Claim a PR before working it: label it `owner:<seat>` and say "taking #N". Leads work in `.wt/`, never in the
   main checkout. Never merge your own PR. If the other lead is away 30 min, it goes to Javaris.
+- A held PR merges only when its author says it's final. Leads and Atlas open theirs as drafts (`--draft`) and
+  run `gh pr ready <n>` when the last push is in; a builder's PR is final when its report says `status: done`.
+  Never merge a draft, and re-check the head commit after any new push.
+- A feature whose `touches` hit `PROTECT_MERGE` names the lead who merges it (`"held"` in the plan), so that lead
+  expects it. `kit/plan.py lint` fails a plan that leaves it out.
 - Worktrees and caches live on disk, never in `/tmp`.
 
 ## When a check is wrong
@@ -57,7 +62,8 @@ Build what's sensible and put one line in the PR body: `amend: <id> check 3 shou
 
 ## Talking
 `kit/msg.py send <to> "<text>"` (a name, `leads`, `builders`, `checkers`, `ops`, `all`); `kit/msg.py inbox`.
-One line, naming the feature or PR. A seat isn't woken until its pane shows it working.
+One line, naming the feature or PR. A seat isn't woken until its pane shows it working. Start a message that
+needs no action with `FYI`. It doesn't count as unread when the guard looks for a frozen seat.
 
 ## Never
 - Real family data or photos anywhere: the repo is public. Demo data only.

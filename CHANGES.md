@@ -3,6 +3,18 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S5 lock rows, WC touches, held PRs
+
+- **S5:** a refusal while locked (global or per-account) adds no `RedeemFailure` row, and
+  `RedeemFailure.userId` references `User` with `onDelete: Cascade`. Why: without the first, one locked account
+  keeps the global count up and holds every family out; without the second, deleting a user fails. Needed before
+  W2 merges, since S5 is claimable after that. Approved: Zero.
+- **WC:** touches add `src/ui/api/live.js` (its READS check edits that line). Approved: Zero.
+- **Every feature:** a `held` field names the lead who merges it when its touches hit `PROTECT_MERGE`, and
+  `kit/plan.py lint` enforces it. Why: WA's PR was held for Zero without warning. Approved: Axis; Zero reviews.
+- **RULES, Ownership:** a held PR merges only when its author marks it final (leads' PRs open as drafts), at the
+  reviewed head. Why: PR #1 merged before its author's last push. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: server fixes S1–S5 (plan/features.json)
 
 From OSA's wiring review, specified by Zero. Each one waits for its area's wiring ticket so its touches never

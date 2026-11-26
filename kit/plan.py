@@ -12,7 +12,8 @@ different worktrees never conflict on a tracked file.
   plan.py ready                                     "<build> <check>": features ready to claim (read-only)
   plan.py show <id>                                 the feature as JSON, for a prompt
   plan.py board                                     who is on what, and cost so far
-  plan.py lint [file]                               ids, deps and cycles in plan/features.json (CI runs it)
+  plan.py lint [file]                               ids, deps, cycles and `held` in plan/features.json (CI runs it)
+                                                    (a feature whose touches hit PROTECT_MERGE names its lead)
 
 Status: ready → doing → review (PR open, auto-merge on) → merged → checking (holdout PR open) → checked
         `set <id> checking` records the checker's branch (AVEL_BRANCH); refresh marks it checked
@@ -25,7 +26,7 @@ CHECK_WAIT_MIN minutes; CHECK_BATCH is the most per batch.
 import json, os, sys, time
 from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import avel_dir, load_env, locked, now, read_json, root, sh, write_json
+from lib import avel_dir, glob_hit, load_env, locked, now, read_json, root, sh, words, write_json
 
 ENV = load_env()
 DONE = ("merged", "checking", "checked")  # the feature's own PR has merged
@@ -224,6 +225,13 @@ def board():
         print(f"PRs merged today: {today[0]} feature (f/*), {today[1]} process (everything else)")
 
 
+def held_touches(touches):
+    """Touches a PR may change that PROTECT_MERGE holds for a lead. A folder counts when it holds a protected path."""
+    globs = words(ENV.get("PROTECT_MERGE", ""))
+    return [t for t in touches if isinstance(t, str)
+            and (glob_hit(t, globs) or (t.endswith("/") and any(g.startswith(t) for g in globs)))]
+
+
 def lint(path):
     """Problems in a features file: what CI checks on a plan change, before a lane trips on it."""
     try:
@@ -244,6 +252,12 @@ def lint(path):
         for key in ("deps", "touches", "checks"):
             if not isinstance(f.get(key, []), list):
                 probs.append(f"{fid}: {key} must be a list")
+        held = held_touches(f.get("touches") if isinstance(f.get("touches"), list) else [])
+        leads = words(ENV.get("LEADS", ""))
+        if held and f.get("held") not in leads:
+            probs.append(f"{fid}: touches {', '.join(held[:3])} (PROTECT_MERGE), so it needs \"held\": one of {', '.join(leads)}")
+        elif not held and f.get("held"):
+            probs.append(f"{fid}: \"held\" is set but no touch is in PROTECT_MERGE")
     deps = {}
     for f in fs:
         if isinstance(f, dict) and isinstance(f.get("id"), str) and isinstance(f.get("deps", []), list):
