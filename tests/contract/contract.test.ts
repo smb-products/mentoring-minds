@@ -98,6 +98,8 @@ const ALLOWED_MISSING: { path: RegExp; when: (user: string) => boolean; why: str
   { path: /(^|\.)adminNotes$/, when: (u) => u !== 'u_admin', why: 'Vienne’s private notes never go to parents' },
   // S13: files are a DTO (src/lib/dto.ts fileDTO); the mock returned the whole FileAsset row.
   { path: /(^content\.getFileForUser|\.file)\.(storageKey|uploadedById|createdAt)$/, when: () => true, why: 'Files go out as a DTO: no storage key, uploader or other columns' },
+  // S15: a family's library sends no `sharedWith` (the mock listed other families' children and their parent ids).
+  { path: /^content\.listResourcesForStudent\[\]\.sharedWith$/, when: (u) => u !== 'u_admin', why: 'A family never sees who else a resource is shared with' },
 ];
 
 /** Error codes: the mock's need() always says INVALID; the real backend says NOT_FOUND for missing rows. */

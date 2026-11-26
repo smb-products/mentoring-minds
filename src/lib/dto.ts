@@ -93,6 +93,24 @@ export function resourceDTO(r: ResourceRow) {
   return { ...rest, subject: subjectDTO(subject), file: fileOrNull(file), tags: tags.map((t) => t.tag), sharedWith: shares.map((x) => studentSummary(x.student)) };
 }
 
+/** What a family's reads include for a resource: no shares, so no other family's children. */
+export const familyResourceInclude = {
+  subject: true,
+  file: true,
+  tags: { include: { tag: true } },
+} satisfies Prisma.ResourceInclude;
+type FamilyResourceRow = Prisma.ResourceGetPayload<{ include: typeof familyResourceInclude }>;
+
+/**
+ * A resource for a family: Vienne's shape without `sharedWith` (other families'
+ * children and their parent ids), and the file as a file DTO. `shares` on the row
+ * (fetched to decide who may see it) is dropped too.
+ */
+export function resourceForFamily(r: FamilyResourceRow & { shares?: unknown }) {
+  const { subject, file, tags, shares: _shares, deletedAt: _deletedAt, ...rest } = r;
+  return { ...rest, subject: subjectDTO(subject), file: fileOrNull(file), tags: tags.map((t) => t.tag) };
+}
+
 /** Preview (locked) accounts only ever receive this: never fileId, url or body. */
 export const resourceTeaser = (r: { id: string; title: string; kind: string; gradeMin: number; gradeMax: number; subject: { id: string; name: string; color: string } | null }) => ({
   id: r.id,
