@@ -141,6 +141,8 @@ A parent can ask for their family, or one child, to be removed (S23). The app de
    - Files only they used are removed from Blob just after the delete. Library resources stay, but they're
      no longer shared with them.
    - A deleted parent's account is gone, so they can't sign in.
+   - Their invite codes go with a family. When one child is deleted, the child comes off every code for that
+     parent, under **Invite codes**.
    - Vienne's alerts that name them go too. They're matched by name, so an alert naming another child with
      the same first name also goes (a known trade-off in `plan/reports/S23.md`).
 6. **Tell the parent it's done.** Neon's history still holds the old rows until the restore window passes

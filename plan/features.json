@@ -938,15 +938,16 @@
         "plan/reports/S23.md"
       ],
       "checks": [
-        "Two admin-only actions: delete a child, and delete a whole family (the parent account and all its children). Each removes every record about them (sessions, notes, homework, answers, FAST results, reports, messages, notifications, invites, push subscriptions, uploads) and the stored files only they used. Anything shared with others stays (a library resource keeps existing, minus the share).",
+        "Two admin-only actions: delete a child, and delete a whole family (the parent account and all its children). Each removes every record about them (sessions, notes, homework, answers, FAST results, reports, messages, notifications, invites, push subscriptions, uploads) and the stored files only they used. Anything shared with others stays (a library resource keeps existing, minus the share). The family's invite codes are every code the parent used, every code addressed to the parent's email (any case), and every unused code with no email whose parent name is the parent's full name (any case). That covers every state: unused, used, expired or revoked. Deleting the family deletes all of these codes. Deleting a child takes that child out of the planned children on every one of these codes. The codes themselves stay, with their other children. A wrong name match only costs Vienne a new code.",
         "A parent, a preview or paused account and anyone signed out are refused (FORBIDDEN or UNAUTHENTICATED), whatever the id, and nothing changes. Vienne's own account can't be deleted. A missing id gives Vienne NOT_FOUND.",
-        "On Vienne's family page, deleting asks twice: a first confirm that says what will be removed, then typing the child's or parent's name. After it, the family or child is gone from every screen, and the browser logs no error.",
-        "The integration test checks that no row anywhere still points at a deleted child or parent, and no stored object is left for their files. Any schema change adds only (cascades or a delete in order) and has its migration. npm test, npm run test:contract and the whole browser suite pass."
+        "On Vienne's family page, deleting asks twice: a first confirm that says what will be removed, then typing the child's or parent's name. After it, the family or child is gone from every screen, Invite codes included, and the browser logs no error.",
+        "The integration test checks that no row anywhere still points at a deleted child or parent, and no stored object is left for their files. Any schema change adds only (cascades or a delete in order) and has its migration. npm test, npm run test:contract and the whole browser suite pass. plan/holdouts/S23.test.ts passes (it is Rigg's: don't edit it)."
       ],
       "hints": [
         "Approved by Javaris 2026-11-26 (P-review): delete on request, admin only, records and Blob files, asks twice. Deleting real data in production stays Javaris's call: this gives Vienne the button, it doesn't run it.",
         "Held for Zero (src/server, src/lib, prisma). After S14 (families.ts), S17 (the file-removal rules) and S20 (schema). The new button follows the page's existing look; this is the one UI addition Javaris approved.",
-        "Axis writes the runbook in docs/DEPLOY.md after it merges."
+        "Axis writes the runbook in docs/DEPLOY.md after it merges.",
+        "Reopened by the S23 holdout (plan/holdouts/S23.test.ts): deleteStudent edits only the invite the parent used (usedById), so an earlier revoked code for the same parent's email still lists the deleted child on Invite codes. deleteFamily already deletes used and same-email codes; it misses unused codes with no email."
       ],
       "held": "zero"
     },

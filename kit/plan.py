@@ -328,9 +328,8 @@ def main(a):
         note = arg(a, "--note", "holdout failed")
         set_status(a[1], "needs_checks", note=note, attempts=0, session="",
                    round=s.get("round", 0) + 1, reopened_from=s.get("pr") or 0)
-        f = next((x for x in features() if x["id"] == a[1]), {})
         from msg import send
-        send(f.get("held") or "leads", f"{a[1]} reopened by its holdout ({note}); no lane claims it yet. Write the "
+        send("leads", f"{a[1]} reopened by its holdout ({note}); no lane claims it yet. Write the "
              f"failing case into its checks (plan/holdouts/{a[1]}.*), then kit/plan.py set {a[1]} ready.", "lane")
     elif cmd == "ready":
         print(*ready_counts())
