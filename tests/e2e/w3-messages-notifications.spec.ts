@@ -20,11 +20,13 @@ test('Ana writes to Vienne; Vienne is alerted, opens the thread and replies; Ana
   const alerts = await openAlerts(vienne.page);
   await alerts.getByText('Ana Mendoza sent a message').first().click();
   await vienne.page.waitForURL(`**/admin/messages/${sent.conversationId}`);
-  await expect(main(vienne.page).getByText(text)).toBeVisible();
+  // The thread itself: on desktop the inbox row beside it previews the same message (CHANGES.md 2026-11-26).
+  const thread = vienne.page.getByRole('log', { name: 'Messages' });
+  await expect(thread.getByText(text)).toBeVisible();
 
   await vienne.page.getByRole('textbox', { name: 'Message' }).fill('Yes, please bring it.');
   await vienne.page.getByRole('button', { name: 'Send' }).click();
-  await expect(main(vienne.page).getByText('Yes, please bring it.')).toBeVisible();
+  await expect(thread.getByText('Yes, please bring it.')).toBeVisible();
   expect(vienne.errors).toEqual([]);
   await vienne.close();
 

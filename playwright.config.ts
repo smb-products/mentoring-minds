@@ -47,7 +47,8 @@ export default defineConfig({
     // Parents mostly use phones: specs tagged @phone run here too.
     { name: 'phone', grep: /@phone/, use: { ...devices['Pixel 7'] } },
     // The checker's browser tests for merged tickets (tests/holdout/*.spec.ts).
-    { name: 'holdout', testDir: 'tests/holdout', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
+    // Specs only: tests/holdout/*.test.ts are vitest files, and loading them breaks the whole run (0 tests listed).
+    { name: 'holdout', testDir: 'tests/holdout', testMatch: '**/*.spec.ts', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined

@@ -183,7 +183,9 @@ def touched(branch):
 def auto_merge(agent, label, pr, branch, cwd):
     """Turn on auto-merge (with a merge queue on main, this queues the PR); tell OSA if GitHub refuses.
     Then heal a conflict with main. No --delete-branch: from a worktree it tries to check out main locally
-    and fails, and the repo deletes merged branches itself."""
+    and fails, and the repo deletes merged branches itself.
+    A lane's PR is final once its run is done, so a draft (which auto-merge refuses) is marked ready first."""
+    sh(["gh", "pr", "ready", str(pr)], cwd=cwd)  # no-op when it isn't a draft
     code, out = sh(["gh", "pr", "merge", str(pr), "--auto"], cwd=cwd)
     if code and "--squash" in out:  # no merge queue on this repo: gh needs a merge method
         code, out = sh(["gh", "pr", "merge", str(pr), "--auto", "--squash"], cwd=cwd)

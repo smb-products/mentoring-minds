@@ -44,6 +44,7 @@ case "$1 $2" in
   "api -X") git push -q origin --delete "${4#*/heads/}" 2>/dev/null;;
   "pr list") case "$*" in *open*) echo "${GH_OPEN:-[]}";; *) echo "${GH_MERGED:-[]}";; esac;;
   "issue comment") echo "comment $*" >> "$GH_LOG";;
+  "pr ready") echo "ready $3" >> "$GH_LOG";;
   "issue view") case "$*" in *state*) echo OPEN; exit 0;; esac; echo '{"comments":[{"createdAt":"2026-11-22T10:00:00Z","body":"[to:osa][from:soap][id:abc123] hi from miosa"}]}';;
 esac
 """
@@ -484,7 +485,9 @@ class Kit(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         st = json.loads(run(["cat", ".git/avel/state.json"], self.repo).stdout)["features"]["A"]
         self.assertEqual((st["status"], st["pr"], st["session"], st["cost_usd"]), ("review", 7, "s-1", 0.42))
-        self.assertIn("pr merge 7 --auto", (self.tmp / "gh.log").read_text())  # queued (merge queue or auto-merge)
+        log = (self.tmp / "gh.log").read_text()
+        self.assertIn("pr merge 7 --auto", log)  # queued (merge queue or auto-merge)
+        self.assertLess(log.index("ready 7"), log.index("pr merge 7"))  # a lane's draft is made ready first
         self.assertIn("f/A", run(["git", "ls-remote", "origin"], self.repo).stdout)
         merged = json.dumps([{"headRefName": "f/A", "number": 7}])
         r = self.kit("lane.py", "--agent", "soap", "--once", env={"GH_MERGED": merged})

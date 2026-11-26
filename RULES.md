@@ -47,6 +47,8 @@ Javaris clicked it through as Vienne and as a parent.
 - A held PR merges only when its author says it's final. Leads and Atlas open theirs as drafts (`--draft`) and
   run `gh pr ready <n>` when the last push is in; a builder's PR is final when its report says `status: done`.
   Never merge a draft, and re-check the head commit after any new push.
+- Lanes (builders, the checker) never open drafts: the lane queues their PR as soon as the run ends. A PR that
+  mustn't merge yet (it needs a lead's fix first) ends the run `status: blocked` and tells `leads` why.
 - A feature whose `touches` hit `PROTECT_MERGE` names the lead who merges it (`"held"` in the plan), so that lead
   expects it. `kit/plan.py lint` fails a plan that leaves it out.
 - Worktrees and caches live on disk, never in `/tmp`.
