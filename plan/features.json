@@ -951,6 +951,83 @@
       "held": "zero"
     },
     {
+      "id": "S24",
+      "title": "Signing out never shows or logs an error",
+      "spec": "tests/s24-sign-out.test.ts or tests/e2e/s24-sign-out.spec.ts (new)",
+      "deps": [
+        "S10"
+      ],
+      "touches": [
+        "src/ui/api/live.js",
+        "src/ui/api/live-hooks.js",
+        "src/ui/components/shell/AccountMenu.jsx",
+        "tests/live-adapter.test.ts",
+        "tests/s24-sign-out.test.ts",
+        "tests/e2e/s24-sign-out.spec.ts",
+        "plan/reports/S24.md"
+      ],
+      "checks": [
+        "Signing out from the account menu, as Vienne or a parent and from any screen, shows no error and logs no console error before the sign-in screen. That holds even when a read is still in flight, or fails because the session has just ended.",
+        "A read that fails while still signed in shows its error exactly as today, and a write still refreshes the screen. tests/live-adapter.test.ts and the S10 tests pass.",
+        "The new test reproduces the race: a read that fails after sign-out has started is dropped without an error. It fails on today's main. tests/holdout/S6.spec.ts passes 20 times in a row (`npx playwright test tests/holdout/S6.spec.ts --repeat-each 20`), along with npm test and the browser suite."
+      ],
+      "hints": [
+        "From Rigg's flake in the S10 batch: tests/holdout/S6.spec.ts 'signing out locks the app' sometimes logs listLocations 'couldn’t reach the server' at sign-out.",
+        "A likely cause, not yet proven: AccountMenu calls removePushSubscription through the live adapter, which treats it as a write, so changed() refetches every read on screen just before signOutNow(), and those refetches fail once the session is gone.",
+        "Not held (src/ui and tests only). Don't change how anything looks."
+      ]
+    },
+    {
+      "id": "S25",
+      "title": "Someone who must change their password can't open or upload files either",
+      "spec": "tests/integration/s25-file-routes-password.test.ts (new)",
+      "deps": [
+        "S21",
+        "S23"
+      ],
+      "touches": [
+        "src/app/api/files/[id]/route.ts",
+        "src/app/api/files/blob/route.ts",
+        "src/lib/files.ts",
+        "src/lib/blob-upload.ts",
+        "tests/integration/s25-file-routes-password.test.ts",
+        "plan/reports/S25.md"
+      ],
+      "checks": [
+        "While mustChangePassword is true, for Vienne or a parent, GET /api/files/[id] refuses a file they could otherwise open (403), and /api/files/blob gives no upload token. Both use the plain message the guards use for MUST_CHANGE_PASSWORD (src/lib/guards.ts).",
+        "After the password is changed, both work again without signing in again. Anyone without the flag sees no change: npm test, the p-product phone upload tests and the browser suite pass.",
+        "tests/integration/s25-file-routes-password.test.ts covers each case by calling the route handlers directly, as the S17 holdout calls the upload route."
+      ],
+      "hints": [
+        "From S21's report (notes): the file routes under src/app/api still check only the session. They aren't server functions, so S21 left them out. The local upload route (/api/files/upload/[id]) needs a token from content.createUpload, which S21 already refuses.",
+        "Held for Zero (src/app/api, src/lib). After S23, which edits src/lib/files.ts."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S26",
+      "title": "A new push replaces only an older one about the same thing",
+      "spec": "tests/integration/s26-push-tag.test.ts (new)",
+      "deps": [
+        "S16"
+      ],
+      "touches": [
+        "src/lib/notify.ts",
+        "tests/integration/s26-push-tag.test.ts",
+        "plan/reports/S26.md"
+      ],
+      "checks": [
+        "A push's tag names what it is about, not only its type. A message push is tagged by its thread. Every other push is tagged by its type and the item it opens (its href), and one without an href keeps its type alone. So on Vienne's phone, a second family's message, handed-in work or session request shows next to the first family's, instead of replacing it.",
+        "A newer push about the same thread or item still replaces the older one. tests/s16-push-payload.test.ts and tests/holdout/S16.test.ts pass unchanged. The in-app feed doesn't change.",
+        "tests/integration/s26-push-tag.test.ts covers three cases: two families' messages give two tags, two messages in one thread give one tag, and two families' handed-in work gives two tags."
+      ],
+      "hints": [
+        "From Rigg's S16 FYI and Zero: notify.ts passes `tag: n.type` today, so every push of one type shares a tag.",
+        "Held for Zero (src/lib)."
+      ],
+      "held": "zero"
+    },
+    {
       "id": "C1",
       "title": "Clean-up: no references to the deleted src/mock",
       "spec": "plan/reports/C1.md",
