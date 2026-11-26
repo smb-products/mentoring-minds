@@ -258,6 +258,19 @@ async function removeChildren(tx: Tx, studentIds: string[]) {
 
 const DELETE_TIMEOUT = { timeout: 30000, maxWait: 10000 };
 
+/**
+ * A family's invite codes, in any state (unused, used, expired, revoked): every code the parent
+ * used, every code addressed to their email (any case), and every unused code with no email made
+ * out to their full name (any case). A wrong name match only costs Vienne a new code.
+ */
+const familyInvites = (parent: { id: string; email: string; name: string }) => ({
+  OR: [
+    { usedById: parent.id },
+    { parentEmail: { equals: parent.email, mode: 'insensitive' as const } },
+    { usedById: null, usedAt: null, OR: [{ parentEmail: null }, { parentEmail: '' }], parentName: { equals: parent.name.trim(), mode: 'insensitive' as const } },
+  ],
+});
+
 /** Deletes a child and everything about them, and the stored files only they used. Can't be undone. */
 export const deleteStudent = action(async (input: { studentId: string }) => {
   await requireAdmin();
@@ -267,11 +280,12 @@ export const deleteStudent = action(async (input: { studentId: string }) => {
   const keys = await db.$transaction(async (tx) => {
     const files = await removeChildren(tx, [student.id]);
     await dropAlerts(tx, [student.parentId, ...admins], [fullName(student), student.firstName]);
-    // The invite that added them listed them by name.
-    const invite = await tx.invite.findUnique({ where: { usedById: student.parentId } });
-    if (invite) {
-      const planned = (invite.plannedStudents as { firstName?: string; lastName?: string }[]) ?? [];
-      const rest = planned.filter((p) => `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim() !== fullName(student) && (p.firstName ?? '') !== student.firstName);
+    // The family's codes listed them by name: each code stays, with its other children.
+    const parent = found(await tx.user.findUnique({ where: { id: student.parentId }, select: { id: true, email: true, name: true } }), 'Family');
+    const codes = await tx.invite.findMany({ where: familyInvites(parent), select: { id: true, plannedStudents: true } });
+    for (const invite of codes) {
+      const planned = Array.isArray(invite.plannedStudents) ? (invite.plannedStudents as { firstName?: string; lastName?: string }[]) : [];
+      const rest = planned.filter((p) => `${p?.firstName ?? ''} ${p?.lastName ?? ''}`.trim() !== fullName(student) && (p?.firstName ?? '') !== student.firstName);
       if (rest.length !== planned.length) await tx.invite.update({ where: { id: invite.id }, data: { plannedStudents: rest } });
     }
     return dropUnusedFiles(tx, files);
@@ -306,7 +320,7 @@ export const deleteFamily = action(async (input: { parentId: string }) => {
 
     await tx.conversation.deleteMany({ where: { parentId } }); // messages cascade
     await tx.message.deleteMany({ where: { senderId: parentId } });
-    await tx.invite.deleteMany({ where: { OR: [{ usedById: parentId }, { parentEmail: { equals: parent.email, mode: 'insensitive' } }] } });
+    await tx.invite.deleteMany({ where: familyInvites(parent) });
     await dropAlerts(tx, admins, [parent.name, ...students.map(fullName), ...students.map((s) => s.firstName)], conversation ? `/admin/messages/${conversation.id}` : undefined);
 
     const keys = await dropUnusedFiles(tx, files);
