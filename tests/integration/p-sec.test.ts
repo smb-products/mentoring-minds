@@ -123,7 +123,13 @@ function sourceExports() {
   return out;
 }
 
-const GUARD = /^(const \w+ = )?await require(User|Active|Admin)\(\);$/;
+/**
+ * A guard that takes no input: every `export async function requireX()` in src/lib/guards.ts, read from the
+ * source, so a new one (S9's requireCanMessage) counts without editing this test.
+ */
+const NO_INPUT_GUARDS = [...read('src/lib/guards.ts').matchAll(/^export async function (require\w+)\(\)/gm)].map((g) => g[1]);
+if (!NO_INPUT_GUARDS.includes('requireUser')) throw new Error('src/lib/guards.ts changed shape: requireUser not found');
+const GUARD = new RegExp(`^(const \\w+ = )?await (${NO_INPUT_GUARDS.join('|')})\\(\\);$`);
 
 describe('endpoints: every src/server export', () => {
   it('is found in the source and at runtime, wrapped in action() or query()', async () => {
