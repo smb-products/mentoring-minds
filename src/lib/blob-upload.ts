@@ -9,8 +9,9 @@ import { db } from './db';
  */
 export async function authorizeBlobUpload(userId: string | null | undefined, pathname: string, clientPayload: string | null) {
   if (!userId) throw new Error('Please sign in.');
-  const user = await db.user.findUnique({ where: { id: userId }, select: { role: true, status: true } });
-  if (!user || (user.role !== 'ADMIN' && user.status !== 'ACTIVE')) throw new Error('Your account can’t upload files.');
+  const user = await db.user.findUnique({ where: { id: userId }, select: { role: true, status: true, mustChangePassword: true } });
+  // The route refuses a pending password change first, with the guard's message; this keeps the rule for any caller.
+  if (!user || user.mustChangePassword || (user.role !== 'ADMIN' && user.status !== 'ACTIVE')) throw new Error('Your account can’t upload files.');
   const file = clientPayload ? await db.fileAsset.findUnique({ where: { id: clientPayload } }) : null;
   if (!file || file.uploadedById !== userId || file.uploadedAt || file.storageKey !== pathname) throw new Error('That upload wasn’t reserved.');
   if (Date.now() - file.createdAt.getTime() > 60 * 60 * 1000) throw new Error('That upload expired. Try again.');

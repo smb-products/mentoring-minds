@@ -1,6 +1,7 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
-import { auth } from '@/lib/auth';
 import { authorizeBlobUpload } from '@/lib/blob-upload';
+import { requireUser } from '@/lib/guards';
+import { ApiError } from '@/lib/result';
 
 /**
  * POST /api/files/blob — Vercel Blob client uploads. The browser asks here for a
@@ -20,8 +21,13 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-        const session = await auth();
-        return authorizeBlobUpload(session?.user?.id, pathname, clientPayload);
+        // Someone who must choose a new password first (S21) gets no token, with the guard's message (S25).
+        // Signed out falls through to authorizeBlobUpload's "Please sign in."
+        const user = await requireUser().catch((e: unknown) => {
+          if (e instanceof ApiError && e.code === 'UNAUTHENTICATED') return null;
+          throw e;
+        });
+        return authorizeBlobUpload(user?.id, pathname, clientPayload);
       },
       onUploadCompleted: async () => {
         // Intentionally empty: finishUpload is the checkpoint (it also works locally,
