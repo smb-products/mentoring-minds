@@ -16,6 +16,12 @@ import { cn } from '../../lib/cn';
 import { fmtAgo, fmtDate, fmtDateYear, fmtRelativeDay, fmtTime, fullName, gradeLabel } from '../../lib/format';
 import { Link, useRouter } from '../../lib/router';
 
+/**
+ * S27: Delete family and a child's Delete are hidden until S23b (delete by id only) lands. The drawer and
+ * families.deleteStudent / deleteFamily stay; S23b sets this back to true.
+ */
+const SHOW_DELETE = false;
+
 /** /admin/families/[parentId] — data: families.getFamily({ parentId }) */
 export default function FamilyPage({ params }) {
   const { navigate } = useRouter();
@@ -52,7 +58,7 @@ export default function FamilyPage({ params }) {
             ) : (
               <Button variant="glass" icon={Play} onClick={async () => show(await setStatus({ parentId: p.id, status: 'ACTIVE' }), 'Account is active')}>Make active</Button>
             )}
-            <Button variant="glass" icon={Trash2} onClick={() => setDeleting({ kind: 'family' })}>Delete family</Button>
+            {SHOW_DELETE && <Button variant="glass" icon={Trash2} onClick={() => setDeleting({ kind: 'family' })}>Delete family</Button>}
           </>
         }
       >
@@ -226,7 +232,7 @@ function StudentCard({ s, reports, onNewReport, onDelete }) {
             <span className="text-[14px] font-semibold text-muted-foreground">{gradeLabel(s.grade)}{s.school ? `, ${s.school}` : ''}</span>
           </div>
         </div>
-        <Button size="xs" variant="ghost" icon={Trash2} onClick={onDelete} aria-label={`Delete ${fullName(s)}`} className="self-start">Delete</Button>
+        {SHOW_DELETE && <Button size="xs" variant="ghost" icon={Trash2} onClick={onDelete} aria-label={`Delete ${fullName(s)}`} className="self-start">Delete</Button>}
       </div>
 
       <dl className="mx-5 grid grid-cols-3 overflow-hidden rounded-xl bg-muted/70">
