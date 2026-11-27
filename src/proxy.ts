@@ -1,22 +1,36 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
- * Next.js 16 proxy (formerly middleware). Signed-out visitors go to /sign-in;
- * parents can't open /admin and Vienne lands on /admin. Every server function
- * still checks permissions itself (lib/guards.ts): this is only routing.
+ * Pages anyone can open, signed in or not: the privacy page and the Open Graph image.
+ * Whole paths only, never a prefix: '/privacyx' and '/privacy/anything' still need a sign-in.
+ */
+const OPEN_TO_ALL = new Set(['/privacy', '/opengraph-image']);
+
+/**
+ * Where a page request goes: null lets it through, a path redirects there.
+ * Signed out, '/' is the landing page; signed in, it sends you home.
+ */
+export function redirectFor(pathname: string, user: { role?: string } | null | undefined): string | null {
+  if (OPEN_TO_ALL.has(pathname)) return null;
+  const isAuthPage = pathname.startsWith('/sign-in');
+  if (!user) return isAuthPage || pathname === '/' ? null : '/sign-in';
+  const home = user.role === 'ADMIN' ? '/admin/today' : '/parent/home';
+  if (isAuthPage || pathname === '/') return home;
+  if (pathname.startsWith('/admin') && user.role !== 'ADMIN') return '/parent/home';
+  return null;
+}
+
+/**
+ * Next.js 16 proxy (formerly middleware). Signed-out visitors go to /sign-in, except
+ * for the landing page at '/' and the pages in OPEN_TO_ALL; parents can't open /admin
+ * and Vienne lands on /admin. Every server function still checks permissions itself
+ * (lib/guards.ts): this is only routing.
  */
 export async function proxy(req: NextRequest) {
   const { auth } = await import('@/lib/auth');
   const session = await auth();
-  const user = session?.user;
-  const { pathname } = req.nextUrl;
-  const isAuthPage = pathname.startsWith('/sign-in');
-
-  if (!user) return isAuthPage ? NextResponse.next() : NextResponse.redirect(new URL('/sign-in', req.nextUrl));
-  const home = user.role === 'ADMIN' ? '/admin/today' : '/parent/home';
-  if (isAuthPage || pathname === '/') return NextResponse.redirect(new URL(home, req.nextUrl));
-  if (pathname.startsWith('/admin') && user.role !== 'ADMIN') return NextResponse.redirect(new URL('/parent/home', req.nextUrl));
-  return NextResponse.next();
+  const to = redirectFor(req.nextUrl.pathname, session?.user);
+  return to ? NextResponse.redirect(new URL(to, req.nextUrl)) : NextResponse.next();
 }
 
 /**
