@@ -12,8 +12,9 @@ const FAMILY = /Mateo|Lucia|Noah|Sofia|Jordan|ana\.mendoza|grace\.kim|Coral Terr
 
 test('signed out: every route, deep links and data requests included, goes to sign-in with nothing about a family', async ({ page, request, db }) => {
   const submission = await db.submission.findFirstOrThrow({ where: { student: { parentId: 'u_ana' } } });
+  // '/' is the public landing page since L1 (tests/e2e/l1-landing.spec.ts). Lead edit, CHANGES.md 2026-11-27.
   const paths = [
-    '/', '/admin', '/parent', '/admin/does-not-exist', '/parent/does-not-exist',
+    '/admin', '/parent', '/admin/does-not-exist', '/parent/does-not-exist',
     ...['today', 'families', 'families/u_ana', 'families/u_grace', 'schedule', 'settings', 'content', 'content/fa_fraction_strips',
       'content/book/made-up/1', 'assignments', 'assignments/new', 'assignments/made-up', 'messages', 'messages/conv_ana', 'reports/made-up'].map((p) => `/admin/${p}`),
     ...['home', 'sessions', 'learning', `learning/${submission.id}`, 'learning/made-up', 'messages', 'progress'].map((p) => `/parent/${p}`),
@@ -73,7 +74,8 @@ for (const who of Object.keys(OWN) as (keyof typeof OWN & Who)[]) {
     await expect(panel).not.toContainText(OWN[who].others);
     await panel.getByRole('button', { name: 'Sign out' }).click();
     await page.waitForURL('**/sign-in');
-    for (const path of ['/', OWN[who].home]) {
+    // '/' is the public landing page since L1 (tests/e2e/l1-landing.spec.ts). Lead edit, CHANGES.md 2026-11-27.
+    for (const path of [OWN[who].home]) {
       await page.goto(path);
       await expect(page, path).toHaveURL(/\/sign-in$/);
     }

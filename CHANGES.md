@@ -3,6 +3,14 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L1, holdouts S6 and S29 stop expecting '/' to go to sign-in
+
+- **Lead edit to locked holdouts:** `tests/holdout/S6.spec.ts` (the signed-out route list, and the after-sign-out
+  check) and `tests/holdout/S29.spec.ts` (the hydration walk) no longer include `/`. Every other path stays.
+  Why: L1 makes `/` the public landing page for signed-out visitors, as #128 already did for `auth.spec.ts`;
+  `tests/e2e/l1-landing.spec.ts` checks `/` itself. Approved: Javaris (landing page, 2026-11-27); lead edit by
+  Zero, Axis reviews.
+
 ## 2026-11-27: R2, R3 and L1 take OSA's taste review of R1
 
 - **docs/DESIGN.md:**

@@ -29,7 +29,8 @@ async function usable(page: Page) {
 
 test('a signed-out visitor sent away from a family or admin page lands on a sign-in screen with no mismatch', async ({ page }) => {
   const seen = watchHydration(page);
-  for (const path of ['/', '/parent/home', '/admin/today']) {
+  // '/' is the public landing page since L1 (tests/e2e/l1-landing.spec.ts). Lead edit, CHANGES.md 2026-11-27.
+  for (const path of ['/parent/home', '/admin/today']) {
     await page.goto(path);
     await expect(page, path).toHaveURL(/\/sign-in/);
     await usable(page);
