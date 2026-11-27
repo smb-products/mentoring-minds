@@ -313,7 +313,8 @@ test('colors are --landing-* tokens in globals.css, used only by the landing pag
     .filter((f) => /landing-[a-z]/.test(readFileSync(f, 'utf8').replace(/components\/landing/g, '')))
     .map((f) => path.relative(root, f))
     .sort();
-  expect(users).toEqual([path.join('src', 'app', 'globals.css'), path.join('src', 'components', 'landing', 'Landing.tsx'), path.join('src', 'components', 'landing', 'RequestInvite.tsx')]);
-  // The landing page draws no hex colors of its own: all of them are tokens.
-  for (const f of ['Landing.tsx', 'RequestInvite.tsx']) expect(readFileSync(path.join(root, 'src/components/landing', f), 'utf8'), f).not.toMatch(/#[0-9a-fA-F]{3,6}\b/);
+  // A1's auth panel uses the landing tokens too (docs/DESIGN.md → Auth screens; a lead edit, 2026-11-27).
+  expect(users).toEqual([path.join('src', 'app', 'globals.css'), path.join('src', 'components', 'auth', 'AuthScreen.tsx'), path.join('src', 'components', 'landing', 'Landing.tsx'), path.join('src', 'components', 'landing', 'RequestInvite.tsx')]);
+  // The landing page and the auth panel draw no hex colors of their own: all of them are tokens.
+  for (const f of ['landing/Landing.tsx', 'landing/RequestInvite.tsx', 'auth/AuthScreen.tsx']) expect(readFileSync(path.join(root, 'src/components', f), 'utf8'), f).not.toMatch(/#[0-9a-fA-F]{3,6}\b/);
 });
