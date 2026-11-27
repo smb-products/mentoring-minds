@@ -3,6 +3,15 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: P2b gets OSA's five P1 review nits
+
+- **P2b, new check 2:** stat sublines wrap to 2 lines (no ellipsis), Families' stat cards get their own icons,
+  Today's selected day uses the accent rather than navy, the Up next card's left border goes, and avatars become
+  soft blue tints. Its test check covers each one. `src/ui/components/ui/Display.jsx` (Figures, Avatar) joins
+  P2b's touches, so P2a stays clear of it. Why: OSA's screenshot review of P1 (#178) against the approved
+  mockup, under Javaris's polish approval.
+- **P2a, new check 2:** parent Home must not scroll sideways at 390px (the SkillMeter rows, found in P1's report).
+
 ## 2026-11-27: L4 spec allows A1's auth panel to use the landing tokens
 
 - **tests/e2e/l4-landing-c.spec.ts (a lead edit on #176):** the "landing tokens used only by the landing page"
