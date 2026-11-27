@@ -11,6 +11,13 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   children. Approved: Zero (decision), Axis.
 - **Accepted, no ticket:** what a family wrote themselves, such as a message that mentions a child, stays after
   that child alone is deleted. It goes when the family is deleted, as S23b intends. Approved: Zero, Axis.
+## 2026-11-26: S28 reopened, two cases
+
+- **S28 check 1:** a path whose folder or file name starts with two dots (`..places/…`) inside the checkout
+  is still inside, and is refused. **Check 3:** a refusal never prints anything the file holds, field names
+  and unknown keys included. It names only the entry number and the problem. **Check 4** adds the holdout
+  `plan/holdouts/S28.test.ts`. Why: Rigg's holdout reopened S28 on both cases. The second could print a real
+  place into a log. Approved: Axis; Zero reviews.
 
 ## 2026-11-26: AGENTS.md keeps Next's agent-rules block; S29
 

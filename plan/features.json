@@ -1030,14 +1030,15 @@
         "plan/reports/S28.md"
       ],
       "checks": [
-        "npm run db:seed (the production seed) adds no demo location. It takes the locations from a JSON file named by SEED_LOCATIONS_FILE: a list of { name, kind, address? }, where kind is a LocationKind (TUTOR, HOME, LIBRARY) and address is optional. The file must be outside the repo: a path inside the checkout is refused, so real places never end up in git. npm run db:seed:demo keeps the demo locations as today.",
+        "npm run db:seed (the production seed) adds no demo location. It takes the locations from a JSON file named by SEED_LOCATIONS_FILE: a list of { name, kind, address? }, where kind is a LocationKind (TUTOR, HOME, LIBRARY) and address is optional. The file must be outside the repo: a path inside the checkout is refused, so real places never end up in git. npm run db:seed:demo keeps the demo locations as today. Inside means anywhere under the checkout's folder, links resolved. A folder or file whose name starts with two dots, such as ..places/locations.json, is still inside and is refused, with nothing saved.",
         "The file is validated before anything is written. A missing or unreadable file, bad JSON, an empty list, an unknown kind, a blank or over-long name or address, or the same name twice is refused with a plain message naming the problem, and the database is left unchanged. The limits are named constants. When the database has no location yet and SEED_LOCATIONS_FILE isn't set, the seed refuses the same way. When it already has locations, the variable can be left out.",
-        "Re-running is safe. A location whose name is already there, ignoring case and spaces at the ends, is skipped: it is never duplicated or overwritten, so an edit made since stays. Only new names are added. The seed prints how many it added and how many it skipped, never the names or addresses (the output can end up in logs).",
-        "tests/integration/s28-seed-locations.test.ts covers each case with made-up places only (such as 'Example Library'). tests/seed-guard.test.ts, the S11 and S19 tests and npm test pass."
+        "Re-running is safe. A location whose name is already there, ignoring case and spaces at the ends, is skipped: it is never duplicated or overwritten, so an edit made since stays. Only new names are added. The seed prints how many it added and how many it skipped, never the names or addresses (the output can end up in logs). The same goes for refusals: no message prints anything the file holds. That includes field names and unknown keys, since a wrong-shaped file can have the place as a key. A message names only the entry number and what is wrong, such as 'location 2 has a field it doesn't know'.",
+        "tests/integration/s28-seed-locations.test.ts covers each case with made-up places only (such as 'Example Library'). tests/seed-guard.test.ts, the S11 and S19 tests and npm test pass. plan/holdouts/S28.test.ts passes (it is Rigg's: don't edit it)."
       ],
       "hints": [
         "Approved by Javaris 2026-11-26: the real locations are entered at seed time and never go in the repo, docs, tests or messages.",
-        "Held for Zero (prisma). Today loadReference (prisma/data.ts) inserts rows(seed, 'locations') in production too. Keep that for the demo path only. Axis updates docs/PRODUCTION_SETUP.md Part 6 (the seed hold) after this merges."
+        "Held for Zero (prisma). Today loadReference (prisma/data.ts) inserts rows(seed, 'locations') in production too. Keep that for the demo path only. Axis updates docs/PRODUCTION_SETUP.md Part 6 (the seed hold) after this merges.",
+        "Reopened by the S28 holdout (plan/holdouts/S28.test.ts). In prisma/data.ts, within() treats any relative path starting with '..' as outside, so '..places' is accepted. The unknown-fields refusal prints the keys."
       ],
       "held": "zero"
     },

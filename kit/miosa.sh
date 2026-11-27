@@ -109,7 +109,7 @@ case "${1:-status}" in
       devenv="cat > .env.local <<'AVEL_EOF'
 $(cat "$MIOSA_DEV_ENV_FILE")
 AVEL_EOF"
-    prep="set -e; cd '$REPO_DIR'; git fetch -q origin; git checkout -q main; git pull -q --ff-only origin main
+    prep="set -e; cd '$REPO_DIR'; git fetch -q origin; git checkout -q main; git merge -q --ff-only origin/main
       $devenv
       export AVEL_HOST=miosa
       ${LANE_ENV:-}
