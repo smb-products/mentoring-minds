@@ -947,9 +947,11 @@
         "Approved by Javaris 2026-11-26 (P-review): delete on request, admin only, records and Blob files, asks twice. Deleting real data in production stays Javaris's call: this gives Vienne the button, it doesn't run it.",
         "Held for Zero (src/server, src/lib, prisma). After S14 (families.ts), S17 (the file-removal rules) and S20 (schema). The new button follows the page's existing look; this is the one UI addition Javaris approved.",
         "Axis writes the runbook in docs/DEPLOY.md after it merges.",
-        "Reopened by the S23 holdout (plan/holdouts/S23.test.ts): deleteStudent edits only the invite the parent used (usedById), so an earlier revoked code for the same parent's email still lists the deleted child on Invite codes. deleteFamily already deletes used and same-email codes; it misses unused codes with no email."
+        "Reopened by the S23 holdout (plan/holdouts/S23.test.ts): deleteStudent edits only the invite the parent used (usedById), so an earlier revoked code for the same parent's email still lists the deleted child on Invite codes. deleteFamily already deletes used and same-email codes; it misses unused codes with no email.",
+        "Closed 2026-11-26: superseded by S23b, which deletes by id only. Kept for its history; no lane claims it."
       ],
-      "held": "zero"
+      "held": "zero",
+      "status": "superseded"
     },
     {
       "id": "S23b",

@@ -129,10 +129,8 @@ Rehearsal timings: `plan/reports/P-ops.md`.
 
 ## Deleting a family or a child on request
 
-**Not available yet.** S27 hides the Delete buttons until S23b lands. S23 matches some invite codes and alerts
-by name or email, so it can touch another family's rows. S23b matches by id only and brings the buttons back.
-
-A parent can ask for their family, or one child, to be removed (S23). The app deletes for good, so
+A parent can ask for their family, or one child, to be removed (S23). Since S23b the app finds everything by id,
+never by name or email, so a delete can't touch another family's rows. It deletes for good, so
 **Javaris** approves each request first. **Vienne** then runs it in the app.
 
 1. **Check the request.** It comes from the parent on that account, through a message in the app or from the
@@ -147,10 +145,10 @@ A parent can ask for their family, or one child, to be removed (S23). The app de
    - Files only they used are removed from Blob just after the delete. Library resources stay, but they're
      no longer shared with them.
    - A deleted parent's account is gone, so they can't sign in.
-   - Their invite codes go with a family. When one child is deleted, the child comes off every code for that
-     parent, under **Invite codes**.
-   - Vienne's alerts that name them go too. They're matched by name, so an alert naming another child with
-     the same first name also goes (a known trade-off in `plan/reports/S23.md`).
+   - The invite code the parent used goes with a family. When one child is deleted, the child comes off that
+     code. Codes the parent never used stay as they are, even ones sent to their email: under **Invite codes**,
+     revoke any that's still active.
+   - Vienne's alerts linked to them go too, and no other family's. Alerts linked to nobody stay.
 6. **Tell the parent it's done.** Neon's history still holds the old rows until the restore window passes
    (up to 7 days, **Restoring the database**). Say that everything is gone within that window.
 
@@ -200,10 +198,10 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] A photo upload from a real iPhone and a real Android phone. **Javaris**. The emulated part passes on a production build (`p-product.spec.ts`: JPEG sent and opened by Vienne, HEIC and over-`MAX_BYTES` files refused with a plain message). On the iPhone, try one photo from the camera and one from the library (Safari normally sends JPEG; a HEIC gets "Use a PDF, PNG, JPG or WebP file").
 - [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit). **Javaris**; P-ops rehearses one restore into a new branch.
 - [ ] "Auto-assign Custom Production Domains" is off (D5); a merge to main shows up **Staged**, and `PROD_URL` keeps the old build until Promote. **Javaris** sets it (setup Part 2); **Atlas** (P-ops) checks the next merge.
-- [ ] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). **Lanes**; `p-product.spec.ts` runs it once S8 removes its two `fixme`s.
-- [ ] Real locations decided. The production seed (`PRODUCTION_SETUP.md` Part 6) waits on it, so the demo locations never reach production. **Javaris**.
-- [ ] The library sends families no other family's children (S15) and Vienne's email can't be squatted before the seed (S19). **Lanes**; both before the production seed.
-- [ ] Deleting a family or a child matches only by id (S23b), before the production seed. S23 is merged, but it matches some codes and alerts by name or email. The runbook is **Deleting a family or a child on request**, and it gets updated when S23b lands. **Lanes** (Javaris approved, 2026-11-26); S27 hides the buttons until then.
+- [x] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). Merged (#49) and checked (#50); `p-product.spec.ts` runs both without a `fixme`.
+- [x] Real locations decided: entered at seed time from a file outside the repo, never in it (Javaris, 2026-11-26). S28 (#118) and S32 (#121) are merged and checked; the steps are `PRODUCTION_SETUP.md` Part 6 (#116).
+- [x] The library sends families no other family's children (S15, #76) and Vienne's email can't be squatted before the seed (S19, #82). Both merged and checked.
+- [x] Deleting a family or a child matches only by id (S23b, #107), merged and checked; the Delete buttons are back and the runbook is **Deleting a family or a child on request**. S23 is closed, superseded by S23b.
 - [x] Firewall rate limit on sign-up and sign-in: **after launch** (Javaris, 2026-11-26). Accepted risk: throwaway accounts can pause invite codes for everyone for up to an hour (`GLOBAL_REDEEM_FAILURES_PER_HOUR`).
 
 ## Limits
