@@ -3,6 +3,16 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L2 reopened, a duplicate request counts toward the limits
+
+- **L2 (needs_checks, new check 6):**
+  - A request from an email that already asked within DUPLICATE_EMAIL_HOURS counts toward REQUESTS_PER_IP_PER_HOUR
+    and REQUESTS_PER_HOUR like a new one.
+  - It's recorded only as an attempt (the hashed IP and the time, no input), so a visitor's answers never depend
+    on whether someone else's email asked before.
+  - Why: Rigg's holdout (#152, `plan/holdouts/L2.test.ts`) showed check 4's limits and check 5's "never reveals"
+    couldn't both hold. Approved: Axis (lead), Zero reviews.
+
 ## 2026-11-27: /privacy accuracy updates; L3 amend; L4 landing copy; R1 check 4 says text-field
 
 - **/privacy (accuracy, not new policy):**
