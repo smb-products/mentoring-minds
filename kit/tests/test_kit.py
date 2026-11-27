@@ -47,7 +47,8 @@ case "$1 $2" in
   "issue comment") echo "comment $*" >> "$GH_LOG";;
   "pr ready") echo "ready $3" >> "$GH_LOG";;
   "api graphql") case "$*" in *timelineItems*) echo "${GH_DROPS:-null}";; *) echo "${GH_QUEUE:-null}";; esac;;
-  "issue view") case "$*" in *state*) echo OPEN; exit 0;; esac; echo '{"comments":[{"createdAt":"2026-11-22T10:00:00Z","body":"[to:osa][from:soap][id:abc123] hi from miosa"}]}';;
+  "issue view") case "$*" in *state*) echo OPEN; exit 0;; esac; [ -n "$GH_COMMENTS" ] && { echo "$GH_COMMENTS"; exit 0; }
+    echo '{"comments":[{"createdAt":"2026-11-22T10:00:00Z","body":"[to:osa][from:soap][id:abc123] hi from miosa"}]}';;
 esac
 """
 
@@ -304,6 +305,13 @@ class Kit(unittest.TestCase):
         (panes / "atlas").write_text(idle)
         self.kit("watch.py", "--seats", env=env)
         self.assertIn("New message from OSA: run kit/msg.py inbox atlas", typed()[-1])
+        lines = keys.read_text().splitlines()
+        self.assertEqual(lines[1], "t-axis send-keys -t t-axis Enter")  # its own call, after the text
+        (panes / "axis").write_text("❯ New message from OSA: run kit/msg.py inbox axis and act on it.\n")
+        self.kit("watch.py", "--seats", env=env)  # the Enter was lost: the line still sits in the box
+        self.assertEqual(keys.read_text().splitlines()[-1], "t-axis send-keys -t t-axis Enter")
+        self.assertEqual(len(typed()), 2, "typed the line again instead of pressing Enter")
+        (panes / "axis").write_text(idle)
         send("axis", "and #4", by="zero")
         self.kit("watch.py", "--seats", env=env)
         self.assertIn("New message from OSA, zero: run kit/msg.py inbox axis", typed()[-1])
@@ -601,6 +609,47 @@ class Kit(unittest.TestCase):
             self.assertIn(want, r.stdout)
         (self.tmp / "broken.json").write_text("{")
         self.assertIn("not a features file", self.kit("plan.py", "lint", str(self.tmp / "broken.json")).stdout)
+
+    def test_lint_allows_a_leads_small_fix_entry_within_limits(self):
+        fs = {"features": [
+            {"id": "OK", "status": "review", "checks": ["it works"], "touches": ["kit/x.py", "src/app/api/y/route.ts"]},
+            {"id": "OLD", "status": "superseded"},
+            {"id": "TYPO", "status": "done"},
+            {"id": "BARE", "status": "review", "checks": [], "touches": ["docs/x.md"]},
+            {"id": "SCREEN", "status": "review", "checks": ["c"], "touches": ["src/ui/a.jsx", "src/app/page.tsx"]}]}
+        (self.tmp / "f.json").write_text(json.dumps(fs))
+        out = self.kit("plan.py", "lint", str(self.tmp / "f.json")).stdout
+        self.assertNotIn("OK:", out)
+        self.assertNotIn("OLD:", out)
+        self.assertIn('TYPO: status "done" isn\'t one of ready, review, superseded', out)
+        self.assertIn("BARE: a review entry needs real checks", out)
+        self.assertIn("SCREEN: touches src/ui/a.jsx, src/app/page.tsx, which is feature code", out)
+
+    def test_a_leads_small_fix_is_never_claimed_and_joins_the_check_flow_when_it_merges(self):
+        fs = {"features": [{"id": "F", "status": "review", "deps": [], "touches": ["kit/x.py"], "checks": ["c"]},
+                           {"id": "G", "deps": ["F"], "touches": ["src/g.ts"], "checks": []}]}
+        (self.repo / "plan" / "features.json").write_text(json.dumps(fs))
+        claim = lambda role="build": self.kit("plan.py", "claim", "--agent", "soap", "--role", role).stdout.strip()
+        self.assertEqual(claim(), "")         # F is the lead's, and G waits on it: review isn't done for deps
+        self.assertEqual(claim("check"), "")  # not merged yet, so nothing to check
+        self.kit("plan.py", "refresh", env={"GH_MERGED": json.dumps([{"headRefName": "f/F", "number": 12}])})
+        state = json.loads((self.repo / ".git" / "avel" / "state.json").read_text())
+        self.assertEqual(state["features"]["F"]["status"], "merged")
+        self.assertEqual(claim(), "G")
+        self.assertEqual(claim("check"), "F")
+
+    def test_messages_from_the_ops_issue_carry_local_time(self):
+        import time
+        now = time.time()
+        utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now - 60))
+        comments = json.dumps({"comments": [{"createdAt": utc, "body": "[to:axis][from:osa][id:gh1] please review #9"}]})
+        env = {"MSG_BACKEND": "both", "OPS_ISSUE": "5", "GH_COMMENTS": comments, "TZ": "America/Chicago"}
+        self.kit("msg.py", "send", "axis", "and #10", env={**env, "AVEL_AGENT": "zero"})
+        code = ("import sys; sys.path.insert(0, 'kit'); import msg, watch; ms = msg.read_all(); "
+                "print(' '.join(m['id'] for m in ms)); print(int(watch.age_s(ms[0])))")
+        ids, age = run([sys.executable, "-c", code], self.repo, {**self.env, **env}).stdout.split("\n")[:2]
+        self.assertTrue(ids.startswith("gh1 "), ids)  # the older GitHub message sorts first
+        self.assertTrue(55 <= int(age) <= 120, age)    # a minute old, not six hours in the future
 
     def test_guard_one_pass_then_hard_cap(self):
         self.kit("plan.py", "set", "A", "stuck")

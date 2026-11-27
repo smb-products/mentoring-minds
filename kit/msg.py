@@ -10,7 +10,7 @@ Backends (MSG_BACKEND in kit/project.env):
   gh    across machines: comments on the pinned Ops issue (OPS_ISSUE), "[to:x][from:y][id:z] text"
   both  send to both, read from both (default when OPS_ISSUE is set)
 """
-import json, os, re, sys, time, uuid
+import calendar, json, os, re, sys, time, uuid
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import avel_dir, load_env, locked, now, read_json, sh, write_json
 
@@ -48,6 +48,15 @@ def send(to, text, sender=None):
     return m
 
 
+def local(utc):
+    """GitHub's UTC createdAt as the local "at" that fs messages carry, so ages and the merged order agree."""
+    try:
+        t = calendar.timegm(time.strptime(utc[:19], "%Y-%m-%dT%H:%M:%S"))
+    except ValueError:
+        return utc[:19]
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(t))
+
+
 def read_all():
     msgs = {}
     if backend() in ("fs", "both"):
@@ -64,7 +73,7 @@ def read_all():
             for c in json.loads(out).get("comments", []):
                 g = GH_RE.match(c.get("body", ""))
                 if g and g.group(3) not in msgs:
-                    msgs[g.group(3)] = {"id": g.group(3), "at": c.get("createdAt", "")[:19],
+                    msgs[g.group(3)] = {"id": g.group(3), "at": local(c.get("createdAt", "")),
                                         "from": g.group(2), "to": g.group(1), "text": g.group(4)}
     return sorted(msgs.values(), key=lambda m: m["at"])
 
