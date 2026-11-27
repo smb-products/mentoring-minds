@@ -37,8 +37,10 @@ How files move:
 In Google Cloud Console → APIs & Services → Credentials, create an OAuth client (Web).
 
 - **OAuth consent screen:** user type **External**, app name "Mentoring Minds", Vienne's email as support contact. Scopes: only the defaults (email, profile, openid), so Google doesn't need to review the app. Then **Publish app** (status "In production"). While it says "Testing", only the test users listed there can sign in, and parents get a Google error.
-- **Authorised redirect URI:** `https://YOUR-DOMAIN/api/auth/callback/google`, plus `http://localhost:3000/api/auth/callback/google` for local work. Preview deployments have changing addresses, so Google won't work there: use email and password on previews.
+- **Authorised JavaScript origin:** `https://mentoringmindsacademy.org`.
+- **Authorised redirect URI:** `https://mentoringmindsacademy.org/api/auth/callback/google`, plus `http://localhost:3000/api/auth/callback/google` for local work. Preview deployments have changing addresses, so Google won't work there: use email and password on previews.
 - **Client ID / secret** → `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`
+- **No `AUTH_URL`.** On Vercel, Auth.js trusts the forwarded host (`VERCEL` is set), so it builds its callback from the address the visitor used. `www.mentoringmindsacademy.org` and `mentoring-minds.vercel.app` redirect to the apex with a 308 before reaching the app, so that address is always the apex. The app builds no other absolute links: push links and sign-in redirects are paths, and there's no email yet. If `AUTH_URL` were set, sign-in on a Staged deployment's own address would send you to the live site.
 
 Google is optional. Without both keys, the sign-in screen simply doesn't show the Google button. If Google sign-in fails (say, an unconfirmed email), the parent lands back on the sign-in screen with a plain message.
 
@@ -195,6 +197,7 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] Invite code → a test parent redeems it → sees their child. Passes on a production build (`w2-families-invites.spec.ts`). **Javaris** repeats it once on the real site.
 - [ ] A photo upload from a real iPhone and a real Android phone. **Javaris**. The emulated part passes on a production build (`p-product.spec.ts`: JPEG sent and opened by Vienne, HEIC and over-`MAX_BYTES` files refused with a plain message). On the iPhone, try one photo from the camera and one from the library (Safari normally sends JPEG; a HEIC gets "Use a PDF, PNG, JPG or WebP file").
 - [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit). **Javaris**; P-ops rehearses one restore into a new branch.
+- [ ] `mentoringmindsacademy.org` serves production; `www.mentoringmindsacademy.org` and `mentoring-minds.vercel.app` 308 to it, and all three follow each Promote. **Atlas** set them up (2026-11-27); P-ops check 8 confirms after the first promote.
 - [ ] "Auto-assign Custom Production Domains" is off (D5); a merge to main shows up **Staged**, and `PROD_URL` keeps the old build until Promote. **Javaris** sets it (setup Part 2); **Atlas** (P-ops) checks the next merge.
 - [x] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). Merged (#49) and checked (#50); `p-product.spec.ts` runs both without a `fixme`.
 - [x] Real locations decided: entered at seed time from a file outside the repo, never in it (Javaris, 2026-11-26). S28 (#118) and S32 (#121) are merged and checked; the steps are `PRODUCTION_SETUP.md` Part 6 (#116).
