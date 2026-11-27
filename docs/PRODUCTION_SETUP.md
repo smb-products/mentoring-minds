@@ -26,7 +26,7 @@ Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**
 ## Part 1. Neon (database), about 10 min
 
 1. Sign up at **console.neon.tech**, then **New project**.
-   - Name: `mentoring-minds`. Postgres version: the default. Region: **AWS US East 1 (N. Virginia)**.
+   - Name: `mentoring-minds`. Postgres version: the default. Region: **AWS US East 2 (Ohio)**.
 2. Open the project, then **Branches**. You'll see `main` (production).
 3. **Create branch** `preview`, with parent `main` and the current point in time. Then create `dev` the same way.
    - Do it **now, while `main` is empty**, so neither branch ever holds family data. If Neon offers
@@ -37,6 +37,12 @@ Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**
    - **Pooled** (the host contains `-pooler`) goes into `DATABASE_URL`.
    - **Direct** (turn "Connection pooling" off) goes into `DIRECT_URL`.
 5. **Settings → Instant restore** (also called the history window). Check it's on, at 6 hours on Free. Don't set it to 0.
+
+**If you ever reset a Neon password** (Neon → the branch → **Roles** → **Reset password**), both of that branch's strings change.
+Update `DATABASE_URL` **and** `DIRECT_URL` in Vercel for every environment that branch serves (Part 5's table;
+if you reset it on all three branches, that's Production, Preview and Development). Then redeploy production
+and promote it (Part 7, steps 1 and 2). Until you do, the live site can't reach the database. A deployment
+keeps the variables it was built with, so an Instant Rollback to one from before the reset can't connect either.
 
 ## Part 2. Vercel project, about 10 min
 
@@ -51,7 +57,8 @@ Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**
    `package.json` pins `"engines": "22.x"` (S12), which Vercel follows.
 6. **Settings → Deployment Protection**: leave **Vercel Authentication** on for Preview. Only your team can
    open previews.
-7. **Settings → Functions → Region**: check it's **Washington, D.C. (iad1)**, next to Neon.
+7. **Settings → Functions → Region**: set it to **Cleveland, USA (cle1)**, next to Neon in Ohio, and **Save**.
+   The default is Washington, D.C. (iad1), which would put every database call across states.
 8. **Settings → Environments → Production → Branch Tracking**: turn **off** "Auto-assign Custom Production
    Domains", then **Save**. From now on a merge to main builds a production deployment marked **Staged**, and
    `PROD_URL` keeps serving the old one until you **Promote** (D5).

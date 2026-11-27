@@ -13,11 +13,12 @@ order, for the person doing it: `docs/PRODUCTION_SETUP.md`.
 
 ## 1. Neon
 
-1. Create a project in region **US East (N. Virginia)**, close to Vercel's default region `iad1`.
+1. Create a project in region **AWS US East 2 (Ohio)**. Set the Vercel project's Functions region to **Cleveland (`cle1`)** to match (Settings → Functions → Region).
 2. Copy two connection strings:
    - **Pooled** (the host contains `-pooler`) → `DATABASE_URL`
    - **Direct** → `DIRECT_URL`, used by migrations
-3. Optional: a `dev` branch for preview deployments and local work.
+3. Branches `preview` and `dev` for preview deployments and local work (`docs/PRODUCTION_SETUP.md` Part 1).
+4. **After a password reset**, update `DATABASE_URL` and `DIRECT_URL` in Vercel for every environment on that branch, then redeploy and promote production (`docs/PRODUCTION_SETUP.md` Part 1, the note after step 5).
 
 ## 2. Vercel Blob (files)
 
@@ -53,7 +54,7 @@ Google is optional. Without both keys, the sign-in screen simply doesn't show th
 ## 4. Vercel
 
 1. Import the repo. The framework is Next.js. The build command comes from `vercel.json` (`npm run vercel-build`). On previews it applies migrations to the preview database, then builds. On production it only checks whether the database is up to date, then builds; it never migrates production (see **Releasing**).
-2. Set the environment variables below for **Production**. For **Preview**, use the Neon `dev` branch's URLs.
+2. Set the environment variables below for **Production**. **Preview** uses the Neon `preview` branch's URLs, and **Development** the `dev` branch's.
 3. Deploy, then seed once from your machine, pointed at production:
 
 ```bash
@@ -106,6 +107,8 @@ A bad deployment goes back to the previous one in about a minute, without a rebu
 3. Fix forward on main, then promote the fixed deployment (**Releasing**, step 3). Then check that
    auto-assign is still off (step 4). Vercel's docs say a promote after a rollback turns auto-assign back
    on. They don't say what an ordinary promote does. P-ops check 7 records what it does here.
+
+A rollback brings back that deployment's environment variables too. After a Neon password reset, rolling back to a deployment from before it can't reach the database.
 
 A rollback changes code only, never the database. If Javaris applied a migration for the bad deployment,
 the old code runs against the new schema. Migrations here only add, so that works, but check the migration first (see
