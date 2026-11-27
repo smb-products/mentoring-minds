@@ -3,6 +3,15 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L4's header under 480px (lead amend)
+
+- **L4 (#160), lead amend on f/L4:** under 480px the landing header shows only the logo, the name and **Sign in**.
+  Services, Rates and Get started are hidden, because the hero already has the call to action. The name has
+  `min-width: 0` with an ellipsis, and the header stays on one row. Nothing else changes.
+- Why: holdout `tests/holdout/L3.spec.ts` (320px: Sign in must clear the name) failed on #160, because the
+  header's nav overlapped the name. L4 had used its two attempts. Approved: Javaris (2026-11-27, via OSA),
+  option A, a lead amend.
+
 ## 2026-11-27: L4 lead edits on #160; the L2 holdout's real cause
 
 - **L4, check 3 (Fantem's amend):** the sample card's child is "Ella, grade 3", a name that's in no family's data,

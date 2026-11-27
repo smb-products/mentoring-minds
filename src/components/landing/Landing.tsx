@@ -75,16 +75,18 @@ function SectionTitle({ id, children, className = '', onDark = false }: { id: st
 
 function LandingHeader() {
   return (
-    <header className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-4 px-6 py-5">
+    {/* Under 480px only the logo, the name and Sign in: the name shrinks with an ellipsis, and the hero carries the
+        call to action (lead amend, approved by Javaris 2026-11-27; holdout L3's 320px check). */}
+    <header className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-4 px-6 py-5 max-[480px]:flex-nowrap">
       <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-md font-bold tracking-[-0.01em] text-landing-ink">
-        <LogoMark size={32} className="" />
-        <span className="text-[18px]">{SITE_NAME}</span>
+        <LogoMark size={32} className="shrink-0" />
+        <span className="min-w-0 truncate text-[18px]">{SITE_NAME}</span>
       </Link>
-      <nav aria-label="Main" className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px] font-medium">
-        <a href="#services" className="text-landing-muted hover:text-landing-ink">Services</a>
-        <a href="#rates" className="text-landing-muted hover:text-landing-ink">Rates</a>
+      <nav aria-label="Main" className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2 text-[15px] font-medium">
+        <a href="#services" className="text-landing-muted hover:text-landing-ink max-[480px]:hidden">Services</a>
+        <a href="#rates" className="text-landing-muted hover:text-landing-ink max-[480px]:hidden">Rates</a>
         <Link href="/sign-in" className="text-landing-muted hover:text-landing-ink">Sign in</Link>
-        <a href="#request-invite" className="rounded-[10px] bg-landing-accent px-[18px] py-2.5 font-semibold text-landing-paper hover:bg-landing-accent-hover">
+        <a href="#request-invite" className="rounded-[10px] bg-landing-accent px-[18px] py-2.5 font-semibold text-landing-paper hover:bg-landing-accent-hover max-[480px]:hidden">
           Get started
         </a>
       </nav>
