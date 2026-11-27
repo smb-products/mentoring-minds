@@ -25,7 +25,8 @@ If a test breaks, the change is wrong, not the test.
 | `text-heading` | 15px | 15px | 600 | Section and card titles |
 | `text-title` | 18px | 18px | 600 | Drawer, sheet and dialog titles |
 | `text-page` | 22px | 24px | 600 | Page titles (the `PageHeader` h1). Today they're 26–36px |
-| `text-figure` | 22px | 24px | 600 | Big numbers in a stat row |
+| `text-figure` | 22px | 24px | 600 | Big numbers in a stat row, and the landing page's rate |
+| `text-display` | 30px | 40px | 600 | The landing page's hero headline only (L3) |
 
 - Line height is 1.45 for body and 1.25 for headings. Headings have −0.01em tracking and nothing else.
 - Weights are 400, 500 and 600, never 700 (`font-bold`) or 800 (`font-extrabold`). Use 600 for headings and
@@ -114,6 +115,25 @@ stroke): plain text, no cards and no shadows. There are no photos.
 - The title is "Mentoring Minds Academy: math tutoring K-6".
 - The Open Graph image is text only, made with `next/og` in the brand colors: navy background, white Inter
   text, and one blue rule.
+
+### Landing polish (L3)
+
+From OSA's taste review of L1 (#136). The page should read like a business, not a docs page.
+- **Hero:**
+  - The headline is "Math tutoring for grades K–6 in Miami-Dade, with F.A.S.T. test prep", with an en dash in
+    K–6, at `text-display`.
+  - Under it is one subhead line: "One-on-one and small-group math tutoring with Vienne Elliott."
+  - The hero sits on a full-width light-gray band (`--secondary`, flat, no gradient), and its content is
+    balanced so the right half isn't empty.
+- **Header:** the brain logo at about 44px, so the mark is legible, and a **Sign in** link at top right.
+- **Rates:** one quiet bordered panel (1px `--border`, 8px corners, no shadow), with "$50" at `text-figure`
+  and "per hour" at `text-small` beside it. The payment methods are a plain list, Step Up For Students linked
+  as before.
+- **Rhythm:** sections don't all repeat h2, text and a rule, and there are no `<hr>` dividers.
+  - Services stay a 2×2 grid.
+  - How it works shows numbered steps 1–3, each number in a light circle. These step markers may be round.
+  - "In person or online" sits on a full-width light-gray band.
+- **Width:** still about 1080px at most, with wide side gutters. No photos.
 
 ## Privacy page (L1)
 
