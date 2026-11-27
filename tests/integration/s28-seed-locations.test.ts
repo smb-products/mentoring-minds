@@ -4,7 +4,7 @@
  * anything, skips names already there, and prints counts only. Made-up places only.
  */
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -92,6 +92,34 @@ describe('a file inside the checkout is refused, so real places never end up in 
     await expect(seedReference(db as never, { locationsFile: p, checkout: dir })).rejects.toThrow(INSIDE);
     expect(await seedReference(db as never, { locationsFile: p })).toMatch(/3 added/);
   });
+
+  it('refuses a folder or file whose name starts with two dots, which is still inside, and saves nothing', async () => {
+    const checkout = path.join(dir, 'checkout');
+    await mkdir(path.join(checkout, '..places'), { recursive: true });
+    const inFolder = path.join(checkout, '..places', 'locations.json');
+    const named = path.join(checkout, '..locations.json');
+    for (const p of [inFolder, named]) await writeFile(p, JSON.stringify(PLACES));
+    for (const p of [inFolder, named, path.relative(process.cwd(), inFolder)])
+      await expect(seedReference(db as never, { locationsFile: p, checkout }), p).rejects.toThrow(INSIDE);
+    expect(await db.settings.count()).toBe(0);
+    expect(await db.location.count()).toBe(0);
+    // A real '..' step still leaves the checkout: a file beside it is taken.
+    const beside = path.join(checkout, '..', '..checkout.json');
+    await writeFile(beside, JSON.stringify(PLACES));
+    expect(await seedReference(db as never, { locationsFile: beside, checkout })).toMatch(/3 added/);
+  });
+
+  it('refuses a two-dot folder in this checkout', async () => {
+    const folder = await mkdtemp(path.join(process.cwd(), '..s28-'));
+    try {
+      const p = path.join(folder, 'locations.json');
+      await writeFile(p, JSON.stringify(PLACES));
+      await expect(seedReference(db as never, { locationsFile: p })).rejects.toThrow(INSIDE);
+      expect(await db.location.count()).toBe(0);
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('the file is checked before anything is written', () => {
@@ -112,7 +140,10 @@ describe('the file is checked before anything is written', () => {
     ['an address that isn’t text', [{ name: 'Example Library', kind: 'LIBRARY', address: 12 }], /location 1’s address is blank/],
     ['an over-long address', [{ name: 'Example Library', kind: 'LIBRARY', address: long(LOCATION_ADDRESS_MAX + 1) }], new RegExp(`location 1’s address is longer than ${LOCATION_ADDRESS_MAX} characters`)],
     ['the same name twice', [PLACES[0], PLACES[1], { name: ' example LIBRARY ', kind: 'TUTOR' }], /locations 1 and 3 have the same name/],
-    ['a misspelt field', [{ name: 'Example Library', kind: 'LIBRARY', adress: '1 Example St' }], /location 1 has a field it doesn’t know: "adress"/],
+    ['a misspelt field', [{ name: 'Example Library', kind: 'LIBRARY', adress: '1 Example St' }], /location 1 has a field it doesn’t know\. /],
+    ['two unknown fields', [PLACES[0], { name: 'Example Park', kind: 'LIBRARY', city: 'Example City', zip: '00000' }], /location 2 has 2 fields it doesn’t know\. /],
+    // Shaped the wrong way round: the place is the field name. The key is never printed.
+    ['the place as a field name', [{ '1 Example St': 'Example Library' }], /location 1 has a field it doesn’t know\. /],
   ];
 
   it.each(cases)('refuses %s with a plain message, and the database is left unchanged', async (_label, content, message) => {
@@ -126,7 +157,8 @@ describe('the file is checked before anything is written', () => {
     expect(err.message).toMatch(message);
     expect(err.message).toMatch(/^The locations file isn’t right: .*Nothing was saved\. It should be a list like/);
     // Never echoes what the file holds.
-    for (const leak of ['1 Example St', '2 Sample Ave', 'Example School', 'xxxxxxxxxx']) expect(err.message).not.toContain(leak);
+    for (const leak of ['Example Library', '1 Example St', '2 Sample Ave', 'Example School', 'Example Park', 'Example City', 'adress', 'city', 'zip', 'xxxxxxxxxx'])
+      expect(err.message).not.toContain(leak);
     expect(await db.settings.count()).toBe(0);
     expect(await db.location.count()).toBe(0);
   });
