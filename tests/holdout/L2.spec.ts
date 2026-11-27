@@ -33,6 +33,9 @@ async function send(page: Page, message: string[]) {
 }
 
 test('a message on several lines arrives, a repeat looks the same, and only Vienne can read the request', async ({ page, db, browser }) => {
+  // Two typed sends plus three more signed-in sessions: past the 45 s default on a busy CI runner (one flake on
+  // #154, passed on rerun). Lead edit, CHANGES.md 2026-11-27: more time, the same assertions.
+  test.slow();
   await send(page, ['First line about reading.', 'Second line about Tuesdays.']);
   await expect.poll(() => db.inviteRequest.count()).toBe(1);
   expect((await db.inviteRequest.findFirstOrThrow()).message).toBe('First line about reading.\nSecond line about Tuesdays.');
