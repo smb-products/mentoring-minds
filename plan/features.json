@@ -1324,7 +1324,8 @@
         "Neon: the point-in-time restore window is on, and one restore into a new branch (never over main) is rehearsed and timed in docs/DEPLOY.md.",
         "Spend caps: a Vercel spend limit and the Neon plan's limit are set, as docs/COSTS.md lists them. No ANTHROPIC_API_KEY is set in any Vercel environment (no AI since S33, so no Claude Console limit).",
         "Rollback: an instant rollback to the previous deployment is rehearsed on a preview, not production, and the steps are in docs/DEPLOY.md.",
-        "Migrations (D5, manual): a production build runs no `prisma migrate deploy`, only a read-only status check that warns when production is behind; previews still migrate their own database. Production domains aren't auto-assigned, so a merge builds a Staged deployment, and docs/DEPLOY.md → Releasing says Javaris migrates production, then promotes. tests/vercel-build.test.ts covers production, preview and no database."
+        "Migrations (D5, manual): a production build runs no `prisma migrate deploy`, only a read-only status check that warns when production is behind; previews still migrate their own database. Production domains aren't auto-assigned, so a merge builds a Staged deployment, and docs/DEPLOY.md → Releasing says Javaris migrates production, then promotes. tests/vercel-build.test.ts covers production, preview and no database.",
+        "Domain: https://mentoringmindsacademy.org serves the promoted deployment with a valid certificate. www.mentoringmindsacademy.org and mentoring-minds.vercel.app return 308 to the apex with the path kept, and all three serve the new deployment after the next promote. Auth.js's Google callback is https://mentoringmindsacademy.org/api/auth/callback/google, with no AUTH_URL set (#130)."
       ],
       "hints": [
         "Run by its owner, not a lane (role audit). The owner works on f/P-ops in .wt/ and runs kit/plan.py set P-ops doing when it starts. The audit writes tests, docs and its report. A finding that needs app code becomes an S ticket for the lanes, listed in the report; it isn't fixed in the audit PR.",
@@ -1507,13 +1508,15 @@
     },
     {
       "id": "L1",
-      "title": "Landing page at / for signed-out visitors, and a restyled sign-in",
+      "title": "Landing page at / for signed-out visitors, a /privacy page, and a restyled sign-in",
       "spec": "tests/e2e/l1-landing.spec.ts (new)",
       "deps": [
         "R1"
       ],
       "touches": [
         "src/app/page.tsx",
+        "src/app/privacy/",
+        "src/app/opengraph-image.tsx",
         "src/components/landing/",
         "src/app/(auth)/sign-in/",
         "src/proxy.ts",
@@ -1523,50 +1526,58 @@
         "plan/reports/L1.md"
       ],
       "checks": [
-        "Routing: a signed-out visitor to / gets the landing page (200, no redirect). A signed-in Vienne still goes to /admin/today and a parent to /parent/home. Every other page still sends a signed-out visitor to /sign-in. src/proxy.ts lets / through only when signed out, and tests/proxy.test.ts covers both cases. The manifest's start_url becomes /sign-in, so the installed app opens to sign-in or home, never the landing page (scope stays /).",
+        "Routing: a signed-out visitor to / gets the landing page (200, no redirect). A signed-in Vienne still goes to /admin/today and a parent to /parent/home. /privacy and the Open Graph image route open for everyone, signed in or not. Every other page still sends a signed-out visitor to /sign-in. src/proxy.ts lets exactly those through, and tests/proxy.test.ts covers each case. The manifest's start_url becomes /sign-in, so the installed app opens to sign-in or home, never the landing page (scope stays /).",
         "Content, in order and word for word from docs/DESIGN.md → Landing page: the hero 'Math tutoring for grades K-6 in Miami-Dade, with F.A.S.T. test prep' with Get started and Sign in; the four services with their lines; rates ('$50 per hour', and payment by cash, Zelle, Cash App, Apple Pay and the Step Up For Students scholarship, linked to exactly https://www.stepupforstudents.org with target=\"_blank\" and rel=\"noopener noreferrer\"); how it works in three short steps; 'In person or online' with no place names; then Request an invite.",
-        "Get started goes to the Request an invite section (#request-invite) and Sign in goes to /sign-in. Until L2 lands, that section says 'Have an invite code from Vienne? Create your account on the sign-in page.', with that link. Page metadata: the title 'Mentoring Minds: math tutoring in Miami-Dade', a description, and Open Graph title, description and type 'website'. No image, no photos, no bio, and no address, phone or email for Vienne.",
-        "Look: docs/DESIGN.md's tokens and rules, with the brain logo (LogoMark) in the header. The sign-in page gets the same restyle and logo, and every label auth.spec.ts, auth-hydration.spec.ts, s29 and s31 read stays. It's phone first: one column, and no sideways scroll at the Pixel 7 width.",
-        "tests/e2e/l1-landing.spec.ts checks, signed out, the hero line, both buttons' targets, the four services, the rate, the five payment ways and the link's href, target and rel. Its @phone test checks there's no sideways scroll. It also checks signed-in redirects from / for Vienne and a parent. The lead already removed '/' from auth.spec.ts's signed-out list for this ticket. npm test and the whole browser suite pass."
+        "Get started goes to the Request an invite section (#request-invite) and Sign in goes to /sign-in. Until L2 lands, that section says 'Have an invite code from Vienne? Create your account on the sign-in page.', with that link. The footer has Privacy, Sign in, and '© Mentoring Minds Academy'. Metadata: metadataBase and the canonical URL are https://mentoringmindsacademy.org. The title is 'Mentoring Minds Academy: math tutoring K-6', with a description and Open Graph title, description, url and type 'website'. src/app/opengraph-image.tsx draws a text-only image with next/og in the brand colors (docs/DESIGN.md). No photos, no bio, and no address, phone or email for Vienne.",
+        "Look: docs/DESIGN.md's tokens and its Landing page layout: generous whitespace, about 1080px wide at most, and the services as a quiet 2×2 grid (one column on phones), each with one 18px line icon and no card or shadow. The brain logo (LogoMark) is in the header. The sign-in page gets the same restyle and logo, plus a Privacy link, and every label auth.spec.ts, auth-hydration.spec.ts, s29 and s31 read stays. It's phone first, with no sideways scroll at the Pixel 7 width.",
+        "/privacy follows docs/DESIGN.md → Privacy page, in plain words with no legal boilerplate. It covers what's stored (accounts, children's first names and grades, sessions and notes, homework and photos, messages, FAST scores, invite requests), who sees it (Vienne, and each family only its own), where it lives (Vercel and Neon, US), how long invite requests are kept (90 days), and deletion on request (S23b, with backups clearing within the restore window). It names no person but Vienne, and gives no address. The report quotes the full text for Javaris to review.",
+        "tests/e2e/l1-landing.spec.ts checks, signed out: the hero line, both buttons' targets, the four services, the rate, the five payment ways and the link's href, target and rel, the footer links, the canonical link and og:title, and that /privacy opens signed out and signed in. Its @phone test checks there's no sideways scroll on / and /privacy. It also checks signed-in redirects from / for Vienne and a parent. The lead already removed '/' from auth.spec.ts's signed-out list for this ticket. npm test and the whole browser suite pass."
       ],
       "hints": [
         "Javaris approved the landing page on 2026-11-27 (via OSA). It replaces S34 (#127, closed); its rates and services move here.",
         "Not held. It shares no touches with R2 or R3. The page is a server component outside AppRoot, and it needs no database call for a signed-out visitor.",
-        "L2 adds the Request an invite form to src/components/landing/. Leave one clear spot for it."
+        "L2 brings its own component, src/components/landing/RequestInvite.tsx. Build the page in src/components/landing/Landing.tsx with one clear slot in the #request-invite section; L2 adds the import and the one line that fills it.",
+        "The domain is mentoringmindsacademy.org (#130). Javaris reviews the /privacy wording before launch, and it's on DEPLOY's Before launch list."
       ]
     },
     {
       "id": "L2",
-      "title": "Request an invite: a form on the landing page that reaches Vienne's alerts",
-      "spec": "tests/integration/l2-invite-requests.test.ts and tests/e2e/l2-request-invite.spec.ts (new)",
+      "title": "Request an invite: a signed-out form on the landing page that reaches Vienne's alerts",
+      "spec": "tests/integration/l2-request-invite.test.ts and tests/e2e/l2-request-invite.spec.ts (new)",
       "deps": [
         "L1",
         "S33"
       ],
       "touches": [
-        "src/server/inviteRequests.ts",
-        "src/lib/",
+        "src/server/requests.ts",
+        "src/lib/client-ip.ts",
+        "src/lib/jobs.ts",
+        "src/lib/notify.ts",
         "prisma/schema.prisma",
         "prisma/migrations/",
-        "src/components/landing/",
+        "src/components/landing/RequestInvite.tsx",
+        "src/components/landing/Landing.tsx",
+        "tests/integration/l2-request-invite.test.ts",
         "tests/integration/p-sec.test.ts",
-        "tests/integration/leaks.test.ts",
-        "tests/integration/l2-invite-requests.test.ts",
         "tests/e2e/l2-request-invite.spec.ts",
         "docs/DEPLOY.md",
+        "AGENTS.md",
         "plan/reports/L2.md"
       ],
       "checks": [
-        "The form, in the landing page's #request-invite section: Parent name (required), Email (required), Phone (optional), Child's grade (K through 6, required) and Message (optional), plus a honeypot field that people never see and screen readers skip (aria-hidden, tabindex -1, autocomplete off). It's labelled for screen readers and follows docs/DESIGN.md, with 16px inputs on phones. On success it shows 'Thanks. Vienne will be in touch.' and clears.",
-        "One public endpoint, requestInvite, in src/server/inviteRequests.ts. It's the only export with no guard, so it goes in tests/integration/p-sec.test.ts's PUBLIC with a one-line reason. It parse()s with zod, with named limits INVITE_REQUEST_NAME_MAX (80), INVITE_REQUEST_MESSAGE_MAX (1000) and an email of at most 254 characters, and returns a DTO that never echoes the input: { received: true }. It creates no User, Account or Invite, and reads nothing back to the visitor.",
-        "Abuse limits, each a named constant with a test that reaches it: INVITE_REQUESTS_PER_HOUR (all visitors together, 20) and INVITE_REQUESTS_PER_EMAIL_PER_DAY (3). Over a limit, the visitor gets 'Too many requests right now. Please try again later.', and nothing is stored or sent. A filled honeypot gets the same success response, with nothing stored and Vienne not told. Both constants go in docs/DEPLOY.md → Limits, and p-sec.test.ts's list reads them.",
-        "Vienne's alert: one admin notification, sent after the transaction commits (lib/notify.ts), titled 'Invite request from <parent name>', with the email, phone, grade and message in its body. The push (when push is on) says only 'New invite request', with no name or contact details. No family ever receives it (leaks.test.ts). Where the request is stored, in a small InviteRequest table or in the notification only, is Zero's call. Any schema change only adds, with its migration.",
-        "Tests: tests/integration/l2-invite-requests.test.ts covers the good path, each limit, the honeypot, over-long and bad input (INVALID), that no account is made, and that the response holds no input. tests/e2e/l2-request-invite.spec.ts fills the form signed out on a production build, then signs in as Vienne and finds the alert. npm test, p-sec and the whole browser suite pass."
+        "Signed out, a valid request to requests.requestInvite returns { ok: true, data: { received: true } }, stores one InviteRequest, and gives each admin one INVITE_REQUEST alert with the name, grade, email, phone and message. A parent gets no alert.",
+        "A filled website field (the honeypot) returns the same data, stores nothing and alerts nobody. So does a second request from the same email within DUPLICATE_EMAIL_HOURS (24).",
+        "Wrong input on every field (missing, too long, wrong type, a control character, grade 7 or −1, a bad email) is INVALID, with a plain message that names the field, never echoes the input, and stores nothing. Limits: parentName 2–80, email ≤ 254 and lowercased, phone optional ≤ 30 with only digits, spaces and + ( ) - ., grade an integer 0–6 (0 = K), message ≤ 1000. Newlines are allowed only in message.",
+        "Limits, as constants at the top of src/server/requests.ts: the (REQUESTS_PER_IP_PER_HOUR (3) + 1)th request from one IP in an hour is LIMIT, while another IP still gets through. Past REQUESTS_PER_HOUR (20) everyone gets LIMIT, and Vienne gets one pause alert per hour, not one per refusal. The message is 'You’ve sent a few requests already. Vienne will reply by email; try again later if you need to.' Counting and inserting run in one transaction under pg_advisory_xact_lock, one query at a time, and a test that fires 2 at once on the last slot stores exactly one. The IP comes from clientIp() in src/lib/client-ip.ts (server-only), and only sha256(ip + ':' + INVITE_PEPPER) is stored. A missing IP shares one bucket.",
+        "The response never carries the request's id, the input, ipHash, or whether the email has asked before. p-sec's leak sweep covers requests.requestInvite, and ipHash is in its SECRET_KEYS.",
+        "The daily job deletes requests older than REQUEST_KEEP_DAYS (90), and their alerts by Notification.inviteRequestId, and nothing else. A test keeps one 89 days old and removes one 91 days old.",
+        "p-sec: requestInvite is in PUBLIC with the reason \"the landing page's Request an invite form (L2): no account, rate-limited\". It still parse()s first. Its four limits are in the limits list and in docs/DEPLOY.md → Limits. AGENTS.md rule 1 gains: \"The one export without a guard is `requests.requestInvite` (L2). It's listed in p-sec's `PUBLIC` with its reason.\" The schema change is one add-only migration (InviteRequest, plus a nullable Notification.inviteRequestId with no foreign key), and drift is green.",
+        "The form (src/components/landing/RequestInvite.tsx, placed by one line in L1's Landing.tsx) has Parent name, Email, Phone (optional), Child's grade (K–6) and Message, follows docs/DESIGN.md (16px inputs on phones), and sends requestInvite. It shows 'Thanks. Vienne will email you soon.' on success, or the plain message on LIMIT or INVALID, with no console errors. The honeypot is hidden from people and screen readers (off-screen, tabindex=\"-1\", autocomplete=\"off\", aria-hidden). tests/e2e/l2-request-invite.spec.ts sends one as a signed-out visitor on a production build and finds the alert as Vienne. npm test and the whole browser suite pass."
       ],
       "hints": [
-        "Javaris approved it on 2026-11-27 (via OSA). No account is created: Vienne still sends the invite code herself.",
-        "Held for Zero: src/server, src/lib, prisma and docs. It waits for L1, which places the form, and for S33, which also edits tests/integration/ and docs/DEPLOY.md.",
-        "A request holds a stranger's contact details. DEPLOY's 'Deleting a family or a child' covers families; add one line for deleting a request (Vienne deletes the alert, plus the row if there's a table)."
+        "Javaris approved it on 2026-11-27 (via OSA). Zero's full spec is plan/specs/L2.md on branch spec/l2 (git show origin/spec/l2:plan/specs/L2.md): the alert's fields, the schema, and the push tag INVITE_REQUEST:<id>, with the push carrying only the title.",
+        "Held for Zero: src/server, src/lib, prisma, docs and AGENTS.md. It waits for S33 (schema and migrations stay in order) and L1 (the page the form sits on).",
+        "No account and no email: Vienne makes the invite herself on Families → Invite codes and replies from her own email. Requests are real people's data, kept 90 days and never in the repo."
       ],
       "held": "zero"
     }

@@ -97,7 +97,30 @@ The sections, in order:
 5. **In person or online:** no place names.
 6. **Request an invite:** the form from L2.
 
-It's phone first, with one column on a phone, and has no photos.
+7. **Footer:** Privacy, Sign in, and "© Mentoring Minds Academy".
+
+**Layout:** generous whitespace, content at most about 1080px wide, and phone first (one column on a phone).
+The services are a quiet 2×2 grid, one column on phones. Each service gets one 18px line icon (lucide, 1.75
+stroke): plain text, no cards and no shadows. There are no photos.
+
+**Address and metadata:** the site is `https://mentoringmindsacademy.org`.
+- `metadataBase` and the canonical URL use it.
+- The title is "Mentoring Minds Academy: math tutoring K-6".
+- The Open Graph image is text only, made with `next/og` in the brand colors: navy background, white Inter
+  text, and one blue rule.
+
+## Privacy page (L1)
+
+`/privacy` is plain language, with no legal boilerplate. It's linked from the landing footer and sign-in, and
+Google's consent screen links to it too. It says:
+- **What the app stores:** accounts (name, email; Google sign-in shares only those), children's first names and
+  grades, sessions and Vienne's notes, homework and its photos, messages, FAST scores, and invite requests.
+- **Who sees it:** Vienne, and each family only its own.
+- **Where it lives:** Vercel and Neon, in the US.
+- **How long:** invite requests are deleted after `REQUEST_KEEP_DAYS` (90).
+- **How to delete:** a family or child is deleted on request (S23b). Backups clear within the restore window.
+
+Javaris reviews the wording before launch.
 
 ## Checking it
 

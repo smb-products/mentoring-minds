@@ -20,10 +20,17 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **R2, R3 and L1 (after R1, in parallel):**
   - R2 restyles the parent screens, including the phone Home with the next session in view.
   - R3 restyles Vienne's screens, after S33 too.
-  - L1 is the public landing page at / for signed-out visitors, plus a restyled sign-in. The installed app now
-    starts at /sign-in.
-- **L2 (held for Zero; after L1 and S33):** a "Request an invite" form that reaches Vienne's alerts. It's
-  rate-limited, has a honeypot, creates no account, and returns a DTO.
+  - L1 is the public landing page at / for signed-out visitors, on https://mentoringmindsacademy.org with
+    canonical, Open Graph and a text-only next/og image. It also adds a plain-language /privacy page, linked
+    from the footer and sign-in, a restyled sign-in, and the installed app now starts at /sign-in.
+- **L2 (held for Zero; after L1 and S33), from Zero's spec:** a "Request an invite" form that reaches Vienne's
+  alerts.
+  - It's the one guardless export (p-sec PUBLIC, plus a sentence in AGENTS rule 1).
+  - It has a honeypot, and the same { received: true } answer every time.
+  - Limits: REQUESTS_PER_IP_PER_HOUR 3 (hashed IP), REQUESTS_PER_HOUR 20, DUPLICATE_EMAIL_HOURS 24.
+  - Requests are deleted after REQUEST_KEEP_DAYS 90.
+  - There's an add-only InviteRequest table, and no account is created.
+- **P-ops check 8 (new):** the domain and its redirects, from Atlas's #130.
 - **S34 is dropped (#127 closed):** its rates and services move to the landing page.
 - **Lead edit to a locked test:** `tests/e2e/auth.spec.ts`'s "signed out, every screen goes to sign-in" no
   longer lists `/`, which becomes the landing page. L1's spec checks `/` instead.
