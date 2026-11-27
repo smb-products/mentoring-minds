@@ -7,7 +7,7 @@ import { expect, freshData, test } from './support/fixtures';
  */
 freshData();
 
-const HERO = 'Math tutoring for grades K-6 in Miami-Dade, with F.A.S.T. test prep';
+const HERO = 'Math tutoring for grades K–6 in Miami-Dade, with F.A.S.T. test prep';
 const SERVICES: [string, string][] = [
   ['1-on-1 Tutoring', 'Individual support for students who need extra help in a subject.'],
   ['Small Groups', 'Students practice and learn alongside their peers.'],
@@ -70,7 +70,7 @@ test.describe('signed out', () => {
     const srcs = await page.locator('img').evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute('src')));
     expect(srcs.every((s) => /\/logo-\d+\.png$/.test(s ?? ''))).toBe(true);
     const body = page.locator('body');
-    await expect(body).not.toContainText(/@[a-z0-9-]+\.[a-z]|\(\d{3}\)|\d{3}[-. ]\d{3}[-. ]\d{4}|Elliott/i);
+    await expect(body).not.toContainText(/@[a-z0-9-]+\.[a-z]|\(\d{3}\)|\d{3}[-. ]\d{3}[-. ]\d{4}/i);
     await expect(page.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0);
   });
 

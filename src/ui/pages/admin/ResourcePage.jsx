@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from 'react';
 import { FileUp, Trash2 } from 'lucide-react';
 import { api, useAction, useQuery } from '../../api';
 import { Button } from '../../components/ui/Button';
-import { PageHeader, Section, StatusBadge } from '../../components/ui/Display';
+import { Empty, PageHeader, Section, StatusBadge } from '../../components/ui/Display';
 import { PageLoading } from '../../components/ui/Display';
 import { CheckRow, Field, Input, Segmented, Select, Switch, Textarea, GRADE_OPTIONS } from '../../components/ui/Form';
 import { useResultToast, useUndoToast } from '../../components/ui/Toast';
 import { fmtBytes, fullName, gradeLabel } from '../../lib/format';
-import { useRouter } from '../../lib/router';
+import { Link, useRouter } from '../../lib/router';
 import { KIND_META } from './ContentPage';
 
 const EMPTY = { title: '', description: '', kind: 'WORKSHEET', subjectId: 'sub_math', gradeMin: 0, gradeMax: 6, fileId: null, url: '', body: null, visibility: 'ALL', status: 'DRAFT', showInPreview: false, studentIds: [] };
@@ -43,7 +43,7 @@ export default function ResourcePage({ params }) {
     }
   }, [isNew, existing?.id]);
 
-  if (!form) return <PageLoading />;
+  if (!form) return resources && !isNew && !existing ? <Section><Empty title="We couldn’t find that resource. It may have been removed." action={<Link href="/admin/content" className="text-small hit-area font-medium text-brand hover:underline">Back to Content</Link>} /></Section> : <PageLoading />;
   const set = (p) => setForm((f) => ({ ...f, ...p }));
   const students = families.flatMap((f) => f.students);
   const needsFile = form.kind === 'WORKSHEET' || form.kind === 'IMAGE';

@@ -20,38 +20,52 @@ const STEPS = [
 const link = 'text-brand underline underline-offset-4 hover:no-underline';
 const button = 'inline-flex h-11 items-center justify-center rounded-md px-5 text-body font-medium';
 const sectionTitle = 'text-title text-ink dark:text-foreground';
+/** The page's width: about 1080px at most, with wide side gutters. */
+const container = 'mx-auto w-full max-w-[1080px] px-5 md:px-8';
+/** A full-width flat light-gray band (--secondary), for the hero and "In person or online". */
+const grayBand = 'bg-secondary';
 
-/** One section of the page: a title and its content, with the page's spacing. */
-function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
+/**
+ * One section of the page: a title and its content, with the page's spacing. No rules between sections:
+ * `gray` puts it on a full-width light-gray band instead.
+ */
+function Section({ id, title, gray = false, children }: { id?: string; title: string; gray?: boolean; children: React.ReactNode }) {
   const headingId = `${id ?? title.toLowerCase().replace(/[^a-z]+/g, '-')}-title`;
   return (
-    <section id={id} aria-labelledby={headingId} className="scroll-mt-6 border-t border-border py-12 md:py-16">
-      <h2 id={headingId} className={sectionTitle}>{title}</h2>
-      <div className="mt-5">{children}</div>
+    <section id={id} aria-labelledby={headingId} className={gray ? `scroll-mt-6 ${grayBand}` : 'scroll-mt-6'}>
+      <div className={`${container} py-12 md:py-16`}>
+        <h2 id={headingId} className={sectionTitle}>{title}</h2>
+        <div className="mt-5">{children}</div>
+      </div>
     </section>
   );
 }
 
 /**
- * The public landing page at / for signed-out visitors (docs/DESIGN.md → Landing page).
+ * The public landing page at / for signed-out visitors (docs/DESIGN.md → Landing page, Landing polish).
  * A server component outside AppRoot, with no database call.
  */
 export function Landing() {
   return (
     <div className="min-h-dvh bg-card text-foreground">
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-[1080px] px-5 md:px-8">
-        <section aria-labelledby="hero-title" className="py-14 md:py-24">
-          <h1 id="hero-title" className="max-w-2xl text-page text-ink dark:text-foreground">
-            Math tutoring for grades K-6 in Miami-Dade, with F.A.S.T. test prep
-          </h1>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a href="#request-invite" className={`${button} bg-primary text-primary-foreground hover:bg-primary-hover`}>
-              Get started
-            </a>
-            <Link href="/sign-in" className={`${button} border border-border bg-card text-foreground hover:bg-muted`}>
-              Sign in
-            </Link>
+      <SiteHeader signIn />
+      <main>
+        <section aria-labelledby="hero-title" className={grayBand}>
+          <div className={`${container} py-14 md:py-24`}>
+            <h1 id="hero-title" className="max-w-4xl text-display text-ink dark:text-foreground">
+              Math tutoring for grades K–6 in Miami-Dade, with F.A.S.T. test prep
+            </h1>
+            <p className="mt-4 max-w-2xl text-title font-normal text-muted-foreground">
+              One-on-one and small-group math tutoring with Vienne Elliott.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a href="#request-invite" className={`${button} bg-primary text-primary-foreground hover:bg-primary-hover`}>
+                Get started
+              </a>
+              <Link href="/sign-in" className={`${button} border border-border bg-card text-foreground hover:bg-muted`}>
+                Sign in
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -70,28 +84,45 @@ export function Landing() {
         </Section>
 
         <Section title="Rates">
-          <p className="text-heading text-ink tabular-nums dark:text-foreground">$50 per hour</p>
-          <p className="mt-2 max-w-2xl text-body text-muted-foreground">
-            Pay by cash, Zelle, Cash App, Apple Pay, or the{' '}
-            <a href={STEP_UP_URL} target="_blank" rel="noopener noreferrer" className={link}>
-              Step Up For Students scholarship
-            </a>
-            .
-          </p>
+          <div data-rates-panel className="max-w-md rounded-lg border border-border bg-card p-6">
+            <p className="flex items-baseline gap-2 text-ink tabular-nums dark:text-foreground">
+              <span className="text-figure">$50</span>{' '}
+              <span className="text-small text-muted-foreground">per hour</span>
+            </p>
+            <p className="mt-5 text-small text-muted-foreground">Pay by</p>
+            <ul className="mt-2 space-y-1 text-body">
+              <li>cash</li>
+              <li>Zelle</li>
+              <li>Cash App</li>
+              <li>Apple Pay</li>
+              <li>
+                the{' '}
+                <a href={STEP_UP_URL} target="_blank" rel="noopener noreferrer" className={link}>
+                  Step Up For Students scholarship
+                </a>
+              </li>
+            </ul>
+          </div>
         </Section>
 
         <Section title="How it works">
-          <ol className="grid gap-4 md:grid-cols-3">
+          <ol className="grid gap-6 md:grid-cols-3">
             {STEPS.map((step, i) => (
-              <li key={step} className="flex gap-3 text-body">
-                <span aria-hidden className="text-heading text-muted-foreground tabular-nums">{i + 1}</span>
-                <span>{step}</span>
+              <li key={step} className="flex items-start gap-3 text-body">
+                <span
+                  aria-hidden
+                  data-step-number
+                  className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-heading text-ink tabular-nums dark:text-foreground"
+                >
+                  {i + 1}
+                </span>
+                <span className="pt-1.5">{step}</span>
               </li>
             ))}
           </ol>
         </Section>
 
-        <Section title="In person or online">
+        <Section title="In person or online" gray>
           <p className="max-w-2xl text-body text-muted-foreground">
             Sessions are in person or online by video call, whichever works best for your child.
           </p>

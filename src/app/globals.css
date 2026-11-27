@@ -204,6 +204,11 @@
   --text-figure--line-height: 1.25;
   --text-figure--font-weight: 600;
   --text-figure--letter-spacing: -0.01em;
+  /* The landing hero's headline only (docs/DESIGN.md → Landing polish). */
+  --text-display: 30px;
+  --text-display--line-height: 1.15;
+  --text-display--font-weight: 600;
+  --text-display--letter-spacing: -0.02em;
 }
 @media (min-width: 768px) {
   :root {
@@ -211,6 +216,7 @@
     --text-field: 14px;
     --text-page: 24px;
     --text-figure: 24px;
+    --text-display: 40px;
   }
 }
 

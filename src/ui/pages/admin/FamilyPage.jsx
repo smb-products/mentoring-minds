@@ -21,13 +21,14 @@ export default function FamilyPage({ params }) {
   const { navigate } = useRouter();
   const show = useResultToast();
   const undoable = useUndoToast();
-  const { data } = useQuery(() => api.families.getFamily({ parentId: params.parentId }), [params.parentId]);
+  const { data } = useQuery(() => api.families.getFamily({ parentId: params.parentId }).catch((e) => { if (e?.code === 'NOT_FOUND') return null; throw e; }), [params.parentId]);
   const [setStatus] = useAction(api.families.setParentStatus);
   const [resetPw] = useAction(api.families.resetParentPassword);
   const [createDraft] = useAction(api.reports.createDraft);
   const [tempPw, setTempPw] = useState(null);
   const [selected, setSelected] = useState(null);
   const [deleting, setDeleting] = useState(null); // { kind: 'family' } | { kind: 'child', student }
+  if (data === null) return <Section><Empty title="We couldn’t find that family. It may have been removed." action={<Link href="/admin/families" className="text-small hit-area font-medium text-brand hover:underline">Back to Families</Link>} /></Section>;
   if (!data) return <PageLoading />;
 
   const p = data.parent;
