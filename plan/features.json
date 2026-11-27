@@ -1646,7 +1646,7 @@
       "hints": [
         "From Rigg's holdout batch (#144): /parent/learning/<unknown or another family's id> stays on the loading skeleton, with no data leak. Pages like AssignmentItemPage find the item in a list and show PageLoading while it's missing, so they never stop loading.",
         "Not held. It shares no touches with R1's redo (shared components and sign-in) or with L2 and L3 (the landing page).",
-        "Reopen (2026-11-27): if the console error comes from the adapter logging a refused read, change only that in src/ui/api/live-hooks.js, so a read answering INVALID or NOT_FOUND doesn't log. Every other error still logs, and no shape or server changes."
+        "Reopen (2026-11-27): if the console error comes from the adapter logging a refused read, silence it only for the detail page's own read of its route id (for example, an option the page passes to useQuery). Never for every read: a real INVALID elsewhere must still log, so the e2e no-console-errors rule keeps catching it (Zero). Change only that in src/ui/api/live-hooks.js, with no shape or server change."
       ]
     },
     {
