@@ -39,8 +39,8 @@ export function useGreeting() {
 export function PausedNotice({ className }) {
   return (
     <div role="status" className={className}>
-      <div className="surface rounded-[14px] p-5">
-        <p className="text-[18px] font-extrabold">{PAUSED_MESSAGE}</p>
+      <div className="rounded-lg border border-border bg-card p-5 shadow-card">
+        <p className="text-title">{PAUSED_MESSAGE}</p>
         <p className="mt-1 text-muted-foreground">Your child’s sessions and homework come back as soon as she does.</p>
       </div>
     </div>

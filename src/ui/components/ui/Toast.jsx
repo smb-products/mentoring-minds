@@ -23,14 +23,14 @@ export function ToastProvider({ children, offsetClass = 'bottom-5' }) {
         {items.map((item) => {
           const Icon = item.tone === 'error' ? CircleAlert : Check;
           return (
-            <div key={item.id} className={`flex w-full max-w-sm animate-pop items-start gap-2.5 rounded-xl bg-ink px-3.5 py-3 text-ink-foreground shadow-float ${item.action ? 'pointer-events-auto' : ''}`}>
-              <Icon size={17} strokeWidth={2.6} aria-hidden className={item.tone === 'error' ? 'mt-px text-critical-soft' : 'mt-px text-good-soft'} />
+            <div key={item.id} className={`flex w-full max-w-sm animate-pop items-start gap-2.5 rounded-lg bg-ink px-3.5 py-3 text-ink-foreground shadow-float ${item.action ? 'pointer-events-auto' : ''}`}>
+              <Icon size={17} strokeWidth={2} aria-hidden className={item.tone === 'error' ? 'mt-px text-critical-soft' : 'mt-px text-good-soft'} />
               <div className="min-w-0 flex-1">
-                <p className="text-[14px] font-bold leading-snug">{item.title}</p>
-                {item.description && <p className="mt-0.5 text-[13px] leading-snug text-ink-muted">{item.description}</p>}
+                <p className="text-body font-medium">{item.title}</p>
+                {item.description && <p className="mt-0.5 text-small text-ink-muted">{item.description}</p>}
               </div>
               {item.action && (
-                <button type="button" onClick={() => { dismiss(item.id); item.action.onClick(); }} className="-my-1 h-10 shrink-0 rounded-lg bg-ink-foreground/12 px-3.5 text-[14px] font-extrabold text-reward hover:bg-ink-foreground/20">
+                <button type="button" onClick={() => { dismiss(item.id); item.action.onClick(); }} className="-my-1 h-10 shrink-0 rounded-md bg-ink-foreground/12 px-3.5 text-body font-semibold text-ink-foreground hover:bg-ink-foreground/20">
                   {item.action.label}
                 </button>
               )}

@@ -15,17 +15,15 @@
   --mm-serious-50: #fff5ee;  --mm-serious-100: #ffe7d8;  --mm-serious-200: #ffd0b6;  --mm-serious-300: #ffaf85;  --mm-serious-400: #ff8648;  --mm-serious-500: #ef6505;  --mm-serious-600: #cf4b00;  --mm-serious-700: #a83a00;  --mm-serious-800: #882f00;  --mm-serious-900: #692400;  --mm-serious-950: #441600;
   --mm-critical-50: #fff3f2;  --mm-critical-100: #ffe4e1;  --mm-critical-200: #ffcac4;  --mm-critical-300: #ffa29a;  --mm-critical-400: #fa706a;  --mm-critical-500: #eb4344;  --mm-critical-600: #d4212d;  --mm-critical-700: #b31220;  --mm-critical-800: #90101a;  --mm-critical-900: #711014;  --mm-critical-950: #480709;
 
-  /* ── Shape & depth ── */
-  --radius: 0.75rem;
-  --radius-panel: 1.25rem;
-  --shadow-panel: 0 1px 2px rgb(11 31 92 / 0.04), 0 12px 32px -12px rgb(11 31 92 / 0.14);
-  --shadow-raised: 0 1px 2px rgb(11 31 92 / 0.06), 0 4px 12px -2px rgb(11 31 92 / 0.10);
-  --shadow-card: 0 0 0 1px rgb(11 31 92 / 0.06), 0 1px 2px rgb(11 31 92 / 0.06), 0 8px 24px -12px rgb(11 31 92 / 0.18);
-  --highlight: rgb(255 255 255 / 0.7);
-  --band-from: var(--mm-brand-900);
-  --band-glow: color-mix(in oklch, var(--mm-brand-500) 38%, transparent);
+  /* ── Shape & depth (docs/DESIGN.md): 8px cards, 6px controls, flat ── */
+  --radius: 8px;
+  --radius-panel: 8px;
+  /* A card: a 1px border and at most a 1px, low-opacity shadow. Drawers and dialogs get one soft shadow. */
+  --shadow-card: 0 1px 1px rgb(11 31 92 / 0.04);
+  --shadow-panel: var(--shadow-card);
+  --shadow-raised: var(--shadow-card);
+  --shadow-float: 0 8px 24px -8px rgb(11 31 92 / 0.22);
   --tint: 16%;
-  --shadow-float: 0 2px 6px rgb(11 31 92 / 0.08), 0 18px 40px -12px rgb(11 31 92 / 0.28);
 
   /* ── Semantic tokens: light ── */
   --background: var(--mm-neutral-100);
@@ -40,6 +38,7 @@
   --border: var(--mm-neutral-200);
   --input: var(--mm-neutral-500);
   --primary: var(--mm-brand-600);
+  --primary-hover: var(--mm-brand-700);
   --primary-foreground: #ffffff;
   --primary-edge: var(--mm-brand-800);
   --secondary: var(--mm-neutral-100);
@@ -53,7 +52,11 @@
   --ink-foreground: #ffffff;
   --ink-muted: var(--mm-brand-200);
   --destructive: var(--mm-critical-600);
+  --destructive-hover: var(--mm-critical-700);
   --destructive-foreground: #ffffff;
+  /* Badges are neutral: gray text on a light gray tint. A status shows only as a small colored glyph. */
+  --badge: var(--mm-neutral-200);
+  --badge-foreground: var(--mm-neutral-700);
   --ring: var(--mm-brand-500);
   --reward: var(--mm-gold-400);
   --reward-foreground: var(--mm-brand-950);
@@ -80,7 +83,7 @@
   --sidebar-foreground: var(--mm-brand-200);
   --sidebar-primary: #ffffff;
   --sidebar-primary-foreground: var(--mm-brand-950);
-  --sidebar-accent: var(--mm-brand-900);
+  --sidebar-accent: var(--mm-brand-800);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: var(--mm-brand-900);
   --sidebar-ring: var(--mm-brand-400);
@@ -92,18 +95,15 @@
   --chart-seq-to: var(--mm-brand-800);
   --chart-div-neg: var(--mm-brand-600);
   --chart-div-mid: var(--mm-neutral-300);
-  --chart-div-pos: var(--mm-gold-600);
+  --chart-div-pos: var(--mm-good-600);
 }
 
 .dark {
   color-scheme: dark;
-  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -12px rgb(0 0 0 / 0.6);
-  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 12px -2px rgb(0 0 0 / 0.5);
-  --shadow-float: 0 2px 6px rgb(0 0 0 / 0.5), 0 18px 40px -12px rgb(0 0 0 / 0.7);
-  --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
-  --highlight: rgb(255 255 255 / 0.06);
-  --band-from: var(--mm-brand-950);
-  --band-glow: color-mix(in oklch, var(--mm-brand-600) 30%, transparent);
+  --shadow-card: 0 1px 1px rgb(0 0 0 / 0.3);
+  --shadow-panel: var(--shadow-card);
+  --shadow-raised: var(--shadow-card);
+  --shadow-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
   --tint: 30%;
   --background: var(--mm-neutral-900);
   --foreground: var(--mm-neutral-50);
@@ -117,6 +117,7 @@
   --border: var(--mm-neutral-700);
   --input: var(--mm-neutral-400);
   --primary: var(--mm-brand-600);
+  --primary-hover: var(--mm-brand-700);
   --primary-foreground: #ffffff;
   --primary-edge: var(--mm-brand-800);
   --secondary: var(--mm-neutral-700);
@@ -130,7 +131,10 @@
   --ink-foreground: #ffffff;
   --ink-muted: var(--mm-brand-200);
   --destructive: var(--mm-critical-400);
+  --destructive-hover: var(--mm-critical-300);
   --destructive-foreground: var(--mm-critical-950);
+  --badge: var(--mm-neutral-700);
+  --badge-foreground: var(--mm-neutral-100);
   --ring: var(--mm-brand-400);
   --reward: var(--mm-gold-400);
   --reward-foreground: var(--mm-brand-950);
@@ -157,7 +161,7 @@
   --sidebar-foreground: var(--mm-brand-200);
   --sidebar-primary: #ffffff;
   --sidebar-primary-foreground: var(--mm-brand-950);
-  --sidebar-accent: var(--mm-brand-900);
+  --sidebar-accent: var(--mm-brand-800);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: var(--mm-brand-900);
   --sidebar-ring: var(--mm-brand-400);
@@ -169,17 +173,58 @@
   --chart-seq-to: var(--mm-brand-300);
   --chart-div-neg: var(--mm-brand-400);
   --chart-div-mid: var(--mm-neutral-600);
-  --chart-div-pos: var(--mm-gold-400);
+  --chart-div-pos: var(--mm-good-400);
+}
+
+/* ── Type scale (docs/DESIGN.md → Type). Phone sizes here; desktop (≥ 768px) sizes in the media query below.
+   Screens use these names, never text-[Npx]. text-input stays 16px on phones: iOS zooms on focus below that. ── */
+@theme {
+  --text-caption: 12px;
+  --text-caption--line-height: 1.45;
+  --text-caption--font-weight: 500;
+  --text-small: 13px;
+  --text-small--line-height: 1.45;
+  --text-body: 15px;
+  --text-body--line-height: 1.45;
+  --text-input: 16px;
+  --text-input--line-height: 1.45;
+  --text-heading: 15px;
+  --text-heading--line-height: 1.25;
+  --text-heading--font-weight: 600;
+  --text-heading--letter-spacing: -0.01em;
+  --text-title: 18px;
+  --text-title--line-height: 1.25;
+  --text-title--font-weight: 600;
+  --text-title--letter-spacing: -0.01em;
+  --text-page: 22px;
+  --text-page--line-height: 1.25;
+  --text-page--font-weight: 600;
+  --text-page--letter-spacing: -0.01em;
+  --text-figure: 22px;
+  --text-figure--line-height: 1.25;
+  --text-figure--font-weight: 600;
+  --text-figure--letter-spacing: -0.01em;
+}
+@media (min-width: 768px) {
+  :root {
+    --text-body: 14px;
+    --text-input: 14px;
+    --text-page: 24px;
+    --text-figure: 24px;
+  }
 }
 
 @theme inline {
-  --font-display: "Fredoka Variable", "Fredoka", ui-rounded, system-ui, sans-serif;
-  --font-sans: "Nunito Sans Variable", "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 14px;
-  --radius-2xl: 18px;
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* 6px for controls and badges (rounded-md), 8px for cards, panels, drawers and dialogs (rounded-lg).
+     The larger steps are 8px too, so screens not restyled yet lose their round corners. */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 8px;
   --radius-panel: var(--radius-panel);
   --shadow-panel: var(--shadow-panel);
   --shadow-raised: var(--shadow-raised);
@@ -197,6 +242,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-edge: var(--primary-edge);
   --color-secondary: var(--secondary);
@@ -210,7 +256,10 @@
   --color-ink-foreground: var(--ink-foreground);
   --color-ink-muted: var(--ink-muted);
   --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-badge: var(--badge);
+  --color-badge-foreground: var(--badge-foreground);
   --color-ring: var(--ring);
   --color-reward: var(--reward);
   --color-reward-foreground: var(--reward-foreground);
@@ -256,29 +305,20 @@
   * { @apply border-border; }
   html, body { @apply bg-sidebar text-foreground font-sans antialiased; }
   html { font-size: 15px; }
-  body { font-size: 1rem; }
-  h1, h2, h3 { letter-spacing: -0.015em; }
-  .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+  body { font-size: var(--text-body); line-height: 1.45; }
+  h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
   .tabular { font-variant-numeric: tabular-nums; }
   :focus { outline: none; }
   /* Focus ring: 2px ring + 2px offset in the surface colour, visible on every surface */
-  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 10px; }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
   ::selection { background: var(--brand-soft); color: var(--brand-soft-foreground); }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
 }
 
-@utility press-primary {
-  box-shadow: 0 3px 0 var(--primary-edge);
-  &:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--primary-edge); }
-}
-@utility press-reward {
-  box-shadow: 0 3px 0 var(--reward-edge);
-  &:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--reward-edge); }
-}
-@utility press-quiet {
-  box-shadow: 0 2px 0 var(--border);
-  &:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 var(--border); }
-}
+/* Flat: nothing moves or casts a shadow on press (docs/DESIGN.md → Buttons). Kept for screens R2 and R3 restyle. */
+@utility press-primary { box-shadow: none; }
+@utility press-reward { box-shadow: none; }
+@utility press-quiet { box-shadow: none; }
 @utility scrollbar-none { scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
 
 @keyframes mm-fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -292,57 +332,48 @@
 @utility animate-pop { animation: mm-pop .18s cubic-bezier(.2,.8,.2,1) both; }
 @utility animate-spin-slow { animation: mm-spin-slow 18s linear infinite; }
 
-/* ── Brand-forward depth (from the logo: glossy navy, brushed silver) ── */
+/* ── Flat surfaces (docs/DESIGN.md → Shape and depth). Kept so the screens R2 and R3 restyle keep working;
+   the shared components use plain tokens instead. No gradient, glow, inset highlight or press shadow. ── */
 
-/* Cards: top-lit silver surface, hairline ring and soft drop. */
+/* Card: white with a 1px border and a 1px, low-opacity shadow. */
 @utility surface {
   background-color: var(--card);
-  background-image: linear-gradient(180deg, var(--card) 0%, color-mix(in oklch, var(--card) 82%, var(--muted)) 100%);
-  box-shadow: inset 0 1px 0 var(--highlight), var(--shadow-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
 }
 
-/* Navy masthead band: glossy navy with a soft light source top-right. */
+/* Header band: flat navy. */
 @utility band {
   background-color: var(--ink);
-  background-image:
-    radial-gradient(60rem 22rem at 100% -40%, var(--band-glow), transparent 70%),
-    linear-gradient(180deg, var(--band-from), var(--ink));
   color: var(--ink-foreground);
 }
 
-/* Glass tile for content sitting on the band. */
+/* A tile on the band: flat, a little lighter than the navy. */
 @utility glass {
-  background-color: color-mix(in oklch, var(--ink-foreground) 7%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in oklch, var(--ink-foreground) 12%, transparent), inset 0 0 0 1px color-mix(in oklch, var(--ink-foreground) 10%, transparent);
+  background-color: color-mix(in oklch, var(--ink-foreground) 8%, transparent);
 }
 
-/* Chrome primary button: lit from above like the logo's lettering. */
+/* Primary button: solid blue, a little darker on hover. */
 @utility chrome-primary {
-  background-image: linear-gradient(180deg, color-mix(in oklch, var(--primary) 82%, white), var(--primary) 55%, color-mix(in oklch, var(--primary) 88%, var(--ink)));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28), 0 1px 0 var(--primary-edge), 0 4px 10px -4px color-mix(in oklch, var(--primary) 70%, transparent);
-  &:hover { filter: brightness(1.06); }
-  &:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.2); }
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  &:hover:not(:disabled) { background-color: var(--primary-hover); }
 }
-/* Silver secondary button. */
+/* Secondary button: white with a 1px border. */
 @utility chrome-secondary {
-  background-image: linear-gradient(180deg, var(--card), color-mix(in oklch, var(--card) 80%, var(--muted)));
-  box-shadow: inset 0 1px 0 var(--highlight), 0 0 0 1px var(--border), 0 1px 2px rgb(11 31 92 / 0.08);
-  &:hover { background-image: linear-gradient(180deg, var(--card), var(--muted)); }
-  &:active:not(:disabled) { transform: translateY(1px); }
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  &:hover:not(:disabled) { background-color: var(--accent); }
 }
-/* On-band secondary button. */
+/* Secondary button on the band. */
 @utility chrome-glass {
   background-color: color-mix(in oklch, var(--ink-foreground) 10%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in oklch, var(--ink-foreground) 16%, transparent), inset 0 0 0 1px color-mix(in oklch, var(--ink-foreground) 16%, transparent);
-  &:hover { background-color: color-mix(in oklch, var(--ink-foreground) 16%, transparent); }
+  &:hover:not(:disabled) { background-color: color-mix(in oklch, var(--ink-foreground) 16%, transparent); }
 }
-/* Rail: deep navy with a faint vertical sheen. */
+/* Rail: flat navy. */
 @utility rail {
-  background-image: linear-gradient(180deg, var(--mm-brand-900) 0%, var(--sidebar) 45%);
+  background-color: var(--sidebar);
 }
-
-/* Dark mode: primary buttons get a light edge so they read as buttons on dark cards. */
-.dark .chrome-primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 0 0 1px var(--ring), 0 4px 12px -4px rgb(0 0 0 / 0.6); }
 
 /* Dark mode soft tints: a little of each hue over the card, so they stay clean instead of muddy.
    Contrast with the matching -soft-foreground (200 step) is 7.8–8.6:1. */
@@ -366,7 +397,7 @@
    phone sheets pinned to the bottom of the screen. ── */
 html:has(.app-root), html:has(.app-root) body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
 .app-root { height: 100%; height: 100dvh; overflow: hidden; }
-/* Text size (User.textSize): the prototype sizes type in px, so the whole app scales with zoom. */
+/* Text size (User.textSize): type is sized in px (the scale above), so the whole app scales with zoom. */
 .app-root[data-text='LARGE'] { zoom: 1.125; height: calc(100dvh / 1.125); }
 .app-root[data-text='XLARGE'] { zoom: 1.25; height: calc(100dvh / 1.25); }
 

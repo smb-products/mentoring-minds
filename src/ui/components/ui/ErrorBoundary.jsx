@@ -15,12 +15,12 @@ export class ErrorBoundary extends Component {
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <div role="alert" className="surface flex items-start gap-3 rounded-[14px] p-5">
-        <CircleAlert size={20} className="mt-0.5 shrink-0 text-critical" aria-hidden />
+      <div role="alert" className="flex items-start gap-3 rounded-lg border border-border bg-card p-5 shadow-card">
+        <CircleAlert size={20} strokeWidth={1.75} className="mt-0.5 shrink-0 text-critical" aria-hidden />
         <div>
-          <p className="text-[15px] font-extrabold">This page couldn’t load</p>
-          <p className="mt-1 text-[14px] text-muted-foreground">{this.state.error.message || 'Something went wrong.'}</p>
-          <button type="button" onClick={() => this.setState({ error: null })} className="mt-3 text-[14px] font-bold text-brand hover:underline">
+          <p className="text-heading">This page couldn’t load</p>
+          <p className="mt-1 text-body text-muted-foreground">{this.state.error.message || 'Something went wrong.'}</p>
+          <button type="button" onClick={() => this.setState({ error: null })} className="mt-3 text-body font-medium text-brand hover:underline">
             Try again
           </button>
         </div>

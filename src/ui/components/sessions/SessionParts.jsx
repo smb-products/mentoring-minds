@@ -25,8 +25,8 @@ export function placeLabel(session, { forParent } = {}) {
 export function Place({ session, forParent, className }) {
   const Icon = session.mode === 'VIDEO' ? Video : LOCATION_ICON[session.location?.kind] ?? MapPin;
   return (
-    <span className={cn('inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold text-muted-foreground', className)}>
-      <Icon size={14} strokeWidth={2.1} className="shrink-0" aria-hidden />
+    <span className={cn('inline-flex min-w-0 items-center gap-1.5 text-small text-muted-foreground', className)}>
+      <Icon size={14} strokeWidth={1.75} className="shrink-0" aria-hidden />
       <span className="truncate">{placeLabel(session, { forParent })}</span>
     </span>
   );
@@ -48,15 +48,15 @@ export function SessionRow({ session, onClick, actions, showDate, forParent, cla
         className={cn('flex min-w-0 flex-1 items-stretch gap-3 text-left', onClick && 'group')}
       >
         <div className="tabular w-[4.6rem] shrink-0 pt-0.5">
-          {showDate && <p className="text-[12.5px] font-bold text-muted-foreground">{fmtDateWith(s.startsAt, { weekday: 'short', day: 'numeric' })}</p>}
-          <p className={cn('text-[14.5px] font-extrabold', muted ? 'text-subtle-foreground line-through' : 'text-foreground')}>{fmtTime(s.startsAt)}</p>
-          <p className="text-[12.5px] font-semibold text-subtle-foreground">{s.durationMin} min</p>
+          {showDate && <p className="text-small font-medium text-muted-foreground">{fmtDateWith(s.startsAt, { weekday: 'short', day: 'numeric' })}</p>}
+          <p className={cn('text-body font-semibold', muted ? 'text-subtle-foreground line-through' : 'text-foreground')}>{fmtTime(s.startsAt)}</p>
+          <p className="text-small text-subtle-foreground">{s.durationMin} min</p>
         </div>
-        <span className={cn('w-[3px] shrink-0 rounded-full', muted ? 'bg-border' : sessionBg(s))} aria-hidden />
+        <span className={cn('w-[3px] shrink-0 rounded-xs', muted ? 'bg-border' : sessionBg(s))} aria-hidden />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             {!forParent && <Avatar name={fullName(s.student)} tone={s.student.avatarColor} size="xs" />}
-            <p className={cn('truncate text-[15px] font-extrabold group-hover:underline group-hover:decoration-border group-hover:underline-offset-4', muted && 'text-muted-foreground')}>
+            <p className={cn('truncate text-heading group-hover:underline group-hover:decoration-border group-hover:underline-offset-4', muted && 'text-muted-foreground')}>
               {forParent ? `${s.student.firstName} with Vienne` : fullName(s.student)}
             </p>
           </div>
@@ -64,9 +64,9 @@ export function SessionRow({ session, onClick, actions, showDate, forParent, cla
             <Place session={s} forParent={forParent} />
           </div>
           {s.status === 'REQUESTED' && !forParent && (
-            <p className="mt-1 text-[12.5px] font-semibold text-subtle-foreground">Asked {fmtAgo(s.createdAt).toLowerCase()} by {s.requestedBy?.name}</p>
+            <p className="mt-1 text-small text-subtle-foreground">Asked {fmtAgo(s.createdAt).toLowerCase()} by {s.requestedBy?.name}</p>
           )}
-          {s.parentNote && s.status === 'REQUESTED' && <p className="mt-1.5 max-w-prose rounded-lg bg-muted/70 px-2.5 py-1.5 text-[13.5px] leading-snug text-muted-foreground">“{s.parentNote}”</p>}
+          {s.parentNote && s.status === 'REQUESTED' && <p className="mt-1.5 max-w-prose rounded-md bg-muted/70 px-2.5 py-1.5 text-small text-muted-foreground">“{s.parentNote}”</p>}
         </div>
       </Comp>
       {(s.status !== 'CONFIRMED' || actions) && (

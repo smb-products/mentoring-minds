@@ -10,7 +10,7 @@ export function InviteCodeForm() {
   const [pending, start] = useTransition();
   return (
     <form
-      className="surface rounded-[14px] p-5"
+      className="rounded-lg border border-border bg-card p-5 shadow-card"
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
@@ -21,11 +21,11 @@ export function InviteCodeForm() {
         });
       }}
     >
-      <p className="text-[18px] font-extrabold">Enter your invite code</p>
+      <p className="text-title">Enter your invite code</p>
       <p className="mt-1 text-muted-foreground">Vienne sent you a code like MM-4D8F. It unlocks booking and homework.</p>
       <div className="mt-4 flex gap-2">
-        <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} aria-label="Invite code" placeholder="MM-" className="tabular h-12 flex-1 rounded-xl border border-input/70 bg-card px-4 text-lg font-extrabold tracking-wider" />
-        <button type="submit" disabled={pending || code.length < 6} className="chrome-primary h-12 rounded-xl bg-primary px-5 text-base font-bold text-primary-foreground disabled:opacity-60">Unlock</button>
+        <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} aria-label="Invite code" placeholder="MM-" className="tabular h-12 min-w-0 flex-1 rounded-md border border-input/70 bg-card px-4 text-input font-semibold tracking-wider" />
+        <button type="submit" disabled={pending || code.length < 6} className="h-12 rounded-md bg-primary px-5 text-body font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60">Unlock</button>
       </div>
       {error && <p role="alert" className="mt-2 font-semibold text-critical">{error}</p>}
     </form>
