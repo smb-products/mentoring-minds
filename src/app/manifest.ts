@@ -7,7 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Mentoring Minds',
     short_name: 'Mentoring Minds',
     description: 'Math tutoring with Vienne Elliott: sessions, book homework and progress.',
-    start_url: '/',
+    // Sign-in, not the landing page: the proxy sends a signed-in family or Vienne straight home from there.
+    start_url: '/sign-in',
     scope: '/',
     display: 'standalone',
     orientation: 'any',
