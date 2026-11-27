@@ -8,7 +8,8 @@ import { expect, freshData, test } from '../e2e/support/fixtures';
 
 freshData();
 
-const HERO = 'Math tutoring for grades K–6 in Miami-Dade, with F.A.S.T. test prep';
+// Landing C (L4) replaced L3's hero and subhead. Lead edit, CHANGES.md 2026-11-27.
+const HERO = 'Math tutoring that builds real confidence';
 const box = async (l: Locator) => (await l.boundingBox())!;
 
 test('on a 320px phone: nothing sideways, hero, header and rates all fit, and Sign in clears the name', async ({ page }) => {
@@ -25,7 +26,7 @@ test('on a 320px phone: nothing sideways, hero, header and rates all fit, and Si
   expect(s.x).toBeGreaterThanOrEqual(n.x + n.width);
   expect(s.x + s.width).toBeLessThanOrEqual(320);
 
-  const parts = [h1, page.getByText('One-on-one and small-group math tutoring with Vienne Elliott.', { exact: true }), page.locator('[data-rates-panel]')];
+  const parts = [h1, page.getByText('One-on-one and small-group sessions with Vienne Elliott, with F.A.S.T. test prep for Florida students.', { exact: true }), page.locator('[data-rates-panel]')];
   for (const part of parts) {
     const b = await box(part);
     expect(b.x).toBeGreaterThanOrEqual(0);

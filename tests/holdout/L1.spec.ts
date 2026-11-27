@@ -65,7 +65,7 @@ test('a preview parent goes home from /, and after signing out / is the public p
 
   await page.goto('/');
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Math tutoring for grades K');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Math tutoring that builds real confidence'); // Landing C (L4); lead edit
   await expect(page.locator('body')).not.toContainText(/Tom|tom\.hughes/);
   await page.goto('/parent/home');
   await expect(page).toHaveURL(/\/sign-in$/);

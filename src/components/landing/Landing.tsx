@@ -109,13 +109,14 @@ function LandingFooter() {
   );
 }
 
-/** The dark progress card: static markup with demo-seed names (Mateo, grade 3), clearly labelled as a sample. */
+/** The dark progress card: static markup, clearly labelled as a sample. 'Emma' is in no family's data, not even the demo seed's,
+ * so the leak holdouts that ban seed names on / keep holding (lead edit, CHANGES.md 2026-11-27). */
 function SampleProgress() {
   const tile = 'rounded-[16px] bg-landing-night-raised p-[18px]';
   const label = 'text-[13px] text-landing-night-muted';
   return (
     <figure data-sample-screen className="m-0 flex min-w-0 flex-[1_1_400px] flex-col gap-3.5 rounded-[28px] bg-landing-night p-7 text-landing-paper">
-      <div className={label}>Progress · Mateo, grade 3</div>
+      <div className={label}>Progress · Emma, grade 3</div>
       <div className={tile}>
         <div className={label}>From Vienne</div>
         <div className="mt-1.5 text-[15px] leading-normal">Much more patient with word problems, and now draws a picture before solving.</div>
