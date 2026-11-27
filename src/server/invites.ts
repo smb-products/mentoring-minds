@@ -181,6 +181,8 @@ export const redeemInvite = action(async (input: { code: string }) => {
     await tx.user.update({ where: { id: user.id }, data: { status: 'ACTIVE', redeemFailures: 0, redeemLockedUntil: null } });
     await tx.conversation.upsert({ where: { parentId: user.id }, create: { parentId: user.id, lastMessageAt: now, adminLastReadAt: now, parentLastReadAt: now }, update: {} });
   });
-  await notifyAdmins({ type: 'INVITE_REDEEMED', title: `${user.name} joined`, body: `Invite code used. ${planned.map((p) => p.firstName).join(' and ')} added.`, href: '/admin/families', about: inv.id, parentId: user.id });
+  // S30: this alert is linked only to the family, so it names no child (deleting one child leaves it). It counts them.
+  const added = `${planned.length} ${planned.length === 1 ? 'child' : 'children'} added.`;
+  await notifyAdmins({ type: 'INVITE_REDEEMED', title: `${user.name} joined`, body: `Invite code used. ${added}`, href: '/admin/families', about: inv.id, parentId: user.id });
   return { status: 'ACTIVE' as const };
 });

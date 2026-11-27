@@ -470,7 +470,7 @@ export function createSeed() {
   N('u_admin', 'SUBMISSION_RECEIVED', 'Lucia finished Test 1, #1–20', '17 of 20 right. 1 written answer to check.', '/admin/assignments', 5, false, { studentId: 's_lucia', parentId: 'u_ana' });
   N('u_admin', 'MESSAGE_RECEIVED', 'Fatima Ali sent a message', 'Amir has a dentist appointment Wednesday…', '/admin/messages', 6, false, { parentId: 'u_fatima' });
   N('u_admin', 'SESSION_CANCELLED_BY_PARENT', 'Priya Patel cancelled a session', 'Arjun, School event ran late.', '/admin/schedule', 24, true, { studentId: 's_arjun', parentId: 'u_priya' });
-  N('u_admin', 'INVITE_REDEEMED', 'Keisha Brooks joined', 'Invite code used. Jordan added.', '/admin/families', 6 * 24, true, { parentId: 'u_keisha' });
+  N('u_admin', 'INVITE_REDEEMED', 'Keisha Brooks joined', 'Invite code used. 1 child added.', '/admin/families', 6 * 24, true, { parentId: 'u_keisha' });
   N('u_monique', 'SESSION_REMINDER', 'Reminder: Ava’s session today', '3:30 PM at your home', '/parent/sessions', 20, false, { studentId: 's_ava' });
   N('u_monique', 'SESSION_CONFIRMED', 'Vienne confirmed Ava’s session', '60 min at your home', '/parent/sessions', 20, false, { studentId: 's_ava' });
   N('u_monique', 'REPORT_PUBLISHED', 'New progress report for Ava', 'Vienne shared Ava’s latest progress.', '/parent/progress', 14 * 24, true, { studentId: 's_ava' });
