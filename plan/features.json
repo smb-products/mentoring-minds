@@ -1075,12 +1075,54 @@
       ],
       "checks": [
         "The alert Vienne gets when a family joins (INVITE_REDEEMED) names the parent but no child. Its body counts the children: 'Invite code used. 2 children added.', and 'Invite code used. 1 child added.' for one. The title stays '<parent> joined'. The push carries the same words.",
-        "The rule holds for every alert linked only to a family (parentId set, studentId empty): its title and body name no child. Today INVITE_REDEEMED is the only one. The new test checks every type that notify gets with parentId and no studentId, so a later one is covered. The demo seed's joined alert uses the new wording.",
+        "The rule holds for every alert linked only to a family (parentId set, studentId empty): its title, and any text the app writes, name no child. MESSAGE_RECEIVED is family-only too. Its body is the start of the parent's own message, the family's own words, so it is exempt (accepted in CHANGES), and its title names only the parent. The new test checks every type that notify gets with parentId and no studentId, so a later one is covered. The demo seed's joined alert uses the new wording.",
         "tests/integration/s30-joined-alert.test.ts covers both checks. The S23b and S26 tests, the holdouts and npm test pass. There's no schema change, and no rewrite of existing alerts: production has no families yet."
       ],
       "hints": [
         "From Rigg's #112 note and Zero's decision (2026-11-26): deleting a child leaves the family's joined alert, which named the child. Matching on the name to remove it would break S23b's ids-only rule, so the alert stops naming children instead. What the family wrote themselves (messages) stays until the family is deleted. That part is accepted and logged.",
         "Held for Zero (src/server, prisma)."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "S31",
+      "title": "Any error code in the sign-in address gets a plain message, never a 500",
+      "spec": "tests/s31-sign-in-error.test.ts or tests/e2e/s31-sign-in-error.spec.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/app/(auth)/sign-in/",
+        "tests/s31-sign-in-error.test.ts",
+        "tests/e2e/s31-sign-in-error.spec.ts",
+        "plan/reports/S31.md"
+      ],
+      "checks": [
+        "/sign-in?error=<code> shows the plain message for a code the screen knows, and the generic sign-in message for any other. That includes names a plain object inherits, such as constructor, toString, __proto__ and hasOwnProperty. None returns a 500 or logs an error.",
+        "The known codes show the same messages as today. tests/e2e/auth.spec.ts and the S29 spec pass, and the new test covers the inherited names."
+      ],
+      "hints": [
+        "From Rigg's #119 note and Zero: page.tsx looks codes up with ERRORS[code] on a plain object, so an inherited name returns a function. Object.hasOwn(ERRORS, code) fixes it.",
+        "Not held."
+      ]
+    },
+    {
+      "id": "S32",
+      "title": "The locations file refuses control characters before anything is saved",
+      "spec": "tests/integration/s28-seed-locations.test.ts (add cases)",
+      "deps": [
+        "S28"
+      ],
+      "touches": [
+        "prisma/data.ts",
+        "tests/integration/s28-seed-locations.test.ts",
+        "plan/reports/S32.md"
+      ],
+      "checks": [
+        "A name or address with a control character (NUL, or any other below U+0020, including a tab or a line break) is refused with the usual numbered message, which says which entry and field and never the text. Nothing is saved, the day-one data included.",
+        "Every other S28 rule and test is unchanged, plan/holdouts/S28.test.ts and tests/holdout/S28.test.ts included, and npm test passes."
+      ],
+      "hints": [
+        "From Rigg's #119 note and Zero: today a NUL passes parseLocations, then Postgres refuses it with a raw error after loadReference has already written.",
+        "Held for Zero (prisma)."
       ],
       "held": "zero"
     },
