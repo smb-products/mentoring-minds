@@ -3,6 +3,22 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L3 landing polish; holdouts S6 and S29 let / be the landing page
+
+- **L3 (new, not held, after L2):** a landing polish pass.
+  - The hero becomes 'K–6' with an en dash, at a new text-display size (30/40px), with a subhead naming Vienne,
+    on a light-gray band.
+  - A 44px logo, and a Sign in link at top right.
+  - Rates become one bordered panel with $50 large.
+  - Numbered how-it-works steps, 'In person or online' on a gray band, and no <hr>.
+  - L3 may change only the hero string in tests/e2e/l1-landing.spec.ts.
+  - Why: OSA's taste review of L1 (#136), under Javaris's landing approval. Approved: OSA.
+- **Lead edit to holdouts (on #136, commit 6c3d58c):**
+  - `tests/holdout/S6.spec.ts` (its signed-out route list and its after-sign-out list) and
+    `tests/holdout/S29.spec.ts` no longer include `/`.
+  - Why: L1 makes `/` the public landing page, as already done for `auth.spec.ts`. Builders can't edit
+    holdouts. Approved: Axis (lead).
+
 ## 2026-11-27: R2, R3 and L1 take OSA's taste review of R1
 
 - **docs/DESIGN.md:**
