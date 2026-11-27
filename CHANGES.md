@@ -3,6 +3,16 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L2 check 6 as built; #158 never merged
+
+- **L2, check 6:** reworded to what #162 built and the holdout needs. Every answered request uses one slot: a
+  stored request, or, for an unstored repeat, an attempt linked to the request it repeats, which cascades with
+  it. Both are counted under the same lock. Production refuses the same requests either way. Why: Soap's amend
+  on #162, accepted by Zero.
+- **Correction:** the "L4 lead edits" entry above says "#158's `test.slow()` is harmless". #158 was closed without
+  merging, because the L2 holdout's failure was the `openAlerts` helper (fixed on #160), not time, so no
+  `test.slow()` is on main.
+
 ## 2026-11-27: L4's header under 480px (lead amend)
 
 - **L4 (#160), lead amend on f/L4:** under 480px the landing header shows only the logo, the name and **Sign in**.
