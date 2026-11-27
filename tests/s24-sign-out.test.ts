@@ -11,7 +11,6 @@ const fake = vi.hoisted(() => ({
   removePushSubscription: vi.fn(),
 }));
 
-vi.mock('@/server/ai', () => ({}));
 vi.mock('@/server/assignments', () => ({}));
 vi.mock('@/server/books', () => ({ listBooks: fake.listBooks }));
 vi.mock('@/server/content', () => ({}));

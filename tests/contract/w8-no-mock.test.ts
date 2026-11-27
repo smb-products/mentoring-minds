@@ -103,7 +103,7 @@ describe('W8: the pieces still needed moved', () => {
 
   it('the demo seed under prisma/demo/ has the same ids as the mock had', () => {
     const now = createSeed() as Record<string, unknown>;
-    const then = frozenSeed() as Record<string, unknown>;
+    const { aiDrafts: _gone, ...then } = frozenSeed() as Record<string, unknown>; // S33: the AI drafts went with the AI features
     expect(Object.keys(now).sort()).toEqual(Object.keys(then).sort());
     const ids = (rows: unknown) => (Array.isArray(rows) ? rows.map((r) => (r as { id?: string }).id ?? rows.indexOf(r)) : Object.keys(rows as object));
     for (const k of Object.keys(then)) expect(ids(now[k]), k).toEqual(ids(then[k]));

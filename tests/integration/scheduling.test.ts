@@ -183,12 +183,11 @@ describe('moving and finishing', () => {
     expect(await db.notification.count({ where: { userId: 'u_ana', type: 'SESSION_CHANGED' } })).toBeGreaterThan(0);
   });
 
-  it('completing saves the note, the skills and redo questions, and accepts the AI draft', async () => {
+  it('completing saves the note, the skills and redo questions', async () => {
     as('u_admin');
     const item = await db.bookItem.findFirstOrThrow({ where: { book: { grade: 5 }, test: 'T1', number: 3 } });
     const wrongGrade = await db.bookItem.findFirstOrThrow({ where: { book: { grade: 3 } } });
     const openRedo = await db.redoItem.findFirst({ where: { studentId: 's_noah', clearedAt: null } });
-    const draft = await db.aiDraft.create({ data: { kind: 'SESSION_NOTE', model: 'claude-haiku-5-5', effort: 'high', refId: 'ses_live', input: {}, output: {} } });
     const skill = await db.skill.findFirstOrThrow({ where: { gradeMin: { lte: 5 }, gradeMax: { gte: 5 } } });
     const s = ok(
       await scheduling.completeSession({
@@ -198,16 +197,13 @@ describe('moving and finishing', () => {
         skillIds: [skill.id],
         redoItemIds: [item.id, wrongGrade.id],
         clearRedoIds: openRedo ? [openRedo.id] : [],
-        source: 'VOICE',
-        aiDraftId: draft.id,
       }),
     );
     expect(s.status).toBe('COMPLETED');
-    expect(s.note).toMatchObject({ summary: 'Great focus on fractions today.', source: 'VOICE', skills: [{ id: skill.id }] });
+    expect(s.note).toMatchObject({ summary: 'Great focus on fractions today.', source: 'TYPED', skills: [{ id: skill.id }] });
     expect(await db.redoItem.count({ where: { studentId: 's_noah', bookItemId: item.id, clearedAt: null } })).toBe(1);
     expect(await db.redoItem.count({ where: { studentId: 's_noah', bookItemId: wrongGrade.id } })).toBe(0); // another grade’s book is ignored
     if (openRedo) expect((await db.redoItem.findUniqueOrThrow({ where: { id: openRedo.id } })).clearedAt).not.toBeNull();
-    expect((await db.aiDraft.findUniqueOrThrow({ where: { id: draft.id } })).status).toBe('ACCEPTED');
     expect((await db.session.findUniqueOrThrow({ where: { id: 'ses_live' } })).callEndedAt).not.toBeNull();
     fails(await scheduling.completeSession({ sessionId: 'ses_live', attendance: 'PRESENT', summary: 'again' }), 'INVALID', /Only confirmed/);
   });

@@ -13,7 +13,6 @@ const fake = vi.hoisted(() => ({
   finishUpload: vi.fn(),
 }));
 
-vi.mock('@/server/ai', () => ({}));
 vi.mock('@/server/assignments', () => ({}));
 vi.mock('@/server/books', () => ({ listBooks: fake.listBooks, saveBook: fake.saveBook }));
 vi.mock('@/server/content', () => ({ createUpload: fake.createUpload, finishUpload: fake.finishUpload }));

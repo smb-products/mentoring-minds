@@ -7,7 +7,6 @@ process.env.AUTH_SECRET ??= 'test-auth-secret-0123456789abcdef';
 process.env.INVITE_PEPPER ??= 'test-pepper';
 process.env.DATABASE_POOL_MAX ??= '4';
 delete process.env.BLOB_READ_WRITE_TOKEN; // tests use the local storage driver
-delete process.env.ANTHROPIC_API_KEY;
 
 if (!/test/i.test(new URL(process.env.DATABASE_URL).pathname)) {
   throw new Error(`Refusing to run: the test database name must contain "test" (got ${process.env.DATABASE_URL}). Every test file empties it.`);

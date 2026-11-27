@@ -4,7 +4,6 @@
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import { as, db, fails, freshDemo, ok } from './helpers';
-import * as ai from '@/server/ai';
 import * as assignments from '@/server/assignments';
 import * as books from '@/server/books';
 import * as content from '@/server/content';
@@ -92,7 +91,7 @@ describe('a paused parent and Messages', () => {
  * refuse a paused parent exactly where it refuses a preview one. Last in the file: it calls everything.
  */
 describe('every other function answers a paused parent as before', () => {
-  const modules = { ai, assignments, books, content, dashboard, families, fast, invites, messages, notifications, reports, scheduling, taxonomy };
+  const modules = { assignments, books, content, dashboard, families, fast, invites, messages, notifications, reports, scheduling, taxonomy };
   const OPENED = new Set(['messages.getThread', 'messages.sendMessage']);
 
   it('NOT_ACTIVE for a paused parent wherever a preview parent gets it, except the two Messages functions', async () => {

@@ -230,14 +230,12 @@ export const archiveStudent = action(async (input: { studentId: string }) => {
 
 /**
  * Every record about these children, in an order the foreign keys allow: sessions (notes cascade),
- * Vienne's AI note drafts for them, homework and answers, assignments only they had, reports
+ * homework and answers, assignments only they had, reports
  * (ratings cascade), the alerts linked to them, then the child (FAST results, redo list, shares and
  * subjects cascade). Returns the ids of the files their work used, for dropUnusedFiles.
  */
 async function removeChildren(tx: Tx, studentIds: string[]) {
   const subs = await tx.submission.findMany({ where: { studentId: { in: studentIds } }, select: { assignmentId: true, fileId: true, photos: true, draft: true, answers: true } });
-  const sessions = await tx.session.findMany({ where: { studentId: { in: studentIds } }, select: { id: true } });
-  await tx.aiDraft.deleteMany({ where: { kind: 'SESSION_NOTE', refId: { in: sessions.map((s) => s.id) } } });
   await tx.session.deleteMany({ where: { studentId: { in: studentIds } } });
   await tx.redoItem.deleteMany({ where: { studentId: { in: studentIds } } });
   await tx.submission.deleteMany({ where: { studentId: { in: studentIds } } });

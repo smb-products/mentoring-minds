@@ -12,7 +12,6 @@
  *
  * To switch an area over, list it in LIVE in src/ui/api/index.js.
  */
-import * as ai from '@/server/ai';
 import * as assignments from '@/server/assignments';
 import * as books from '@/server/books';
 import * as content from '@/server/content';
@@ -30,7 +29,6 @@ import { changed } from './live-hooks';
 
 /** The mock's reads (plain functions that return data or throw). Everything else is a write. */
 export const READS = {
-  ai: [],
   assignments: ['listAssignments', 'getAssignment', 'listForStudent', 'gradingQueue'],
   books: ['listBooks', 'getAnswerKey', 'bookForGrade', 'listRedo'],
   content: ['getFileForUser', 'listResources', 'listResourcesForStudent'],
@@ -87,7 +85,6 @@ function wrap(name, mod) {
 }
 
 export const live = {
-  ai: wrap('ai', ai),
   assignments: wrap('assignments', assignments),
   books: wrap('books', books),
   content: {

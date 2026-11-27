@@ -65,9 +65,9 @@ const stored = (format: (typeof FORMATS)[number], answer: string | null | undefi
  * (redo lists that point at them are kept). Answers must fit their format.
  */
 export const saveAnswerKey = action(
-  async (input: { bookId: string; test: string; rows: z.input<typeof keyRow>[]; source?: 'TYPED' | 'PHOTO'; aiDraftId?: string | null }) => {
+  async (input: { bookId: string; test: string; rows: z.input<typeof keyRow>[] }) => {
     await requireAdmin();
-    const v = parse(z.object({ bookId: id, test: testKey, rows: z.array(keyRow).min(1, 'Nothing to save').max(100), source: z.enum(['TYPED', 'PHOTO']).default('TYPED'), aiDraftId: id.nullish() }), input);
+    const v = parse(z.object({ bookId: id, test: testKey, rows: z.array(keyRow).min(1, 'Nothing to save').max(100) }), input);
     const { book, t } = await bookAndTest(v.bookId, v.test);
     const codes = codesForGrade(book.grade);
     for (const r of v.rows) {
@@ -88,11 +88,9 @@ export const saveAnswerKey = action(
           answer: stored(r.format, r.answer),
           benchmarkCode: r.benchmarkCode || null,
           points: r.points || (r.format === 'OPEN' ? 2 : 1),
-          source: v.source,
         };
         await tx.bookItem.upsert({ where: { bookId_test_number: { bookId: book.id, test: t.key, number: r.number } }, create: { bookId: book.id, test: t.key, number: r.number, ...data }, update: data });
       }
-      if (v.aiDraftId) await tx.aiDraft.updateMany({ where: { id: v.aiDraftId, kind: 'BOOK_PAGE', status: 'DRAFT' }, data: { status: 'ACCEPTED', decidedAt: new Date() } });
     });
     return db.bookItem.count({ where: { bookId: book.id, test: t.key } });
   },
