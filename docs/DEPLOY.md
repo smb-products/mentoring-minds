@@ -58,10 +58,10 @@ Google is optional. Without both keys, the sign-in screen simply doesn't show th
 3. Deploy, then seed once from your machine, pointed at production:
 
 ```bash
-DATABASE_URL="<neon pooled url>" ADMIN_EMAIL="vienne's google address" ADMIN_NAME="Vienne Elliott" npm run db:seed
+SEED_LOCATIONS_FILE=~/mm-locations.json DATABASE_URL="<neon pooled url>" ADMIN_EMAIL="vienne's google address" ADMIN_NAME="Vienne Elliott" npm run db:seed
 ```
 
-This loads settings (Miami time, the FAST windows), Math and Vienne's skills, the books, locations and weekly hours, and creates her admin account. Run it again whenever you like: it never overwrites her changes. **Never run `db:seed:demo` against production.** It refuses unless forced.
+This loads settings (Miami time, the FAST windows), Math and Vienne's skills, the books, the weekly hours and the locations from `SEED_LOCATIONS_FILE` (a JSON file outside the repo, `docs/PRODUCTION_SETUP.md` Part 6; required while production has none), and creates her admin account. Run it again whenever you like: it never overwrites her changes. **Never run `db:seed:demo` against production.** It refuses unless forced.
 
 4. **Cron:** `vercel.json` runs `/api/cron/daily` at 13:00 UTC, which is 8 AM in Miami (9 AM in summer). It sends session reminders for today and tomorrow, empties the 30-day resource bin, and removes unfinished uploads. Crons only run on the production deployment. Vercel sends `CRON_SECRET` as a Bearer token, and the route rejects anything else.
    - **Why `crons` and not Vercel Schedules (yet):** Schedules would run the job as a private function, with

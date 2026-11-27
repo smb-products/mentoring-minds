@@ -130,27 +130,52 @@ printf '' | clip.exe                              # clear the clipboard when you
   `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. Set `VAPID_SUBJECT` to `mailto:` plus Vienne's address. Then close that
   terminal.
 
-## Part 6. Migrate and seed production, about 10 min
-
-> **HOLD: don't run the `npm run db:seed` line yet** (P-review, 2026-11-26). Today the seed would add the
-> prototype's demo locations (a studio and Coral Pines Library) to production, and nothing in the app can
-> edit or remove them. The demo locations aren't real and must not reach production; the real locations
-> are set at seed time, not in the repo. The fix waits on your go. Until then, run the lines down to `migrate deploy`, skip the seed, and run the `unset`.
-> Part 7 works without the seed, as far as the sign-in screen. Don't sign in or create accounts on
-> production until the seed has run: it also loads the settings (Miami time) the screens need. Part 9's
-> hand checks wait too. This note goes once the fix merges.
+## Part 6. Migrate and seed production, about 15 min
 
 Do this in a **fresh clone**, not the lanes' checkout. Paste the URL at the hidden prompt, so it isn't saved
 in your shell history.
+
+**1. Write Vienne's locations into a file outside the repo** (S28). The seed adds no demo location to
+production. It reads the real ones from this file, and it refuses to run while production has none. The
+real places never go in the repo, the docs, a PR or a message; they live only in this file and then in
+the database. Open it in an editor, so nothing lands in your shell history:
+
+```bash
+nano ~/mm-locations.json && chmod 600 ~/mm-locations.json
+```
+
+The file is a JSON list with one entry per place:
+
+```json
+[
+  { "name": "<place name>", "kind": "LIBRARY", "address": "<street, city>" },
+  { "name": "<name>", "kind": "HOME" }
+]
+```
+
+- `kind` is `LIBRARY`, `TUTOR` (a place of Vienne's own; families see "Vienne's studio") or `HOME`
+  (families see "Vienne comes to you" and type their own address when they book).
+- `address` is optional. Leave it out for `HOME`.
+- Limits: names up to 80 characters, addresses up to 200, at most 50 places.
+- The seed checks the whole file first. If anything is wrong it says what and saves nothing. It also
+  refuses a file inside the app's folder, where it could get committed.
+
+**2. Migrate, then seed:**
 
 ```bash
 git clone https://github.com/smb-products/mentoring-minds.git ~/mm-prod-ops && cd ~/mm-prod-ops && npm ci
 read -rsp 'Neon main (production) DIRECT url: ' DIRECT_URL && echo && export DIRECT_URL DATABASE_URL="$DIRECT_URL"
 npx prisma migrate status     # expect: the database is empty, and every migration is "not yet applied"
 npx prisma migrate deploy     # creates the tables
-ADMIN_EMAIL="<Vienne's Google address>" ADMIN_NAME="Vienne Elliott" npm run db:seed   # ON HOLD, see above
+SEED_LOCATIONS_FILE=~/mm-locations.json ADMIN_EMAIL="<Vienne's Google address>" ADMIN_NAME="Vienne Elliott" npm run db:seed
 unset DIRECT_URL DATABASE_URL
 ```
+
+The seed prints counts only, for example "Locations: 2 added, 0 skipped", never names or addresses.
+
+**3. Then delete the file:** `rm ~/mm-locations.json`. A later re-run doesn't need it: with locations
+already in production, the seed keeps them and adds nothing. To add a place later, run the same seed line
+with a file that lists only the new place. Names already there are skipped, never changed.
 
 - **Never run `npm run db:seed:demo` in this shell, and never add `--force` to it here.** Since S11 it
   refuses a database that isn't local and whose name lacks test, dev, demo or preview. Production's Neon
