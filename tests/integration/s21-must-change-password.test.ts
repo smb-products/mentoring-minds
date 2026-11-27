@@ -23,7 +23,7 @@ const SERVER = 'src/server';
 const MODULES = readdirSync(path.join(ROOT, SERVER)).filter((f) => f.endsWith('.ts')).map((f) => f.slice(0, -3)).sort();
 
 /** What the change-password screen needs, so the account can get out of the state. */
-const ALLOWED = new Set(['families.changePassword']);
+const ALLOWED = new Set(['families.changePassword', 'requests.requestInvite' /* L2: public, no account (p-sec's PUBLIC) */]);
 
 /** Exports that parse before their guard (the guard needs a parsed id): they get a valid input, as in p-sec.test.ts. */
 const later = () => new Date(Date.now() + 3 * 86400000).toISOString();

@@ -94,7 +94,8 @@ describe('schema and migration', () => {
     const dirs = readdirSync(path.join(ROOT, 'prisma/migrations')).filter((d) => statSync(path.join(ROOT, 'prisma/migrations', d)).isDirectory());
     const mine = dirs.filter((d) => d.endsWith('_remove_ai'));
     expect(mine).toHaveLength(1);
-    expect(dirs.sort().at(-1)).toBe(mine[0]);
+    // In order: right after S23b's, the newest when S33 landed (L2's invite_requests comes after it).
+    expect(dirs.sort()[dirs.indexOf(mine[0]) - 1]).toBe('20261126220000_notification_links');
     const sql = read(`prisma/migrations/${mine[0]}/migration.sql`);
     expect(sql).toMatch(/DROP TABLE "AiDraft"/);
     expect(sql).toMatch(/DROP TYPE "DraftKind"/);
