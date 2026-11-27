@@ -21,3 +21,6 @@ __pycache__/
 *:Zone.Identifier
 .env.*
 !.env.example
+
+# Vercel CLI link (project and team ids). The CLI also pulls env files next to it: never link inside the repo.
+.vercel

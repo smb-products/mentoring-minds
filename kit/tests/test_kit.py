@@ -64,6 +64,16 @@ env > "$TMUX_ENV_LOG"
 exit 0
 """
 
+FAKE_SEAT_TMUX = """#!/usr/bin/env bash
+t=""; prev=""; for a in "$@"; do [ "$prev" = -t ] && t="${a#=}"; prev="$a"; done
+case "$1" in
+  has-session) exit 0;;
+  capture-pane) cat "$PANES/${t#t-}" 2>/dev/null; exit 0;;
+  send-keys) echo "$t $*" >> "$KEYS_LOG"; exit 0;;
+esac
+exit 1
+"""
+
 
 def run(args, cwd, env=None, inp=None):
     return subprocess.run(args, cwd=cwd, env=env, input=inp, capture_output=True, text=True)
@@ -249,7 +259,8 @@ class Kit(unittest.TestCase):
         pr = lambda n, labels, mergeable="MERGEABLE": {"number": n, "headRefName": f"h/rigg-{n}", "headRefOid": f"sha{n}", "isDraft": False, "mergeable": mergeable,
                                 "autoMergeRequest": None, "labels": [{"name": l} for l in labels],
                                 "statusCheckRollup": [{"name": "check", "conclusion": "SUCCESS", "completedAt": old}]}
-        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, []), pr(16, ["owner:axis"]), pr(17, ["owner:axis"], "CONFLICTING")])
+        prs = json.dumps([pr(14, ["owner:axis"]), pr(15, []), pr(16, ["owner:axis"]), pr(17, ["owner:axis"], "CONFLICTING"),
+                          pr(18, ["owner:atlas"]), pr(19, ["owner:atlas", "owner:zero"])])
         queue = json.dumps({"data": {"repository": {"mergeQueue": {"entries": {"nodes": [{"pullRequest": {"number": 16}}]}}}}})
         (self.tmp / "bin" / "tmux").write_text("#!/usr/bin/env bash\nexit 0\n")  # every seat is up; never the real tmux
         (self.tmp / "bin" / "tmux").chmod(0o755)
@@ -260,6 +271,45 @@ class Kit(unittest.TestCase):
         self.assertIn("PR #15", zero)     # unclaimed and not in the plan: HELD_OWNER
         self.assertNotIn("PR #16", axis + zero)  # already in the merge queue: waiting on CI, not on a lead
         self.assertNotIn("PR #17", axis + zero)  # conflicts with main: waiting on its author, not a lead to merge
+        atlas = self.kit("msg.py", "inbox", "atlas").stdout
+        self.assertIn("PR #18", axis)     # ops seat's own PR: it can't merge it, so OPS_REVIEWER (axis) is told
+        self.assertNotIn("PR #18", atlas + zero)
+        self.assertIn("PR #19", zero)     # a lead claimed the ops seat's PR: that lead
+        self.assertNotIn("PR #19", atlas + axis)
+
+    def test_watch_wakes_an_idle_lead_or_ops_seat_with_unread_work(self):
+        (self.tmp / "bin" / "tmux").write_text(FAKE_SEAT_TMUX)
+        (self.tmp / "bin" / "tmux").chmod(0o755)
+        panes, keys = self.tmp / "panes", self.tmp / "keys.log"
+        panes.mkdir()
+        idle, busy, asking = "some output\n❯ \n", "✻ Working… (esc to interrupt)\n❯ \n", "Do you want to proceed?\n❯ 1. Yes\n"
+        for seat, pane in (("axis", idle), ("zero", idle), ("atlas", busy), ("osa", idle)):
+            (panes / seat).write_text(pane)
+        with open(self.repo / "kit" / "project.env", "a") as fh:
+            fh.write("WATCH_WAKE_MIN=0\n")  # wake on the first pass; the real default waits a minute
+        env = {"PANES": str(panes), "KEYS_LOG": str(keys)}
+        send = lambda to, text, by="osa": self.kit("msg.py", "send", to, text, env={"AVEL_AGENT": by})
+        typed = lambda: [l for l in (keys.read_text().splitlines() if keys.exists() else []) if " -l " in l]
+        send("axis", "please review #3")
+        send("zero", "FYI #2 is queued")
+        send("atlas", "please check the domain")
+        send("osa", "lane soap idle", by="guard")
+        for _ in range(2):
+            self.kit("watch.py", "--seats", env=env)
+        self.assertEqual(typed(), ["t-axis send-keys -t t-axis -l New message from OSA: run kit/msg.py inbox axis and act on it."])
+        # zero has only an FYI, atlas is working, and osa isn't a lead or ops seat: none are typed into.
+        (panes / "atlas").write_text(asking)
+        self.kit("watch.py", "--seats", env=env)
+        self.assertEqual(len(typed()), 1, "typed into a permission prompt")
+        (panes / "atlas").write_text(idle)
+        self.kit("watch.py", "--seats", env=env)
+        self.assertIn("New message from OSA: run kit/msg.py inbox atlas", typed()[-1])
+        send("axis", "and #4", by="zero")
+        self.kit("watch.py", "--seats", env=env)
+        self.assertIn("New message from OSA, zero: run kit/msg.py inbox axis", typed()[-1])
+        self.kit("msg.py", "inbox", "axis")
+        self.kit("watch.py", "--seats", env=env)
+        self.assertEqual(len(typed()), 3, "woke a seat that had already read its inbox")
 
     def test_checker_skips_tickets_a_seat_runs_itself(self):
         self.kit("plan.py", "set", "E", "merged")  # role ops: no holdouts
