@@ -73,19 +73,21 @@ This loads settings (Miami time, the FAST windows), Math and Vienne's skills, th
 
 ## Releasing
 
-Decision D5 (Javaris, 2026-11-26): production migrations are run by Javaris, never by a build.
+Decision D5 (Javaris, 2026-11-26): production migrations are run by Javaris, never by a build. Since
+2026-11-27 (Javaris), everything else goes live by itself: **auto-promote with a migration guard**.
 
-- "Auto-assign Custom Production Domains" is **off** (`docs/PRODUCTION_SETUP.md`, Part 2, step 8). A merge to
-  main builds a production deployment marked **Staged**. The live site doesn't change.
+- "Auto-assign Custom Production Domains" is **on** (`docs/PRODUCTION_SETUP.md`, Part 2, step 8). A merge to
+  main goes live as soon as its production build is ready.
 - A production build never runs `prisma migrate deploy` (`scripts/vercel-build.mjs`). It runs
-  `prisma migrate status` instead. If the database lacks a migration in the build, the log shows
-  **PRODUCTION DATABASE NOT UP TO DATE**.
+  `prisma migrate status` first, and **fails** if the database lacks one of the build's migrations, or can't be
+  reached. The log shows **PRODUCTION DATABASE NOT UP TO DATE**. A failed build never goes live, so the site
+  stays on the last good deployment. Every later merge fails the same way until the migration is applied.
+- Vercel emails the team about a failed production deployment, and OSA sees it on the board.
 
-To release:
+A merge without a migration needs nothing: it's live a few minutes later. For a merge **with** a migration:
 
-1. Open the Staged deployment's **Build Logs**. If they say the database is up to date, skip to step 3.
-2. If they say **PRODUCTION DATABASE NOT UP TO DATE**, Javaris migrates first, from the fresh clone in
-   `PRODUCTION_SETUP.md` Part 6:
+1. Its production build fails with **PRODUCTION DATABASE NOT UP TO DATE**. The live site is unchanged.
+2. Javaris migrates, from the fresh clone in `PRODUCTION_SETUP.md` Part 6:
    ```bash
    cd ~/mm-prod-ops && git pull && npm ci
    read -rsp 'Neon main (production) DIRECT url: ' DIRECT_URL && echo && export DIRECT_URL DATABASE_URL="$DIRECT_URL"
@@ -94,21 +96,20 @@ To release:
    unset DIRECT_URL DATABASE_URL
    ```
    The live (older) code keeps working, because migrations here only add (see **Changing the database later**).
-3. On the Staged deployment, **⋯ → Promote**, and confirm. Promote doesn't rebuild.
-4. Check **Settings → Environments → Production → Branch Tracking**: auto-assign is still off.
+3. **Vercel → Deployments**, the newest failed Production deployment, **⋯ → Redeploy**. This time the check
+   passes, and it goes live when it's ready.
 
-A Staged deployment uses production's variables and database, so opening its own address is a real
-production session. Check it there only as Vienne.
+A transient database error fails a production build the same way. Redeploy it; nothing went live.
 
 ## Rollback
 
 A bad deployment goes back to the previous one in about a minute, without a rebuild.
 
 1. **Vercel → Deployments**, then the last good **Production** deployment, **⋯ → Instant Rollback**, and confirm.
-2. Production now serves that build. Merges to main still build Staged deployments, as always (**Releasing**).
-3. Fix forward on main, then promote the fixed deployment (**Releasing**, step 3). Then check that
-   auto-assign is still off (step 4). Vercel's docs say a promote after a rollback turns auto-assign back
-   on. They don't say what an ordinary promote does. P-ops check 7 records what it does here.
+2. Production now serves that build. A rollback turns auto-assign **off**, so merges to main build
+   **Staged** deployments until you promote one: the bad change can't come back by itself.
+3. Fix forward on main. When the fix's deployment is ready, **⋯ → Promote** it. Promoting after a rollback
+   turns auto-assign back on. Check **Settings → Environments → Production → Branch Tracking** to be sure.
 
 A rollback brings back that deployment's environment variables too. After a Neon password reset, rolling back to a deployment from before it can't reach the database.
 
@@ -202,7 +203,7 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [ ] A photo upload from a real iPhone and a real Android phone. **Javaris**. The emulated part passes on a production build (`p-product.spec.ts`: JPEG sent and opened by Vienne, HEIC and over-`MAX_BYTES` files refused with a plain message). On the iPhone, try one photo from the camera and one from the library (Safari normally sends JPEG; a HEIC gets "Use a PDF, PNG, JPG or WebP file").
 - [ ] Turn on Neon's point-in-time restore window (Free covers recent history; check the current limit). **Javaris**; P-ops rehearses one restore into a new branch.
 - [ ] `mentoringmindsacademy.org` serves production; `www.mentoringmindsacademy.org` and `mentoring-minds.vercel.app` 308 to it, and all three follow each Promote. **Atlas** set them up (2026-11-27); P-ops check 8 confirms after the first promote.
-- [ ] "Auto-assign Custom Production Domains" is off (D5); a merge to main shows up **Staged**, and `PROD_URL` keeps the old build until Promote. **Javaris** sets it (setup Part 2); **Atlas** (P-ops) checks the next merge.
+- [ ] "Auto-assign Custom Production Domains" is **on** (D5, auto-promote since 2026-11-27), and a production build fails while production lacks a migration, so it never goes live. **Atlas** turns it on after the guard is on main; P-ops check 7 records the first merge that goes live by itself.
 - [x] Preview and paused parents see their screen, not an endless loading skeleton or an error (S8). Merged (#49) and checked (#50); `p-product.spec.ts` runs both without a `fixme`.
 - [x] Real locations decided: entered at seed time from a file outside the repo, never in it (Javaris, 2026-11-26). S28 (#118) and S32 (#121) are merged and checked; the steps are `PRODUCTION_SETUP.md` Part 6 (#116).
 - [x] The library sends families no other family's children (S15, #76) and Vienne's email can't be squatted before the seed (S19, #82). Both merged and checked.

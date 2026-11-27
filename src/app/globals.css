@@ -7,7 +7,8 @@
 
 :root {
   /* ── Primitive ramps (OKLCH-built, sRGB hex) ── */
-  --mm-brand-50: #f0f5ff;  --mm-brand-100: #dfeaff;  --mm-brand-200: #c5d8ff;  --mm-brand-300: #9fbdff;  --mm-brand-400: #719afb;  --mm-brand-500: #4876f0;  --mm-brand-600: #2b56dc;  --mm-brand-700: #1e40af;  --mm-brand-800: #16328a;  --mm-brand-900: #0b1f5c;  --mm-brand-950: #07143c;
+  /* Brand: retuned around the landing page's blue, #1f5eff at 600 (App polish). */
+  --mm-brand-50: #eef3ff;  --mm-brand-100: #dce6ff;  --mm-brand-200: #c2d3ff;  --mm-brand-300: #9db8ff;  --mm-brand-400: #6f95ff;  --mm-brand-500: #4677ff;  --mm-brand-600: #1f5eff;  --mm-brand-700: #1747c4;  --mm-brand-800: #143a9c;  --mm-brand-900: #0f2a6e;  --mm-brand-950: #0b1733;
   --mm-gold-50: #fffae4;  --mm-gold-100: #fff1c5;  --mm-gold-200: #ffe18e;  --mm-gold-300: #ffcd58;  --mm-gold-400: #f5b82e;  --mm-gold-500: #e39f08;  --mm-gold-600: #c37f00;  --mm-gold-700: #a06108;  --mm-gold-800: #804810;  --mm-gold-900: #64340b;  --mm-gold-950: #411e05;
   --mm-neutral-50: #f9fafc;  --mm-neutral-100: #f2f4f8;  --mm-neutral-200: #e5e7ed;  --mm-neutral-300: #d0d4dc;  --mm-neutral-400: #9aa0ab;  --mm-neutral-500: #6c7380;  --mm-neutral-600: #4e5462;  --mm-neutral-700: #39404e;  --mm-neutral-800: #222937;  --mm-neutral-900: #111826;  --mm-neutral-950: #040814;
   --mm-good-50: #f0fdf3;  --mm-good-100: #dbf9e2;  --mm-good-200: #baf1c7;  --mm-good-300: #8ee3a5;  --mm-good-400: #5bcc80;  --mm-good-500: #28ad5e;  --mm-good-600: #098b47;  --mm-good-700: #037138;  --mm-good-800: #065a2c;  --mm-good-900: #064420;  --mm-good-950: #032d13;
@@ -15,9 +16,9 @@
   --mm-serious-50: #fff5ee;  --mm-serious-100: #ffe7d8;  --mm-serious-200: #ffd0b6;  --mm-serious-300: #ffaf85;  --mm-serious-400: #ff8648;  --mm-serious-500: #ef6505;  --mm-serious-600: #cf4b00;  --mm-serious-700: #a83a00;  --mm-serious-800: #882f00;  --mm-serious-900: #692400;  --mm-serious-950: #441600;
   --mm-critical-50: #fff3f2;  --mm-critical-100: #ffe4e1;  --mm-critical-200: #ffcac4;  --mm-critical-300: #ffa29a;  --mm-critical-400: #fa706a;  --mm-critical-500: #eb4344;  --mm-critical-600: #d4212d;  --mm-critical-700: #b31220;  --mm-critical-800: #90101a;  --mm-critical-900: #711014;  --mm-critical-950: #480709;
 
-  /* ── Shape & depth (docs/DESIGN.md): 8px cards, 6px controls, flat ── */
+  /* ── Shape & depth (docs/DESIGN.md → App polish): 16px cards and panels, 10px controls, flat ── */
   --radius: 8px;
-  --radius-panel: 8px;
+  --radius-panel: 16px;
   /* A card: a 1px border and at most a 1px, low-opacity shadow. Drawers and dialogs get one soft shadow. */
   --shadow-card: 0 1px 1px rgb(11 31 92 / 0.04);
   --shadow-panel: var(--shadow-card);
@@ -26,7 +27,7 @@
   --tint: 16%;
 
   /* ── Semantic tokens: light ── */
-  --background: var(--mm-neutral-100);
+  --background: #f7f9fc;
   --foreground: var(--mm-neutral-900);
   --card: #ffffff;
   --card-foreground: var(--mm-neutral-900);
@@ -79,14 +80,25 @@
   --critical-foreground: #ffffff;
   --critical-soft: var(--mm-critical-50);
   --critical-soft-foreground: var(--mm-critical-800);
-  --sidebar: var(--mm-brand-950);
-  --sidebar-foreground: var(--mm-brand-200);
-  --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: var(--mm-brand-950);
-  --sidebar-accent: var(--mm-brand-800);
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: var(--mm-brand-900);
-  --sidebar-ring: var(--mm-brand-400);
+  /* The white sidebar and phone nav (App polish): gray items, the selected one soft blue with blue text,
+     counts solid blue. */
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--mm-neutral-700);
+  --sidebar-primary: var(--mm-brand-600);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--mm-brand-50);
+  --sidebar-accent-foreground: var(--mm-brand-600);
+  --sidebar-border: var(--mm-neutral-200);
+  --sidebar-ring: var(--mm-brand-500);
+  /* Stat card icon squares, in order (App polish), and the amber count for work to check. */
+  --tile-blue: var(--mm-brand-50);
+  --tile-blue-foreground: var(--mm-brand-600);
+  --tile-amber: #fff6e0;
+  --tile-amber-foreground: #93590b;
+  --tile-green: #eafbf3;
+  --tile-green-foreground: #087443;
+  --tile-violet: #f4efff;
+  --tile-violet-foreground: #6935d9;
   --chart-1: #2b56dc;
   --chart-2: #2fa29d;
   --chart-3: #967cdb;
@@ -157,14 +169,22 @@
   --critical-foreground: var(--mm-critical-950);
   --critical-soft: var(--mm-critical-950);
   --critical-soft-foreground: var(--mm-critical-200);
-  --sidebar: var(--mm-brand-950);
-  --sidebar-foreground: var(--mm-brand-200);
-  --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: var(--mm-brand-950);
-  --sidebar-accent: var(--mm-brand-800);
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: var(--mm-brand-900);
+  --sidebar: var(--mm-neutral-800);
+  --sidebar-foreground: var(--mm-neutral-200);
+  --sidebar-primary: var(--mm-brand-600);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--mm-brand-900);
+  --sidebar-accent-foreground: var(--mm-brand-200);
+  --sidebar-border: var(--mm-neutral-700);
   --sidebar-ring: var(--mm-brand-400);
+  --tile-blue: var(--mm-brand-900);
+  --tile-blue-foreground: var(--mm-brand-200);
+  --tile-amber: #4a3208;
+  --tile-amber-foreground: #ffd88a;
+  --tile-green: #0b3b26;
+  --tile-green-foreground: #a6f0cb;
+  --tile-violet: #33245c;
+  --tile-violet-foreground: #d7ccff;
   --chart-1: #719afb;
   --chart-2: #84ead7;
   --chart-3: #d7ccff;
@@ -196,14 +216,15 @@
   --text-title--line-height: 1.25;
   --text-title--font-weight: 600;
   --text-title--letter-spacing: -0.01em;
-  --text-page: 22px;
+  /* Page titles and stat numbers are 700 (App polish): the weight comes from the token, never a class. */
+  --text-page: 24px;
   --text-page--line-height: 1.25;
-  --text-page--font-weight: 600;
-  --text-page--letter-spacing: -0.01em;
+  --text-page--font-weight: 700;
+  --text-page--letter-spacing: -0.02em;
   --text-figure: 22px;
   --text-figure--line-height: 1.25;
-  --text-figure--font-weight: 600;
-  --text-figure--letter-spacing: -0.01em;
+  --text-figure--font-weight: 700;
+  --text-figure--letter-spacing: -0.02em;
   /* The landing page only (docs/DESIGN.md → Landing C): weight 700 and the mockup's tight tracking.
      display is the hero's headline, headline the section titles, price the "$50". */
   --text-display: clamp(38px, 5.6vw, 64px);
@@ -223,22 +244,24 @@
   :root {
     --text-body: 14px;
     --text-field: 14px;
-    --text-page: 24px;
+    --text-page: 28px;
     --text-figure: 24px;
   }
 }
 
 @theme inline {
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
-  /* 6px for controls and badges (rounded-md), 8px for cards, panels, drawers and dialogs (rounded-lg).
-     The larger steps are 8px too, so screens not restyled yet lose their round corners. */
+  /* App polish: 10px for controls, badges and nav items (rounded-md), 16px for cards, panels, drawers and
+     dialogs (rounded-lg). The larger steps are 16px too, so nothing gets rounder than a card. */
   --radius-xs: 2px;
   --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 8px;
-  --radius-2xl: 8px;
-  --radius-3xl: 8px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 16px;
+  --radius-2xl: 16px;
+  --radius-3xl: 16px;
+  /* The 40px icon square on a stat card. */
+  --radius-tile: 12px;
   --radius-panel: var(--radius-panel);
   --shadow-panel: var(--shadow-panel);
   --shadow-raised: var(--shadow-raised);
@@ -304,6 +327,14 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-tile-blue: var(--tile-blue);
+  --color-tile-blue-foreground: var(--tile-blue-foreground);
+  --color-tile-amber: var(--tile-amber);
+  --color-tile-amber-foreground: var(--tile-amber-foreground);
+  --color-tile-green: var(--tile-green);
+  --color-tile-green-foreground: var(--tile-green-foreground);
+  --color-tile-violet: var(--tile-violet);
+  --color-tile-violet-foreground: var(--tile-violet-foreground);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -384,14 +415,14 @@
 
 @layer base {
   * { @apply border-border; }
-  html, body { @apply bg-sidebar text-foreground font-sans antialiased; }
+  html, body { @apply bg-background text-foreground font-sans antialiased; }
   html { font-size: 15px; }
   body { font-size: var(--text-body); line-height: 1.45; }
   h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
   .tabular { font-variant-numeric: tabular-nums; }
   :focus { outline: none; }
   /* Focus ring: 2px ring + 2px offset in the surface colour, visible on every surface */
-  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 10px; }
   ::selection { background: var(--brand-soft); color: var(--brand-soft-foreground); }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
 }
@@ -423,7 +454,7 @@
   box-shadow: var(--shadow-card);
 }
 
-/* Header band: flat navy. */
+/* Header band: flat navy. Nothing in the shell uses it since P1; it stays defined so nothing breaks. */
 @utility band {
   background-color: var(--ink);
   color: var(--ink-foreground);
@@ -451,7 +482,7 @@
   background-color: color-mix(in oklch, var(--ink-foreground) 10%, transparent);
   &:hover:not(:disabled) { background-color: color-mix(in oklch, var(--ink-foreground) 16%, transparent); }
 }
-/* Rail: flat navy. */
+/* Rail: the sidebar's fill (white since P1). */
 @utility rail {
   background-color: var(--sidebar);
 }

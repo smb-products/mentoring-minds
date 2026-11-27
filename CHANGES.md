@@ -12,6 +12,15 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   mockup, under Javaris's polish approval.
 - **P2a, new check 2:** parent Home must not scroll sideways at 390px (the SkillMeter rows, found in P1's report).
 
+## 2026-11-27: D5, auto-promote with a migration guard
+
+- **D5 changed:** a merge to main goes live by itself once its production build is ready ("Auto-assign Custom
+  Production Domains" back on). Before, each merge built a Staged deployment that waited for a Promote. Why:
+  Javaris wants merges live without a manual promote. Approved: Javaris (via OSA).
+- **The guard:** a production build now **fails** when `prisma migrate status` shows a migration production
+  lacks, or can't reach the database (`scripts/vercel-build.mjs`). That build never goes live, and the site
+  stays on the last good deployment. Javaris still runs every production migration, then redeploys. Production
+  builds still never migrate. Approved: Javaris (via OSA).
 ## 2026-11-27: P2 split into P2a (parent) and P2b (admin)
 
 - **P2** is superseded by **P2a** (the parent screens and their drawers, plus the shared SessionParts, Thread and

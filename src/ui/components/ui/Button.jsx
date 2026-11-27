@@ -4,7 +4,7 @@ import { cn } from '../../lib/cn';
 /**
  * primary     – the one forward action on a screen: solid blue
  * secondary   – white with a border, for everything else that matters
- * glass       – secondary on the navy band
+ * glass       – the page header's secondary; looks like secondary since the header moved onto the light page (P1)
  * ghost       – text only, toolbars and inline actions
  * ink         – navy, for confirming inside drawers on dark-ish contexts
  * destructive – irreversible: solid red
@@ -14,9 +14,9 @@ import { cn } from '../../lib/cn';
 const VARIANTS = {
   primary: 'bg-primary text-primary-foreground hover:bg-primary-hover',
   secondary: 'border border-border bg-card text-foreground hover:bg-accent',
-  glass: 'bg-ink-foreground/10 text-ink-foreground hover:bg-ink-foreground/15',
+  glass: 'border border-border bg-card text-foreground hover:bg-accent',
   ghost: 'text-muted-foreground hover:bg-muted hover:text-foreground',
-  ink: 'bg-ink text-ink-foreground hover:bg-sidebar-accent',
+  ink: 'bg-ink text-ink-foreground hover:bg-ink/90',
   destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive-hover',
   reward: 'bg-primary text-primary-foreground hover:bg-primary-hover',
 };

@@ -13,7 +13,8 @@ account owns the sign-in client).
 
 ## Decisions before you start
 
-Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**.
+Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**. D5 changed on 2026-11-27 to
+**auto-promote with a migration guard** (Javaris, via OSA).
 
 | # | Decision | Chosen | Why |
 |---|---|---|---|
@@ -21,7 +22,7 @@ Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**
 | D2 | Address: a custom domain, or `<project>.vercel.app` | **`mentoringmindsacademy.org`** (Javaris bought it on Vercel, 2026-11-27) | The apex is production. `www` and `mentoring-minds.vercel.app` redirect to it with a 308, so Google needs only one redirect address (Part 4, step 4). |
 | D3 | One Blob store, or one for production and one for previews | **Two stores** | A preview deployment runs code that hasn't launched yet. With one shared store, its token could read or delete families' photos. |
 | D4 | Neon plan | Free to start | Free keeps 6 hours of restore history. Launch (paid, by usage) keeps up to 7 days. See [Neon's history window](https://neon.com/docs/introduction/history-window). |
-| D5 | Production migrations after launch | **Manual: you migrate, then promote** | RULES.md says production migrations are yours. Production builds never run `prisma migrate deploy`; previews still do, on their own database. Merges to main build a **Staged** production deployment that doesn't go live until you promote it (Part 2, step 8). `docs/DEPLOY.md` → Releasing has the steps. |
+| D5 | Production migrations after launch | **You migrate; every other merge goes live by itself** (auto-promote, 2026-11-27) | RULES.md says production migrations are yours. Production builds never run `prisma migrate deploy`; previews still do, on their own database. A merge to main goes live as soon as its build is ready. A production build **fails** when production lacks one of its migrations, so it never goes live and the site stays on the last good deployment. You migrate, then redeploy it. `docs/DEPLOY.md` → Releasing has the steps. |
 
 ## Part 1. Neon (database), about 10 min
 
@@ -66,9 +67,9 @@ in Part 5: the Neon URLs, the Google keys and, if you want push, the VAPID keys.
    open previews.
 7. **Settings → Functions → Region**: set it to **Cleveland, USA (cle1)**, next to Neon in Ohio, and **Save**.
    The default is Washington, D.C. (iad1), which would put every database call across states.
-8. **Settings → Environments → Production → Branch Tracking**: turn **off** "Auto-assign Custom Production
-   Domains", then **Save**. From now on a merge to main builds a production deployment marked **Staged**, and
-   `PROD_URL` keeps serving the old one until you **Promote** (D5).
+8. **Settings → Environments → Production → Branch Tracking**: "Auto-assign Custom Production Domains" is
+   **on** (D5, auto-promote). A merge to main goes live once its build is ready. A build that needs a migration
+   fails instead, and the site stays on the last good deployment (`docs/DEPLOY.md` → Releasing).
 
 ## Part 3. Vercel Blob (files), about 5 min
 
@@ -206,10 +207,9 @@ with a file that lists only the new place. Names already there are skipped, neve
 
 1. **Vercel → Deployments**, the newest Production deployment, **⋯ → Redeploy**. Environment variables only
    take effect on a new deployment.
-2. When it's **Ready**, and it says **Staged**: **⋯ → Promote**, and confirm. Then reopen **Settings →
-   Environments → Production → Branch Tracking** and check "Auto-assign Custom Production Domains" is still
-   **off**. Vercel's docs don't say whether promoting switches it back on; if it did, switch it off again and
-   tell Atlas.
+2. When it's **Ready**, it's live. If it says **Staged** (auto-assign was off then), **⋯ → Promote**, and
+   confirm. If the build **failed** with "PRODUCTION DATABASE NOT UP TO DATE", migrate first (Part 6), then
+   redeploy it.
 3. Open `PROD_URL`. Signed out, you should see the landing page (L1), with **Sign in** at the top.
    `https://www.mentoringmindsacademy.org` and `https://mentoring-minds.vercel.app` should both land there too.
    - If you see an error page instead, open the deployment's **Logs**. The start-up check names the missing
