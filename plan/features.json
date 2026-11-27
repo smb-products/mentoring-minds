@@ -1464,6 +1464,11 @@
         "src/ui/components/sessions/ParentSessionDrawer.jsx",
         "src/ui/components/sessions/RequestSessionDrawer.jsx",
         "src/ui/components/learning/",
+        "src/ui/components/ui/",
+        "src/ui/components/shell/",
+        "src/ui/components/sessions/SessionParts.jsx",
+        "src/ui/components/messages/Thread.jsx",
+        "src/ui/components/fast/FastResults.jsx",
         "tests/r2-design.test.ts",
         "tests/e2e/r2-parent-look.spec.ts",
         "plan/reports/R2.md"
@@ -1472,12 +1477,13 @@
         "Every file in this ticket's touches follows docs/DESIGN.md. Type uses only the scale's tokens (text-caption, text-small, text-body, text-input, text-heading, text-title, text-page, text-figure): no text-[Npx], font-display or font-extrabold. Shape and depth follow docs/DESIGN.md: 8px corners on cards, drawers and dialogs, 6px on controls and badges, rounded-full only on avatars, status dots and counts, and no gradient, glow, inset highlight, press shadow, or surface/band/glass/chrome-*/press-*/rail utility.",
         "Stars leave the stats: parent Home and Progress no longer show a 'Stars earned' figure. Stars stay beside the child's homework: the stars on each graded assignment on Progress, Learning and the assignment page. The server and its shapes don't change (starsTotal is still returned, just not shown).",
         "Phone first: tests/e2e/r2-parent-look.spec.ts, tagged @phone (Pixel 7), signs in as a parent with an upcoming session and finds Home's Next session card fully in view without scrolling. It also checks no parent screen scrolls sideways (scrollWidth ≤ clientWidth) and that 'Stars earned' isn't on Home or Progress. It uses the fixture, so there are no console errors.",
-        "tests/r2-design.test.ts runs the same source checks as tests/r1-design.test.ts, over this ticket's files.",
+        "From OSA's taste review of R1 (#133), against docs/DESIGN.md:\n(1) No font-bold or font-extrabold in this ticket's files, including the shared components (ui/, shell/, SessionParts, Thread, FastResults), which this ticket now owns. Use 600 for headings and card titles, and 500 for labels such as 'Next session', legends and day headers.\n(2) On every parent screen, the stat row (Figures) and the ChildSwitcher move out of PageHeader onto the gray page, without variant='band', and no content overlaps the band. The band holds only back, title, subtitle and actions: tests/e2e/r2-parent-look.spec.ts measures it at 140px or less at 1280×800, and on phone Home its bottom is above the child chips.\n(3) ChildSwitcher's chips have 6px corners, not pills.\n(4) The next-session date tile on Home is light gray with navy text, not a navy block.",
+        "tests/r2-design.test.ts runs the same source checks as tests/r1-design.test.ts, over this ticket's files. The source test also fails on font-bold in any of these files.",
         "Nothing a person reads or taps changes: layouts, wording, and every label, role and accessible name stay. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass on a production build, including tests/e2e/auth.spec.ts, the w*.spec files, p-product.spec.ts and the holdouts."
       ],
       "hints": [
         "Javaris approved the restyle on 2026-11-27 (via OSA). docs/DESIGN.md is the spec.",
-        "Not held. It shares no touches with R3 or L1, so the three can run in parallel. Don't edit R1's shared components; if one needs a change, say so in the report."
+        "Not held. It shares no touches with R3 or L1, so the three can run in parallel. R1 has merged, so this ticket also owns the shared components (ui/, shell/, SessionParts, Thread, FastResults) for the taste fixes. R3 doesn't edit them."
       ]
     },
     {
@@ -1499,12 +1505,13 @@
       "checks": [
         "Every file in this ticket's touches follows docs/DESIGN.md. Type uses only the scale's tokens (text-caption, text-small, text-body, text-input, text-heading, text-title, text-page, text-figure): no text-[Npx], font-display or font-extrabold. Shape and depth follow docs/DESIGN.md: 8px corners on cards, drawers and dialogs, 6px on controls and badges, rounded-full only on avatars, status dots and counts, and no gradient, glow, inset highlight, press shadow, or surface/band/glass/chrome-*/press-*/rail utility.",
         "Vienne's screens keep their density: tables, the day timeline and the families list fit as many rows as today or more at 1280×800. Status still reads at a glance from the badge tints and dots.",
-        "tests/r3-design.test.ts runs the same source checks as tests/r1-design.test.ts, over this ticket's files.",
+        "From OSA's taste review of R1 (#133), against docs/DESIGN.md:\n(1) No font-bold or font-extrabold in this ticket's files. Use 600 for headings and card titles, and 500 for labels such as 'Open hours', 'Sessions so far', the week legend and day headers.\n(2) On Today, Families, Assignments, an assignment and Content, the stat row (Figures) moves out of PageHeader onto the gray page, without variant='band', and no content overlaps the band. The band holds only back, title, subtitle and actions, about 120px at 1280×800.",
+        "tests/r3-design.test.ts runs the same source checks as tests/r1-design.test.ts, over this ticket's files. The source test also fails on font-bold in any of these files.",
         "Nothing a person reads or taps changes: layouts, wording, and every label, role and accessible name stay. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass on a production build, including tests/e2e/auth.spec.ts, the w*.spec files, p-product.spec.ts and the holdouts."
       ],
       "hints": [
         "Javaris approved the restyle on 2026-11-27 (via OSA). docs/DESIGN.md is the spec.",
-        "Not held. It waits for S33, which rewrites AdminSessionDrawer.jsx and AnswerKeyPage.jsx. It shares no touches with R2 or L1. Don't edit R1's shared components; if one needs a change, say so in the report."
+        "Not held. It waits for S33, which rewrites AdminSessionDrawer.jsx and AnswerKeyPage.jsx. It shares no touches with R2 or L1. R2 owns the shared components (their weights, chips and band) after R1. Don't edit them; if one needs a change, say so in the report."
       ]
     },
     {
@@ -1530,7 +1537,7 @@
         "Routing: a signed-out visitor to / gets the landing page (200, no redirect). A signed-in Vienne still goes to /admin/today and a parent to /parent/home. /privacy and the Open Graph image route open for everyone, signed in or not. Every other page still sends a signed-out visitor to /sign-in. src/proxy.ts lets exactly those through, matching whole paths ('/', '/privacy', '/opengraph-image'), never by prefix, so '/privacyx' or '/privacy/anything' still goes to /sign-in. tests/proxy.test.ts covers each case. The manifest's start_url becomes /sign-in, so the installed app opens to sign-in or home, never the landing page (scope stays /).",
         "Content, in order and word for word from docs/DESIGN.md → Landing page: the hero 'Math tutoring for grades K-6 in Miami-Dade, with F.A.S.T. test prep' with Get started and Sign in; the four services with their lines; rates ('$50 per hour', and payment by cash, Zelle, Cash App, Apple Pay and the Step Up For Students scholarship, linked to exactly https://www.stepupforstudents.org with target=\"_blank\" and rel=\"noopener noreferrer\"); how it works in three short steps; 'In person or online' with no place names; then Request an invite.",
         "Get started goes to the Request an invite section (#request-invite) and Sign in goes to /sign-in. Until L2 lands, that section says 'Have an invite code from Vienne? Create your account on the sign-in page.', with that link. The footer has Privacy, Sign in, and '© Mentoring Minds Academy'. Metadata: metadataBase and the canonical URL are https://mentoringmindsacademy.org. The title is 'Mentoring Minds Academy: math tutoring K-6', with a description and Open Graph title, description, url and type 'website'. src/app/opengraph-image.tsx draws a text-only image with next/og in the brand colors (docs/DESIGN.md). No photos, no bio, and no address, phone or email for Vienne.",
-        "Look: docs/DESIGN.md's tokens and its Landing page layout: generous whitespace, about 1080px wide at most, and the services as a quiet 2×2 grid (one column on phones), each with one 18px line icon and no card or shadow. The brain logo (LogoMark) is in the header. The sign-in page gets the same restyle and logo, plus a Privacy link, and every label auth.spec.ts, auth-hydration.spec.ts, s29 and s31 read stays. It's phone first, with no sideways scroll at the Pixel 7 width.",
+        "Look: docs/DESIGN.md's tokens and its Landing page layout: generous whitespace, about 1080px wide at most, and the services as a quiet 2×2 grid (one column on phones), each with one 18px line icon and no card or shadow. The brain logo (LogoMark) is in the header. The sign-in page gets the same restyle and logo, plus a Privacy link, and every label auth.spec.ts, auth-hydration.spec.ts, s29 and s31 read stays. It's phone first, with no sideways scroll at the Pixel 7 width. The sign-in card has 8px corners (OSA's review of R1: it's about 16px today).",
         "/privacy follows docs/DESIGN.md → Privacy page, in plain words with no legal boilerplate. It covers what's stored (accounts, children's first names and grades, sessions and notes, homework and photos, messages, FAST scores, invite requests), who sees it (Vienne, and each family only its own), where it lives (Vercel and Neon, US), how long invite requests are kept (90 days), and deletion on request (S23b, with backups clearing within the restore window). It names no person but Vienne, and gives no address. The report quotes the full text for Javaris to review.",
         "tests/e2e/l1-landing.spec.ts checks, signed out: the hero line, both buttons' targets, the four services, the rate, the five payment ways and the link's href, target and rel, the footer links, the canonical link and og:title, and that /privacy opens signed out and signed in. Its @phone test checks there's no sideways scroll on / and /privacy. It also checks signed-in redirects from / for Vienne and a parent. The lead already removed '/' from auth.spec.ts's signed-out list for this ticket. npm test and the whole browser suite pass."
       ],
