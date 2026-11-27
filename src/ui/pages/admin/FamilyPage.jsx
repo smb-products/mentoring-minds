@@ -21,7 +21,7 @@ export default function FamilyPage({ params }) {
   const { navigate } = useRouter();
   const show = useResultToast();
   const undoable = useUndoToast();
-  const { data } = useQuery(() => api.families.getFamily({ parentId: params.parentId }).catch((e) => { if (e?.code === 'NOT_FOUND') return null; throw e; }), [params.parentId]);
+  const { data } = useQuery(() => api.families.getFamily({ parentId: params.parentId }).catch((e) => { if (e?.code === 'NOT_FOUND' || e?.code === 'INVALID') return null; throw e; }) /* no such id, or one the server refuses (garbled, too long) */, [params.parentId]);
   const [setStatus] = useAction(api.families.setParentStatus);
   const [resetPw] = useAction(api.families.resetParentPassword);
   const [createDraft] = useAction(api.reports.createDraft);

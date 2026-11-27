@@ -18,7 +18,7 @@ import { Link } from '../../lib/router';
  * Data: assignments.getAssignment · Writes: gradeSubmission, returnSubmission
  */
 export default function AssignmentPage({ params }) {
-  const { data: a } = useQuery(() => api.assignments.getAssignment({ assignmentId: params.assignmentId }).catch((e) => { if (e?.code === 'NOT_FOUND') return null; throw e; }), [params.assignmentId]);
+  const { data: a } = useQuery(() => api.assignments.getAssignment({ assignmentId: params.assignmentId }).catch((e) => { if (e?.code === 'NOT_FOUND' || e?.code === 'INVALID') return null; throw e; }) /* no such id, or one the server refuses (garbled, too long) */, [params.assignmentId]);
   const [grading, setGrading] = useState(null);
   const [answersFor, setAnswersFor] = useState(null);
   if (a === null) return <Section><Empty title="We couldn’t find that assignment. It may have been removed." action={<Link href="/admin/assignments" className="text-small hit-area font-medium text-brand hover:underline">Back to Assignments</Link>} /></Section>;
