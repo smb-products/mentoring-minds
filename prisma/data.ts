@@ -83,6 +83,10 @@ const CHECKOUT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 
 const FORMAT = `a list like [{ "name": "…", "kind": "LIBRARY", "address": "…" }], where kind is ${KINDS.join(', ')} and address is optional`;
 const sameName = (name: string) => name.trim().toLowerCase();
+/** NUL and every other character below U+0020, tabs and line breaks included. Postgres refuses NUL outright. */
+// eslint-disable-next-line no-control-regex
+const CONTROL = /[\u0000-\u001f]/;
+const hidden = (field: string) => `’s ${field} has a hidden character (a tab, a line break or the like); retype it`;
 
 /**
  * Checks the locations file's text. Throws a plain message naming the problem and which
@@ -108,10 +112,13 @@ export function parseLocations(text: string): SeedLocation[] {
     const extra = Object.keys(rest);
     // The keys aren't shown: in a wrong-shaped file the place itself can be a key.
     if (extra.length) throw refuse(`${n} has ${extra.length === 1 ? 'a field' : `${extra.length} fields`} it doesn’t know`);
-    if (typeof name !== 'string' || !name.trim()) throw refuse(`${n} has no name`);
+    if (typeof name !== 'string') throw refuse(`${n} has no name`);
+    if (CONTROL.test(name)) throw refuse(n + hidden('name'));
+    if (!name.trim()) throw refuse(`${n} has no name`);
     if (name.trim().length > LOCATION_NAME_MAX) throw refuse(`${n}’s name is longer than ${LOCATION_NAME_MAX} characters`);
     if (typeof kind !== 'string' || !KINDS.includes(kind)) throw refuse(`${n}’s kind must be one of ${KINDS.join(', ')}`);
     if (address !== undefined && address !== null) {
+      if (typeof address === 'string' && CONTROL.test(address)) throw refuse(n + hidden('address'));
       if (typeof address !== 'string' || !address.trim()) throw refuse(`${n}’s address is blank (leave it out if there isn’t one)`);
       if (address.trim().length > LOCATION_ADDRESS_MAX) throw refuse(`${n}’s address is longer than ${LOCATION_ADDRESS_MAX} characters`);
     }
