@@ -3,6 +3,16 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L2 reopened, the limits count every request
+
+- **L2 (check 6, new):** the per-IP and overall limits count every request that passes validation, repeats of
+  an earlier email included. They're recorded in a new `InviteAttempt` table (hashed IP and time only, deleted
+  after a day). Stored requests and their alerts don't change. The pause alert says "20 … in the last hour",
+  since it trips at the limit.
+- **docs/DEPLOY.md → Limits:** the two rows say how requests are counted.
+- Why: Rigg's L2 holdout (`plan/holdouts/L2.test.ts`) shows checks 4 and 5 can't both hold while repeats go
+  uncounted. Details are in the test. Approved: Zero (lead; L2 is held for Zero).
+
 ## 2026-11-27: /privacy wording approved
 
 - **L1's /privacy page:** Javaris approved the wording with two edits.
