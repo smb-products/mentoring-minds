@@ -1566,8 +1566,6 @@
         "src/lib/notify.ts",
         "prisma/schema.prisma",
         "prisma/migrations/",
-        "src/components/landing/RequestInvite.tsx",
-        "src/components/landing/Landing.tsx",
         "tests/integration/l2-request-invite.test.ts",
         "tests/integration/p-sec.test.ts",
         "tests/e2e/l2-request-invite.spec.ts",
@@ -1590,7 +1588,8 @@
       "hints": [
         "Javaris approved it on 2026-11-27 (via OSA). Zero's full spec is plan/specs/L2.md on branch spec/l2 (git show origin/spec/l2:plan/specs/L2.md): the alert's fields, the schema, and the push tag INVITE_REQUEST:<id>, with the push carrying only the title.",
         "Held for Zero: src/server, src/lib, prisma and AGENTS.md. Lanes can't write docs/ or AGENTS.md: DEPLOY's Limits rows and the deletion line are already in (the plan PR), and Zero adds the rule 1 sentence at review. It waits for S33 (schema and migrations stay in order) and L1 (the page the form sits on).",
-        "No account and no email: Vienne makes the invite herself on Families → Invite codes and replies from her own email. Requests are real people's data, kept 90 days and never in the repo."
+        "No account and no email: Vienne makes the invite herself on Families → Invite codes and replies from her own email. Requests are real people's data, kept 90 days and never in the repo.",
+        "2026-11-27: L2's redo is server-only (the InviteAttempt counting), so its touches no longer list src/components/landing/. L4 restyles the form and leaves its fields, labels, messages and the requestInvite call unchanged."
       ],
       "held": "zero"
     },
@@ -1651,25 +1650,33 @@
     },
     {
       "id": "L4",
-      "title": "Landing copy: capitalized payment methods, and rates beside 'In person or online' on desktop",
-      "spec": "tests/e2e/l3-landing-polish.spec.ts (updated)",
+      "title": "Landing C: the 'Bright and clear' landing page from Javaris's chosen mockup",
+      "spec": "tests/e2e/l4-landing-c.spec.ts (new)",
       "deps": [
         "L3"
       ],
       "touches": [
         "src/components/landing/",
+        "src/app/page.tsx",
+        "src/app/globals.css",
+        "tests/e2e/l4-landing-c.spec.ts",
         "tests/e2e/l3-landing-polish.spec.ts",
         "tests/e2e/l1-landing.spec.ts",
         "plan/reports/L4.md"
       ],
       "checks": [
-        "The rates panel's payment list reads, in order and exactly: 'Cash', 'Zelle', 'Cash App', 'Apple Pay', 'Step Up For Students scholarship'. Each item is capitalized, and there's no leading 'the'. Step Up For Students keeps its link to exactly https://www.stepupforstudents.org, with target=\"_blank\" and rel=\"noopener noreferrer\".",
-        "On desktop (≥ 1024px), the Rates panel and the 'In person or online' block sit side by side in one row, so neither leaves the right half empty. 'In person or online' keeps its light-gray background as a panel there. On a phone they stack, Rates first, with no sideways scroll. Nothing else on the page changes.",
-        "Tests: tests/e2e/l3-landing-polish.spec.ts expects the new payment list exactly. Its desktop test checks the two blocks share a row (their top edges within a few pixels), and its @phone test checks they stack. In tests/e2e/l1-landing.spec.ts, change only 'cash' to 'Cash' in its payment list. Both edits are authorized here. The whole browser suite passes."
+        "Match docs/design/landing-c.html section by section, with its order, words and layout: the header; the hero (the pill 'Grades K–6 · Miami-Dade · In person or online', the headline 'Math tutoring that builds real confidence' with the yellow highlight on 'real confidence', the subhead, 'Request an invite' and '$50 per hour · See rates'); the 4 trust tiles; 'Ways to learn with Vienne' with the 4 pastel service tiles; 'Know exactly how your child is doing' with its 5 lines and the dark progress card; the pricing card ('Simple pricing', '$50 per hour', 'Ways to pay': Cash, Zelle, Cash App, Apple Pay, and 'Step Up For Students scholarship' linked to exactly https://www.stepupforstudents.org with target=\"_blank\" and rel=\"noopener noreferrer\"); 'Getting started takes three steps'; the dark 'Ready to get started?' panel; and the footer (Privacy → /privacy, Sign in → /sign-in, '© Mentoring Minds Academy').",
+        "On top of the mockup (docs/DESIGN.md → Landing C): Inter, not Plus Jakarta Sans, and no Google Fonts link. Weight 700 and tight tracking for the hero and section titles, on the landing page only. The header has the brain logo mark at 32px next to 'Mentoring Minds Academy', with Services, Rates, Sign in (/sign-in) and Get started (#request-invite). The 4 trust tiles have 20px line icons (graduation cap, book, clipboard-check, badge-dollar) instead of letter badges, and each service tile has a 20px line icon. Colors are named --landing-* tokens in globals.css, used only by the landing page. The only gradients are the graph-paper hero and the highlight.",
+        "The dark progress card is clearly a sample: it's labelled 'Sample screen with demo data', and every name in it comes from the demo seed (the mockup's Mateo, grade 3). It's static markup, not a live read. Each line of 'Know exactly how your child is doing' must be true of the app today. If one isn't (for example 'the area to work on next' on FAST scores), drop that clause and say so in the report. There are no testimonials, ratings or other made-up claims.",
+        "The dark panel holds L2's real form (RequestInvite.tsx), restyled to the mockup, with the same fields, labels, honeypot, messages and requestInvite call. Its id stays #request-invite, so every 'Get started' and 'Request an invite' scrolls to it. 'Have a code? Create your account' links to /sign-in. Don't touch L2's server files.",
+        "Phone (Pixel 7): hero padding 48px, trust tiles 2 per row, services 1 per row, buttons full width, and no sideways scroll. The 'About Vienne' section isn't rendered (a comment marks its slot). The page title, canonical URL, Open Graph tags, /privacy and the signed-in redirects don't change.",
+        "Tests: tests/e2e/l4-landing-c.spec.ts, signed out on a production build, checks each section's heading and text above, the Step Up link's attributes, the 'Sample screen with demo data' label, that the form sends and shows L2's success message, and that the footer links work. Its @phone test checks the phone rules. Where Landing C replaces what the L1 and L3 specs check (the hero headline and subhead, the gray band, the payment list's shape), update those lines only and list each change in the report. That's authorized here. L2's spec stays as it is and must pass, since the form keeps its roles, labels and messages. auth.spec.ts and the whole browser suite pass.",
+        "End the run with status: blocked, with 'waiting for OSA to compare it to the mockup' in the report, so the PR doesn't queue itself. OSA compares it to docs/design/landing-c.html and then asks a lead to queue it."
       ],
       "hints": [
-        "OSA's taste note on L3 (#151), 2026-11-27. It doesn't block launch. Title the PR 'Landing copy: …'.",
-        "Not held. It waits for L3, which owns the same folder."
+        "Javaris picked direction C on 2026-11-27 (via OSA), who said to hurry. The mockup is docs/design/landing-c.html. Open it in a browser next to your build.",
+        "Not held. It waits only for L3. L2's redo is server-only now, so the two can run at the same time.",
+        "Its icons come from lucide-react, already a dependency. Add no package."
       ]
     }
   ]
