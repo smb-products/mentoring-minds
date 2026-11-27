@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in, Landing C style</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#1F5EFF}a:hover{color:#1747C4}
+</style>
+</helmet>
+<div style="min-height: 860px; display: flex; flex-wrap: wrap; background: #FFFFFF; color: #101828; font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.55;">
+
+<aside style="flex: 1 1 480px; min-width: 0; background-color: #F2F6FF; background-image: linear-gradient(#E3EBFF 1px, transparent 1px), linear-gradient(90deg, #E3EBFF 1px, transparent 1px); background-size: 32px 32px; padding: 48px clamp(24px, 5vw, 72px); box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; gap: 40px;">
+<a href="#home" style="display: flex; align-items: center; gap: 10px; color: #101828; text-decoration: none; font-weight: 700; font-size: 17px;"><span style="width: 32px; height: 32px; border-radius: 50%; background: #0B1733; color: #FFFFFF; font-size: 11px; display: inline-flex; align-items: center; justify-content: center;">MM</span>Mentoring Minds Academy</a>
+<div>
+<h1 style="margin: 0; font-weight: 700; font-size: clamp(32px, 3.6vw, 44px); line-height: 1.08; letter-spacing: -0.035em; max-width: 460px;">Welcome back. Your child’s math, <span style="background: linear-gradient(transparent 62%, #FFD873 62%); padding: 0 3px;">all in one place</span>.</h1>
+<div style="margin-top: 32px; display: flex; flex-direction: column; gap: 12px; max-width: 420px;">
+<div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #D9E3FF; border-radius: 14px; padding: 14px 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F5EFF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg><span>Book and manage sessions</span></div>
+<div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #D9E3FF; border-radius: 14px; padding: 14px 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F5EFF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span>Homework and Vienne’s feedback</span></div>
+<div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #D9E3FF; border-radius: 14px; padding: 14px 16px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F5EFF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-4 3 3 5-6"></path></svg><span>Progress and F.A.S.T. scores</span></div>
+</div>
+</div>
+<a href="#home" style="color: #475467; text-decoration: none; font-size: 14px;">← Back to mentoringmindsacademy.org</a>
+</aside>
+
+<main style="flex: 1 1 440px; min-width: 0; padding: 48px clamp(24px, 5vw, 72px); box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+<div style="width: 100%; max-width: 380px;">
+<h2 style="margin: 0; font-weight: 700; font-size: 26px; letter-spacing: -0.025em;">Sign in</h2>
+<p style="margin: 6px 0 0; color: #475467;">Families and Vienne sign in here.</p>
+
+<button type="button" style="margin-top: 28px; width: 100%; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; background: #FFFFFF; color: #101828; border: 1px solid #D0D5DD; border-radius: 12px; padding: 13px 16px; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"></path><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.7l7.9-6.1z"></path><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"></path></svg>Continue with Google</button>
+
+<div style="margin: 22px 0; display: flex; align-items: center; gap: 12px; color: #98A2B3; font-size: 13px;"><span style="flex: 1; height: 1px; background: #EAECF0;"></span>or with email<span style="flex: 1; height: 1px; background: #EAECF0;"></span></div>
+
+<form style="display: flex; flex-direction: column; gap: 16px;">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500;">Email<input type="email" autocomplete="email" style="font: inherit; font-size: 16px; padding: 12px 14px; border: 1px solid #D0D5DD; border-radius: 12px;"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500;"><span style="display: flex; justify-content: space-between;">Password<span style="font-weight: 400; color: #475467;">Show</span></span><input type="password" autocomplete="current-password" style="font: inherit; font-size: 16px; padding: 12px 14px; border: 1px solid #D0D5DD; border-radius: 12px;"></label>
+<button type="button" style="font: inherit; font-weight: 600; background: #1F5EFF; color: #FFFFFF; border: 0; border-radius: 12px; padding: 14px 16px; cursor: pointer;">Sign in</button>
+</form>
+
+<p style="margin: 16px 0 0; font-size: 14px; color: #475467;">Forgot your password? Message or text Vienne and she’ll reset it.</p>
+
+<div style="margin-top: 28px; border-top: 1px solid #EAECF0; padding-top: 22px; font-size: 14px; color: #475467;">New family with an invite code? <a href="#create" style="font-weight: 600;">Create your account</a><br>No code yet? <a href="#invite" style="font-weight: 600;">Request an invite</a></div>
+<p style="margin: 28px 0 0; font-size: 13px;"><a href="#privacy" style="color: #667085;">Privacy</a></p>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":860}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

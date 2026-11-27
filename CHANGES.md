@@ -3,6 +3,23 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: A1, P1, P2, the polish pass (sign-in, the app shell, each screen)
+
+- **New tickets:** A1 (auth screens per `docs/design/sign-in.html`), P1 (the app shell per
+  `docs/design/app-today.html`) and P2 (a per-screen pass after P1). Why: Javaris approved the polish mockups, and
+  the app should match the landing page's brighter style. Approved by Javaris (via OSA).
+- **docs/DESIGN.md:** new App polish and Auth screens sections. They replace the navy band, the navy rail and
+  phone nav, the 6px/8px corners (now 10px/16px) and the accent (now `#1F5EFF`). They also allow 700, but only
+  through the `text-page` and `text-figure` tokens (page titles are now 24px on a phone and 28px on a desktop). The
+  auth screens get the landing page's exceptions (700 titles, the graph-paper panel and the highlight).
+- **Locked tests P1 may change, and only as its check 5 lists:** in `tests/r1-design.test.ts`, the token sizes,
+  weights, radii and sidebar contrast pairs, plus its two shell tests (band, rail). In
+  `tests/e2e/r2-parent-look.spec.ts`, the band locator becomes the page header, with the caps and overlap checks
+  kept. The holdouts `R1.spec.ts` (title sizes) and `R3.spec.ts` (the same locator) get the matching edits from a
+  lead on P1's PR, because lanes can't write holdouts.
+- **Unchanged on purpose:** every label, role and name the tests read. On sign-in, the mockup's "Create your
+  account" stays the existing "Create an account" button.
+
 ## 2026-11-27: L5, service photos on the landing page
 
 - **L5 (new):** the four service cards on `/` show a photo across the top instead of the line icon. The photos are

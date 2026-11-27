@@ -1711,6 +1711,92 @@
         "Static import, for example `import oneOnOne from '../../../public/landing/services/one-on-one.jpg'`, gives next/image its width and height. A plain '/landing/services/…' src would go through src/proxy.ts and redirect signed-out visitors to /sign-in.",
         "Drop the now-unused lucide service icons (Home, Laptop, User, Users) from Landing.tsx's import. Add no package."
       ]
+    },
+    {
+      "id": "A1",
+      "title": "Auth screens: sign in, create account and the forced new password, per the sign-in mockup",
+      "spec": "tests/e2e/a1-auth-screens.spec.ts (new)",
+      "deps": [
+        "L4"
+      ],
+      "touches": [
+        "src/app/(auth)/sign-in/page.tsx",
+        "src/app/(auth)/sign-in/SignInForm.tsx",
+        "src/components/auth/",
+        "src/components/family/ChangePasswordForm.tsx",
+        "src/ui/AppRoot.jsx",
+        "tests/e2e/a1-auth-screens.spec.ts",
+        "plan/reports/A1.md"
+      ],
+      "checks": [
+        "Match docs/design/sign-in.html section by section, per docs/DESIGN.md → Auth screens. On a desktop (1280 wide), /sign-in is split in two. On the left is a graph-paper panel (the landing page's --landing-* tokens and its graph-paper and highlight patterns, as inline CSS in src/components/auth/, not globals.css) with the brain LogoMark and 'Mentoring Minds Academy'. Its h1 reads exactly 'Welcome back. Your child’s math, all in one place.', with the highlight on 'all in one place'. Then come three feature rows with 20px lucide line icons ('Book and manage sessions', 'Homework and Vienne’s feedback', 'Progress and F.A.S.T. scores') and '← Back to mentoringmindsacademy.org' linking to /. The form is on the right, at most 380px wide, under an h2 'Sign in' and 'Families and Vienne sign in here.'",
+        "The form keeps every name the tests read: the 'Continue with Google' button, 'or with email', then the 'Email' and 'Password' fields with visible <label>s above them that stay put while typing (no placeholder-only field). The password has a Show/Hide toggle with aria-pressed, whose accessible name never contains 'password', so getByLabel('Password') still finds only the field. After that come the 'Sign in' button (exact), 'Forgot your password? Message or text Vienne and she’ll reset it.', 'New family with an invite code?' with the existing 'Create an account' button (same name, same mode switch), 'No code yet?' with a 'Request an invite' link to /#request-invite, and the Privacy link. Create account mode keeps 'Your name', 'Create account', 'Already have an account?', its invite-code line and its error messages. actions.ts and errors.ts don't change.",
+        "The forced new-password screen (AppRoot's mustChangePassword branch) uses the same split layout around ChangePasswordForm forced. The form's labels, 'Save new password' and its messages don't change, and the in-app ChangePasswordForm (the Account panel) looks as before. ChangePasswordForm keeps the app's rules (it's in r1-design.test.ts's list): no gradient, no font-bold, no text-[Npx].",
+        "Phone (Pixel 7): stacked, with the panel's logo and headline above the form, the feature rows hidden, the buttons full width and no sideways scroll. Every field stays text-field (16px on phones, 14px on desktop: R1's holdout reads them). Titles are 700, on these screens only. No Google Fonts link (Inter, as everywhere). Signed-in users still leave /sign-in for their home.",
+        "Tests: tests/e2e/a1-auth-screens.spec.ts, on a production build, checks the headline, the three feature rows, the Back link's href, the visible labels (each <label> is visible and not the placeholder), that the Show toggle flips the password field's type and aria-pressed, the Forgot line, that Request an invite goes to /#request-invite, the split at 1280 (panel left of form), and the stacked @phone layout with no sideways scroll. auth.spec.ts, w0, s31, s24, s10, the R1 holdout and the whole browser suite pass unchanged.",
+        "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
+      ],
+      "hints": [
+        "Javaris approved the mockup 2026-11-27 (via OSA): 'hurry'. Runs in parallel with P1, so don't touch src/app/globals.css or src/ui/components/: P1 owns them. A1's own layout lives in src/components/auth/.",
+        "The mockup's 'MM' circle becomes the brain LogoMark (docs/DESIGN.md: the brain logo is for the landing page and sign-in), and its 'Create your account' link stays the existing 'Create an account' button, because tests read that name.",
+        "lucide-react is already a dependency. Add no package."
+      ]
+    },
+    {
+      "id": "P1",
+      "title": "App shell polish: white sidebar, no navy band, white stat cards, the landing blue",
+      "spec": "tests/e2e/p1-app-shell.spec.ts (new)",
+      "deps": [
+        "R3"
+      ],
+      "touches": [
+        "src/app/globals.css",
+        "src/ui/components/shell/",
+        "src/ui/components/ui/",
+        "tests/r1-design.test.ts",
+        "tests/e2e/r2-parent-look.spec.ts",
+        "tests/e2e/p1-app-shell.spec.ts",
+        "plan/reports/P1.md"
+      ],
+      "checks": [
+        "Match docs/design/app-today.html's shell, per docs/DESIGN.md → App polish. Tokens in src/app/globals.css: --mm-brand-600 is #1F5EFF (--primary follows, and the rest of the brand ramp is retuned around it); --radius-md 10px; --radius-lg, -xl, -2xl and --radius-panel 16px; text-page 24px phone and 28px desktop, with --text-page--font-weight 700; and --text-figure--font-weight 700. Every new or changed token has a .dark value, and the AA pairs hold (white on the primary, sidebar text on white, the selected item's blue on its soft blue).",
+        "Desktop sidebar (Rail.jsx): white with a 1px right border, about 232px wide. Each item is an 18px icon (1.75) plus its label in one row. The selected item is soft blue with blue 600 text. Counts are small round badges after the label: solid blue, or amber tint for work to check. The 'Mentoring Minds' text wordmark (aria-label 'Mentoring Minds home') is at the top, Settings and the Account control are at the bottom, and the Account control shows an initials avatar, the name and the role. Every nav link keeps its name, the Alerts/Notifications button keeps its name and count, and the Account control's accessible name still starts with 'Account'. PhoneNav follows the same light style.",
+        "No navy band: Masthead's PageHeader puts the back link, the title (text-page), the subtitle and the actions (on the right) on the light page. Tabs sit under it, and nothing overlaps it. Nothing in the shell uses bg-ink, text-ink-foreground or the band utility, which stays defined so nothing breaks. Figures (Display.jsx) become white cards (1px border, 16px corners), each with a 40px tinted icon square in order blue, amber, green, violet, keeping role=region 'Key numbers' and the 'needs attention' cue. Button, Badge and Card in src/ui/components/ui pick up the new radii and accent through tokens. Screens under src/ui/pages don't change in P1 (that's P2).",
+        "Only the look changes: no wording, layout order, role or name changes anywhere. The parent and admin browser suites, auth.spec.ts and the S8–S10 nav holdouts pass unchanged. Dark mode keeps working.",
+        "Lead-authorized test edits, and only these. In tests/r1-design.test.ts: in 'tokens', the type-scale sizes for page (24 phone, 28 desktop) plus the two 700 font-weight lines; the radii test (10px and 16px); and in the accent test, the --sidebar line and the two navy rail pairs in the contrast list, swapped for the white sidebar's pairs. In 'the shell', the band test becomes 'no navy band: the PageHeader title is text-page on the page, and AppShell has no bg-ink', and the rail test becomes 'white sidebar, selected soft blue, icons 18px at 1.75'. The wordmark and Masthead line-art tests stay. In tests/e2e/r2-parent-look.spec.ts, the band locator becomes the page header (the <header> holding the h1), with the comments to match. The 140px cap, the below and overlap checks, and the chips-below check stay. tests/holdout/R1.spec.ts (title 22/24 → 24/28) and tests/holdout/R3.spec.ts (the same band locator change; its 130px cap stays) are holdouts, which lanes can't edit. List the exact lines that fail in the report, and a lead adds those edits to this PR before it queues.",
+        "Tests: tests/e2e/p1-app-shell.spec.ts, as Vienne and as a parent at 1280×800, checks that the sidebar's computed background is white with a right border, that the selected item's background is soft blue with blue text, the count badge after its label, that the Account control (name starts with 'Account') shows the person's name, that there's no navy element behind the h1, that the h1 is 28px and 700, the first stat card's white background and tinted icon square, and #1F5EFF on a primary button. Its @phone test checks the light phone nav and no sideways scroll. Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
+      ],
+      "hints": [
+        "Javaris approved the mockup 2026-11-27 (via OSA): 'hurry'. Runs in parallel with A1, which doesn't touch globals.css or src/ui/components/.",
+        "The 700 comes from the tokens' --font-weight, so the 'no font-bold' class rules in r1/r2/r3-design.test.ts keep holding. Screens keep their token classes (rounded-md, rounded-lg), so the new radii reach them without editing pages.",
+        "The mockup's Today content (greeting, This week, Your day) is demo data for the look. Today keeps its own layout and words.",
+        "The landing page has its own --landing-* tokens, so it doesn't change."
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Per-screen pass: parent and admin screens' cards, badges and buttons match P1",
+      "spec": "tests/p2-design.test.ts (new)",
+      "deps": [
+        "P1"
+      ],
+      "touches": [
+        "src/ui/pages/",
+        "src/ui/components/",
+        "tests/p2-design.test.ts",
+        "tests/e2e/p2-screens.spec.ts",
+        "plan/reports/P2.md"
+      ],
+      "checks": [
+        "Every parent and admin screen under src/ui/pages, and the drawers and panels in src/ui/components, matches P1 (docs/DESIGN.md → App polish): cards are the shared white card (1px border, the 16px token), badges are the shared Badge, StatusBadge or LevelBadge (soft tint or dot), and buttons are the shared Button. There are no one-off radii (rounded-[…], rounded-sm/xl/2xl/3xl on cards or controls), and no navy left from the band (bg-ink, text-ink-*, the band utility) in any page or component.",
+        "Only the look changes: layout order, wording, and every role, label and name stay. The r2-design and r3-design source tests pass unchanged, and so do the whole browser suite and every holdout. Dark mode keeps working.",
+        "Tests: tests/p2-design.test.ts, a source test over src/ui/pages and src/ui/components (except shell and ui, which r1 covers), checks for no bg-ink, text-ink-, band, rounded-[ or rounded-(sm|xl|2xl|3xl) class tokens, no font-bold and no text-[Npx]. tests/e2e/p2-screens.spec.ts, as Vienne and as a parent at 1280×800, opens each screen in the sidebar and checks that its first card has a white background, a 1px border and 16px corners, and that no element behind its h1 is navy. Its @phone test checks no sideways scroll on each screen.",
+        "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
+      ],
+      "hints": [
+        "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
+        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead."
+      ]
     }
   ]
 }

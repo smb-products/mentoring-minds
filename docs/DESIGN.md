@@ -3,6 +3,11 @@
 The look for launch, approved by Javaris on 2026-11-27. Tickets R1–R3 restyle the app to it, and L1 builds the
 landing page with it. This file is the spec. If it disagrees with a screen, the screen is wrong.
 
+**Polish (A1, P1, P2), approved by Javaris on 2026-11-27:** the app shell and the sign-in screens move to the
+landing page's brighter style. The mockups are `docs/design/app-today.html` (the shell, on Vienne's Today) and
+`docs/design/sign-in.html`. Where this file says navy rail, navy band, 6px and 8px corners, or never 700, the
+**App polish** section below wins.
+
 **Direction:** clean and modern, with the restraint of a banking or health app. Calm navy, white and grays, one
 blue accent, and flat surfaces. Nothing glossy or playful.
 
@@ -25,12 +30,13 @@ If a test breaks, the change is wrong, not the test.
 | `text-field` | 16px | 14px | 400 | Inputs, selects and textareas. Phones stay at 16px, because iOS zooms the page on focus below that. It's not called `text-input`: Tailwind reads that as the `--color-input` color and sets no size (R1's holdout) |
 | `text-heading` | 15px | 15px | 600 | Section and card titles |
 | `text-title` | 18px | 18px | 600 | Drawer, sheet and dialog titles |
-| `text-page` | 22px | 24px | 600 | Page titles (the `PageHeader` h1). Today they're 26–36px |
-| `text-figure` | 22px | 24px | 600 | Big numbers in a stat row, and the landing page's rate |
+| `text-page` | 24px | 28px | 700 | Page titles (the `PageHeader` h1), on the light page (P1) |
+| `text-figure` | 22px | 24px | 700 | Big numbers in a stat row, and the landing page's rate (P1) |
 | `text-display` | 30px | 40px | 600 | The landing page's hero headline only (L3) |
 
 - Line height is 1.45 for body and 1.25 for headings. Headings have −0.01em tracking and nothing else.
-- Weights are 400, 500 and 600, never 700 (`font-bold`) or 800 (`font-extrabold`). Use 600 for headings and
+- Weights are 400, 500 and 600, never `font-bold` or 800 (`font-extrabold`). The one 700 in the app comes from the
+  `text-page` and `text-figure` tokens (`--text-*--font-weight`), never a class (P1). Use 600 for headings and
   card titles, and 500 for labels such as "Open hours", "Next session", "Sessions so far", legends and day
   headers. Names and times are 500 or 400.
 - Text size in Settings (`data-text` zoom: Large, Extra large) stays, on top of this scale.
@@ -51,6 +57,8 @@ If a test breaks, the change is wrong, not the test.
 
 ## Shape and depth
 
+_P1 sets the corners to 16px and 10px (App polish). The rest holds._
+
 - **Corners:** 8px for cards, panels, drawers and dialogs, and 6px for buttons, inputs, selects, tabs, chips
   and badges. Only avatars, status dots and the notification count are round.
 - **No pills:** inputs, buttons, tabs and segmented controls are rectangles with 6px corners.
@@ -65,6 +73,9 @@ If a test breaks, the change is wrong, not the test.
   - Hover darkens a little, and press doesn't move.
 
 ## The shell
+
+_From R1–R3. P1 replaces its navy band, navy rail and phone nav with App polish below. The structure rules
+still hold: the header holds only back, title, subtitle and actions, and nothing overlaps it._
 
 - **Header band:** flat navy, with no brain line-art (`Masthead.jsx`'s `BRAIN_*` art goes). It holds only the
   back link, the title (`text-page`), the subtitle and the actions, so it's about 120px tall on desktop.
@@ -86,6 +97,49 @@ If a test breaks, the change is wrong, not the test.
   only beside the child's homework (the stars on each graded assignment). The server still returns
   `starsTotal`; no contract shape changes.
 - No bio anywhere for now. The only photos are the four on the landing page's service cards (L5).
+
+## App polish (P1, P2)
+
+Match `docs/design/app-today.html`. Only the look changes: every screen keeps its layout, wording, and the labels,
+roles and names the tests read. The mockup's demo Today content isn't a spec for Today's words.
+- **Accent:** `#1F5EFF`, the landing page's blue (`--mm-brand-600`, so `--primary`). Links, primary buttons, focus
+  rings, the selected nav item and the selected tab. White text on it stays AA.
+- **Corners:** 16px on cards, panels, drawers and dialogs (`--radius-lg`, `-xl`, `-2xl`, `--radius-panel`), and
+  10px on buttons, inputs, selects, tabs, chips, badges and nav items (`--radius-md`). Screens keep using the
+  token classes. Round stays only for avatars, status dots and counts.
+- **Sidebar (desktop):** white with a 1px right border, about 232px wide. Each item is an 18px icon (1.75 stroke)
+  and its label in one row. The selected item is soft blue (`#EEF3FF`) with blue text and 600 weight. Counts are
+  small round badges after the label: solid blue for messages and requests, amber tint for work to check. The text
+  wordmark "Mentoring Minds" sits at the top (no brain logo in the app). Settings and the signed-in person sit at
+  the bottom: an avatar with initials, the name and the role ("Admin" or "Parent"). That's the Account control, and
+  its accessible name still starts with "Account".
+- **Phone nav:** the same light style, white with a top border, and the selected item soft blue.
+- **No header band:** the page title (`text-page`, 700) and its subtitle sit on the light page (`#F7F9FC`, the
+  `--background`), with the page's actions on the right and the back link above. Nothing is navy in the shell.
+  Tabs sit under the title on the page.
+- **Stat cards (`Figures`):** white cards (1px border, 16px corners), each with a 40px tinted icon square (12px
+  corners) in a fixed order of tints: blue, amber, green, violet. The label is `text-small`, the number
+  `text-figure`, and the hint `text-caption`. The "Key numbers" region and the "needs attention" cue stay.
+- **Cards, badges, buttons (P2):** every screen uses the shared card, badge and button, so the pass is classes only:
+  no navy remnants (`bg-ink`, `text-ink-*`, the band), no one-off radii, and status still a soft tint or a dot.
+- **Dark mode:** every new token has a dark value, and AA holds.
+
+## Auth screens (A1)
+
+Match `docs/design/sign-in.html` on `/sign-in` (sign in and create account) and on the forced new-password screen.
+The auth screens may use the landing page's exceptions: 700 titles, the graph-paper panel and the highlight,
+both inline CSS gradients from the landing page's patterns.
+- **Desktop:** split in two. On the left is a graph-paper panel with the brain logo and "Mentoring Minds
+  Academy", the headline "Welcome back. Your child’s math, all in one place." with the highlight on "all in one
+  place", three feature rows (Book and manage sessions; Homework and Vienne’s feedback; Progress and F.A.S.T.
+  scores) with 20px line icons, and "← Back to mentoringmindsacademy.org" linking to `/`. The form is on the
+  right, at most 380px wide.
+- **Phone:** stacked, with the panel's logo and headline above the form and the feature rows left out.
+- **Form:** visible labels above the fields that stay put while typing (no placeholder-only fields). The
+  password has a Show/Hide toggle (`aria-pressed`) whose name never contains "password". Then "Forgot your
+  password? Message or text Vienne and she’ll reset it.", "New family with an invite code?" with the existing
+  Create an account button, "No code yet? Request an invite" linking to `/#request-invite`, and Privacy.
+  Fields stay `text-field`.
 
 ## Landing page (L1)
 
