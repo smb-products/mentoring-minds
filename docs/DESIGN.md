@@ -138,6 +138,39 @@ From OSA's taste review of L1 (#136). The page should read like a business, not 
   - "In person or online" sits on a full-width light-gray band.
 - **Width:** still about 1080px at most, with wide side gutters. No photos.
 
+### Landing v2 (L4)
+
+Javaris, 2026-11-27: the page is still too basic. Landing v2 replaces L3's hero and layout. There are no new
+facts and no made-up content: every line is something the app does today.
+
+1. **Hero on the navy brand band** (`--ink`, flat):
+   - The white headline and subhead from L3, with **Get started** and **Sign in**.
+   - On the right (below, on phones), a phone-frame screenshot of a parent's Home. The frame is drawn in CSS or
+     SVG. The screenshot is a static image in `public/landing/`, made by a committed script from the restyled
+     app with the demo seed, so it has only demo names and no real family.
+2. **Trust strip** under the hero, as one line: "Grades K–6 · Florida B.E.S.T. standards · F.A.S.T. test prep ·
+   In person or online".
+3. **"What families get in the app":** a 3×2 grid, each item with one line icon.
+   - Book sessions online.
+   - Homework with Vienne's feedback.
+   - Progress reports from Vienne.
+   - FAST score tracking.
+   - Message Vienne directly.
+   - Video sessions when you can't meet in person.
+4. **Services:** 4 cards with icons, on a light-gray band. Cards here are white, with a 1px border and 8px
+   corners, and no shadow.
+5. **Rates and payment** beside **"In person or online"** on desktop, stacked on phones. The payment methods
+   read "Cash", "Zelle", "Cash App", "Apple Pay" and "Step Up For Students scholarship" (capitalized, no "the").
+6. **How it works:** numbered steps, joined by a thin connecting line (vertical on phones).
+7. **Closing navy CTA band:** "Ready to get started?", with **Request an invite**, which scrolls to the form.
+8. **Navy footer:** Privacy, Sign in and "© Mentoring Minds Academy".
+9. **Throughout:**
+   - Subtle section spacing, about 1080px wide at most, and Inter.
+   - Only this file's tokens, one accent (blue), and still no gradients.
+   - No testimonials unless they're real, and no photos except the app screenshot.
+   - Leave a slot in the code for a later "About Vienne" section with a photo, but render nothing until Javaris
+     sends its content.
+
 ## Privacy page (L1)
 
 `/privacy` is plain language, with no legal boilerplate. It's linked from the landing footer and sign-in, and

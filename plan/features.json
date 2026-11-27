@@ -1648,25 +1648,33 @@
     },
     {
       "id": "L4",
-      "title": "Landing copy: capitalized payment methods, and rates beside 'In person or online' on desktop",
-      "spec": "tests/e2e/l3-landing-polish.spec.ts (updated)",
+      "title": "Landing v2: navy hero with an app screenshot, trust strip, what families get, and a closing call to action",
+      "spec": "tests/e2e/l4-landing-v2.spec.ts (new)",
       "deps": [
         "L3"
       ],
       "touches": [
         "src/components/landing/",
+        "src/app/page.tsx",
+        "src/app/globals.css",
+        "public/landing/",
+        "scripts/landing-screenshot.mjs",
+        "tests/e2e/l4-landing-v2.spec.ts",
         "tests/e2e/l3-landing-polish.spec.ts",
         "tests/e2e/l1-landing.spec.ts",
         "plan/reports/L4.md"
       ],
       "checks": [
-        "The rates panel's payment list reads, in order and exactly: 'Cash', 'Zelle', 'Cash App', 'Apple Pay', 'Step Up For Students scholarship'. Each item is capitalized, and there's no leading 'the'. Step Up For Students keeps its link to exactly https://www.stepupforstudents.org, with target=\"_blank\" and rel=\"noopener noreferrer\".",
-        "On desktop (≥ 1024px), the Rates panel and the 'In person or online' block sit side by side in one row, so neither leaves the right half empty. 'In person or online' keeps its light-gray background as a panel there. On a phone they stack, Rates first, with no sideways scroll. Nothing else on the page changes.",
-        "Tests: tests/e2e/l3-landing-polish.spec.ts expects the new payment list exactly. Its desktop test checks the two blocks share a row (their top edges within a few pixels), and its @phone test checks they stack. In tests/e2e/l1-landing.spec.ts, change only 'cash' to 'Cash' in its payment list. Both edits are authorized here. The whole browser suite passes."
+        "Hero, per docs/DESIGN.md → Landing v2: on the flat navy band (--ink), the headline and subhead from L3 in white, with Get started (#request-invite) and Sign in (/sign-in). On the right on desktop (below on phones) is a phone frame, drawn in CSS or SVG, holding public/landing/parent-home.png (or .webp). That's a screenshot of a parent's Home from the restyled app with the demo seed. It has alt text describing it as the app's Home screen for a parent, and it's at most 300 KB.",
+        "The screenshot is reproducible: scripts/landing-screenshot.mjs opens the production build as a demo parent at a phone size and writes the image. Running it again gives the same layout. It shows only demo-seed names, and the report names which demo parent and child. No real person, school or place appears, and Settings is never part of it.",
+        "Below the hero, in order: (a) the trust strip, reading exactly 'Grades K–6 · Florida B.E.S.T. standards · F.A.S.T. test prep · In person or online'; (b) 'What families get in the app', a 3×2 grid (2 columns on tablets, 1 on phones) with one line icon each, reading exactly 'Book sessions online', 'Homework with Vienne’s feedback', 'Progress reports from Vienne', 'FAST score tracking', 'Message Vienne directly' and 'Video sessions when you can’t meet in person'; (c) Services as 4 white cards (1px border, 8px corners, no shadow) with icons, on a light-gray band, keeping L1's names and lines; (d) Rates beside 'In person or online' on desktop (≥ 1024px), stacked on phones with Rates first, the payment list reading exactly 'Cash', 'Zelle', 'Cash App', 'Apple Pay', 'Step Up For Students scholarship' and the link unchanged; (e) How it works as numbered steps joined by a thin line (vertical on phones); (f) the Request an invite section with L2's form, unchanged; (g) a closing navy band, 'Ready to get started?', whose Request an invite button scrolls to #request-invite; (h) a navy footer with Privacy, Sign in and '© Mentoring Minds Academy'.",
+        "Look: only docs/DESIGN.md's tokens, one blue accent, Inter, no gradients, about 1080px wide at most, and subtle section spacing. There are no testimonials, ratings, made-up numbers or photos other than the app screenshot. A commented slot marks where 'About Vienne' will go, and nothing renders there yet. The page title, canonical URL, Open Graph tags and /privacy don't change.",
+        "Tests: tests/e2e/l4-landing-v2.spec.ts, signed out on a production build, checks the hero's navy band and white headline, the image and its alt, the trust strip text, the six app items, the four service cards, the payment list exactly, Rates and 'In person or online' sharing a row on desktop, the numbered steps, that the CTA scrolls to #request-invite, the footer links, and that no <hr> is used. Its @phone test checks there's no sideways scroll and that the image is below the headline. Where v2 supersedes L1's and L3's specs (the hero's gray band, the lowercase 'cash', the rates layout), update those lines only, and list each change in the report. That's authorized here. L2's spec, auth.spec.ts and the whole browser suite pass."
       ],
       "hints": [
-        "OSA's taste note on L3 (#151), 2026-11-27. It doesn't block launch. Title the PR 'Landing copy: …'.",
-        "Not held. It waits for L3, which owns the same folder."
+        "Javaris, 2026-11-27 (via OSA): 'the landing page is still too basic'. This replaces the small L4 ('Landing copy') and keeps its two fixes, in (d). One lane ticket.",
+        "Not held. It waits for L3. L2's redo also lists src/components/landing/, so the lanes run them one at a time; don't change RequestInvite.tsx.",
+        "The screenshot script may use @playwright/test's chromium, already a dev dependency, against a running build:e2e server and the e2e demo database. Don't add a dependency or a package.json script (lanes can't write the lock). The report says how to rerun it."
       ]
     }
   ]
