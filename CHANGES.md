@@ -9,6 +9,11 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   check now also allows `src/components/auth/AuthScreen.tsx`, and its no-hex-colors check covers that file too.
   Why: A1's check 1 (and docs/DESIGN.md → Auth screens) puts the landing tokens on the auth panel, and the plan
   missed this locked test. By Axis; A1 is approved by Javaris.
+## 2026-11-27: P2 split into P2a (parent) and P2b (admin)
+
+- **P2** is superseded by **P2a** (the parent screens and their drawers, plus the shared SessionParts, Thread and
+  FastResults) and **P2b** (Vienne's screens and her drawers). Same checks and no shared touches, so two builders
+  run them at once as soon as P1 merges. Why: speed. Asked by OSA, under Javaris's polish approval.
 
 ## 2026-11-27: A1, P1, P2, the polish pass (sign-in, the app shell, each screen)
 
