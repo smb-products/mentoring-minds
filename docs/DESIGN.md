@@ -14,14 +14,15 @@ If a test breaks, the change is wrong, not the test.
 - **One font: Inter** (variable), self-hosted with `@fontsource-variable/inter`. Fredoka and Nunito Sans go,
   along with their packages and the `font-display` class. Numbers use `tabular-nums` where they line up
   (times, scores, counts).
-- **A named scale**, as tokens in `src/app/globals.css` (`@theme`). Screens use these names, never `text-[Npx]`:
+- **A named scale**, as tokens in `src/app/globals.css` (`@theme`). Screens use these names, never `text-[Npx]`.
+  No type token shares its name with a color token, or `text-<name>` would set the color instead:
 
 | Token | Phone | Desktop (≥ 768px) | Weight | For |
 |---|---|---|---|---|
 | `text-caption` | 12px | 12px | 500 | Badges, table heads, small meta |
 | `text-small` | 13px | 13px | 400–500 | Secondary lines, hints, timestamps |
 | `text-body` | 15px | 14px | 400 | Body text, list rows, buttons |
-| `text-input` | 16px | 14px | 400 | Inputs, selects and textareas. Phones stay at 16px, because iOS zooms the page on focus below that |
+| `text-field` | 16px | 14px | 400 | Inputs, selects and textareas. Phones stay at 16px, because iOS zooms the page on focus below that. It's not called `text-input`: Tailwind reads that as the `--color-input` color and sets no size (R1's holdout) |
 | `text-heading` | 15px | 15px | 600 | Section and card titles |
 | `text-title` | 18px | 18px | 600 | Drawer, sheet and dialog titles |
 | `text-page` | 22px | 24px | 600 | Page titles (the `PageHeader` h1). Today they're 26–36px |
