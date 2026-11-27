@@ -144,6 +144,18 @@ describe('the file is checked before anything is written', () => {
     ['two unknown fields', [PLACES[0], { name: 'Example Park', kind: 'LIBRARY', city: 'Example City', zip: '00000' }], /location 2 has 2 fields it doesn’t know\. /],
     // Shaped the wrong way round: the place is the field name. The key is never printed.
     ['the place as a field name', [{ '1 Example St': 'Example Library' }], /location 1 has a field it doesn’t know\. /],
+    // S32: control characters (below U+0020) are refused before anything is written. Postgres refuses NUL with a raw error.
+    ['a NUL in a name', [PLACES[0], { name: 'Example Park\u0000', kind: 'LIBRARY' }], /location 2’s name has a hidden character \(a tab, a line break or the like\); retype it/],
+    ['a NUL in an address', [{ name: 'Example Library', kind: 'LIBRARY', address: '1 Example St\u0000' }], /location 1’s address has a hidden character/],
+    ['a tab in a name', [{ name: 'Example\tLibrary', kind: 'LIBRARY' }], /location 1’s name has a hidden character/],
+    ['a tab at the end of a name, which trimming would hide', [{ name: 'Example Library\t', kind: 'LIBRARY' }], /location 1’s name has a hidden character/],
+    ['a name that is only a tab', [{ name: '\t', kind: 'LIBRARY' }], /location 1’s name has a hidden character/],
+    ['a line break in a name', [{ name: 'Example Library\nExample Park', kind: 'LIBRARY' }], /location 1’s name has a hidden character/],
+    ['a carriage return in an address', [{ name: 'Example Library', kind: 'LIBRARY', address: '1 Example St\r\n2 Sample Ave' }], /location 1’s address has a hidden character/],
+    ['a line break at the start of an address', [PLACES[0], { name: 'Example Park', kind: 'LIBRARY', address: '\n2 Sample Ave' }], /location 2’s address has a hidden character/],
+    ['a U+0001 in a name', [{ name: 'Example\u0001Library', kind: 'LIBRARY' }], /location 1’s name has a hidden character/],
+    ['a U+001F in an address', [{ name: 'Example Library', kind: 'LIBRARY', address: '1 Example St\u001f' }], /location 1’s address has a hidden character/],
+    ['a raw tab inside the JSON text', '[{ "name": "Example\tLibrary", "kind": "LIBRARY" }]', /isn’t valid JSON/],
   ];
 
   it.each(cases)('refuses %s with a plain message, and the database is left unchanged', async (_label, content, message) => {
@@ -188,6 +200,31 @@ describe('the file is checked before anything is written', () => {
     const before = await db.location.findMany({ orderBy: { id: 'asc' } });
     await expect(seedReference(db as never, { locationsFile: await file([{ name: 'Example New', kind: 'PARK' }]) })).rejects.toThrow(/kind must be one of/);
     expect(await db.location.findMany({ orderBy: { id: 'asc' } })).toEqual(before);
+  });
+
+  it('every character below U+0020 is refused in a name and an address; a space and other text are kept', async () => {
+    for (let c = 0; c < 0x20; c++) {
+      const ch = String.fromCharCode(c);
+      for (const [entry, field] of [
+        [{ name: `Example${ch}Library`, kind: 'LIBRARY' }, 'name'],
+        [{ name: 'Example Library', kind: 'LIBRARY', address: `1 Example${ch}St` }, 'address'],
+      ] as const)
+        await expect(seedReference(db as never, { locationsFile: await file([entry]) }), `U+${c.toString(16)} in ${field}`).rejects.toThrow(
+          new RegExp(`^The locations file isn’t right: location 1’s ${field} has a hidden character`),
+        );
+    }
+    expect(await db.settings.count()).toBe(0);
+    expect(await db.book.count()).toBe(0);
+    expect(await db.location.count()).toBe(0);
+    await seedReference(db as never, { locationsFile: await file([{ name: 'Café Example ~ Library', kind: 'LIBRARY', address: '1 Example St \u007f' }]) });
+    expect(await db.location.findMany({ select: { name: true, address: true } })).toEqual([{ name: 'Café Example ~ Library', address: '1 Example St \u007f' }]);
+  });
+
+  it('a NUL after a first seed leaves the day-one data and the locations exactly as they were', async () => {
+    await seedReference(db as never, { locationsFile: await file(PLACES) });
+    const before = { locations: await db.location.findMany({ orderBy: { id: 'asc' } }), settings: await db.settings.findMany(), books: await db.book.count() };
+    await expect(seedReference(db as never, { locationsFile: await file([PLACES[0], { name: 'Example New\u0000', kind: 'TUTOR' }]) })).rejects.toThrow(/location 2’s name has a hidden character/);
+    expect({ locations: await db.location.findMany({ orderBy: { id: 'asc' } }), settings: await db.settings.findMany(), books: await db.book.count() }).toEqual(before);
   });
 });
 
@@ -255,6 +292,22 @@ describe('the real command (tsx prisma/seed.ts, what npm run db:seed runs)', () 
     const err = await run.catch((e) => e as { stdout: string; stderr: string });
     for (const leak of PRIVATE) expect(err.stdout + err.stderr).not.toContain(leak);
     expect(await db.settings.count()).toBe(0);
+  }, 60000);
+
+  it('a NUL in the file fails the command with the plain message, not a database error, and saves nothing', async () => {
+    const p = await file([{ name: 'Example Library', kind: 'LIBRARY', address: '1 Example St\u0000' }]);
+    const err = await seed({ SEED_LOCATIONS_FILE: p }).then(
+      () => {
+        throw new Error('expected a refusal');
+      },
+      (e) => e as { code: number; stdout: string; stderr: string },
+    );
+    expect(err.code).toBe(1);
+    expect(err.stderr).toMatch(/location 1’s address has a hidden character/);
+    expect(err.stderr).not.toMatch(/0x00|invalid byte sequence|PrismaClient|prisma\.\w+\.create/);
+    for (const leak of PRIVATE) expect(err.stdout + err.stderr).not.toContain(leak);
+    expect(await db.settings.count()).toBe(0);
+    expect(await db.location.count()).toBe(0);
   }, 60000);
 
   it('refuses on an empty database when SEED_LOCATIONS_FILE isn’t set', async () => {
