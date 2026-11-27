@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { FileBarChart, Star } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { initials } from './initials';
 
@@ -137,10 +137,10 @@ export function LevelBadge({ level, className }) {
   return <span className={cn(BADGE, className)}>Level {level}</span>;
 }
 
-/* ── Page header ── lives in the masthead band */
+/* ── Page header ── on the light page, above the body */
 export { PageHeader } from '../shell/Masthead';
 
-/* ── Card ── white, a 1px border, 8px corners and at most a 1px shadow */
+/* ── Card ── white, a 1px border, 16px corners (rounded-lg) and at most a 1px shadow */
 const CARD = 'rounded-lg border border-border bg-card shadow-card';
 
 /* ── Section ── one bordered container per topic; rows inside use <Row> with hairlines */
@@ -195,46 +195,43 @@ export function Empty({ icon: Icon, title, children, action, className }) {
   );
 }
 
-/* ── Figures ── key numbers: one card on the gray page, below the band. variant="band" (flat tiles on the
-   navy masthead) stays until the admin screens move theirs off the band too (R3). */
-export function Figures({ items, className, variant }) {
-  const band = variant === 'band';
+/* ── Figures ── key numbers on the light page, below the header (App polish): one white card per number,
+   each with a 40px tinted icon square in a fixed order of tints. Items without an icon get a plain chart one. */
+const FIGURE_TINTS = ['bg-tile-blue text-tile-blue-foreground', 'bg-tile-amber text-tile-amber-foreground', 'bg-tile-green text-tile-green-foreground', 'bg-tile-violet text-tile-violet-foreground'];
+
+export function Figures({ items, className }) {
   return (
     <div
       role="region"
       aria-label="Key numbers"
-      tabIndex={band ? 0 : undefined}
-      className={cn(band ? 'scrollbar-none -mx-4 grid auto-cols-[minmax(9.5rem,1fr)] grid-flow-col gap-2.5 overflow-x-auto px-4 @3xl/page:mx-0 @3xl/page:px-0' : `${CARD} grid overflow-hidden`, className)}
-      style={band ? undefined : { gridTemplateColumns: `repeat(${items.length}, minmax(0,1fr))` }}
+      className={cn('grid gap-2.5 @3xl/page:grid-cols-[repeat(var(--figures),minmax(0,1fr))] @3xl/page:gap-4', items.length > 1 ? 'grid-cols-2' : 'grid-cols-1', className)}
+      style={{ '--figures': items.length }}
     >
       {items.map((item, i) => {
         const Comp = item.onClick ? 'button' : 'div';
-        const Icon = item.icon;
+        const Icon = item.icon ?? FileBarChart;
         return (
           <Comp
             key={item.label}
             {...(item.onClick && { type: 'button', onClick: item.onClick })}
-            className={cn(
-              'group min-w-0 text-left transition-colors',
-              band ? 'rounded-lg bg-ink-foreground/[0.08] px-3 py-3 @3xl/page:px-4 @3xl/page:py-3.5' : 'px-3 py-3 @3xl/page:px-5 @3xl/page:py-4',
-              !band && i > 0 && 'border-l border-border/80',
-              item.onClick && (band ? 'hover:bg-ink-foreground/[0.12]' : 'hover:bg-muted/60'),
-            )}
+            className={cn(CARD, 'group flex min-w-0 items-start gap-3 p-3 text-left transition-colors @3xl/page:gap-3.5 @3xl/page:p-4', item.onClick && 'hover:bg-accent')}
           >
-            <span className={cn('flex items-center gap-1.5 truncate text-small font-medium', band ? 'text-ink-muted' : 'text-muted-foreground')}>
-              {Icon && <Icon size={14} strokeWidth={1.75} aria-hidden className="hidden shrink-0 @xl/page:block" />}
-              {item.label}
+            <span data-figure-icon className={cn('grid size-[40px] shrink-0 place-items-center rounded-tile', FIGURE_TINTS[i % FIGURE_TINTS.length])}>
+              <Icon size={20} strokeWidth={1.75} aria-hidden />
             </span>
-            <span className={cn('tabular mt-1.5 flex items-baseline gap-2 text-figure leading-none', band ? 'text-ink-foreground' : 'text-foreground')}>
-              {item.value}
-              {item.highlight && (
-                <>
-                  <span className="size-2 -translate-y-1 rounded-full bg-warning" aria-hidden />
-                  <span className="sr-only">needs attention</span>
-                </>
-              )}
+            <span className="block min-w-0">
+              <span className="block truncate text-small font-medium text-muted-foreground">{item.label}</span>
+              <span className="tabular mt-1 flex items-baseline gap-2 text-figure leading-none text-foreground">
+                {item.value}
+                {item.highlight && (
+                  <>
+                    <span className="size-2 -translate-y-1 rounded-full bg-warning" aria-hidden />
+                    <span className="sr-only">needs attention</span>
+                  </>
+                )}
+              </span>
+              {item.note && <span className="mt-1.5 line-clamp-2 block text-caption font-normal text-subtle-foreground @3xl/page:truncate">{item.note}</span>}
             </span>
-            {item.note && <span className={cn('mt-1.5 line-clamp-2 block text-small @3xl/page:truncate', band ? 'text-ink-muted' : 'text-muted-foreground')}>{item.note}</span>}
           </Comp>
         );
       })}

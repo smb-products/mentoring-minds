@@ -55,13 +55,16 @@ describe('tokens (src/app/globals.css)', () => {
 
   it('defines the type scale in @theme with the phone sizes, and the desktop sizes from 768px', () => {
     const theme = block(/@theme \{/);
-    const phone = { caption: 12, small: 13, body: 15, field: 16, heading: 15, title: 18, page: 22, figure: 22 };
+    const phone = { caption: 12, small: 13, body: 15, field: 16, heading: 15, title: 18, page: 24, figure: 22 };
     for (const [name, px] of Object.entries(phone)) expect(theme, name).toMatch(new RegExp(`--text-${name}: ${px}px;`));
     const desktop = block(/@media \(min-width: 768px\)/);
-    for (const [name, px] of Object.entries({ body: 14, field: 14, page: 24, figure: 24 })) expect(desktop, name).toMatch(new RegExp(`--text-${name}: ${px}px;`));
+    for (const [name, px] of Object.entries({ body: 14, field: 14, page: 28, figure: 24 })) expect(desktop, name).toMatch(new RegExp(`--text-${name}: ${px}px;`));
     // caption, small, heading and title are the same on both.
     for (const name of ['caption', 'small', 'heading', 'title']) expect(desktop).not.toContain(`--text-${name}:`);
     expect(theme).toMatch(/--text-heading--font-weight: 600/);
+    // App polish (P1): the page title and the stat numbers are 700, from the token, never a class.
+    expect(theme).toMatch(/--text-page--font-weight: 700/);
+    expect(theme).toMatch(/--text-figure--font-weight: 700/);
     expect(theme).toMatch(/--text-heading--line-height: 1\.25/);
     expect(theme).toMatch(/--text-body--line-height: 1\.45/);
   });
@@ -77,12 +80,12 @@ describe('tokens (src/app/globals.css)', () => {
     expect(css).not.toMatch(/--font-display|font-display|Fredoka|Nunito/);
   });
 
-  it('has 6px control and 8px card radii', () => {
+  it('has 10px control and 16px card radii (App polish)', () => {
     const theme = block(/@theme inline \{/);
-    expect(theme).toMatch(/--radius-md: 6px/);
-    expect(theme).toMatch(/--radius-lg: 8px/);
-    for (const step of ['xl', '2xl']) expect(theme).toMatch(new RegExp(`--radius-${step}: 8px`));
-    expect(css).toMatch(/--radius-panel: 8px/);
+    expect(theme).toMatch(/--radius-md: 10px/);
+    expect(theme).toMatch(/--radius-lg: 16px/);
+    for (const step of ['xl', '2xl']) expect(theme).toMatch(new RegExp(`--radius-${step}: 16px`));
+    expect(css).toMatch(/--radius-panel: 16px/);
   });
 
   it('is flat: no gradients, glows, inset highlights or press shadows, and nothing moves on press', () => {
@@ -101,7 +104,7 @@ describe('tokens (src/app/globals.css)', () => {
     const light = block(/:root \{/);
     const dark = block(/\.dark \{/);
     expect(light).toMatch(/--primary: var\(--mm-brand-600\)/);
-    expect(light).toMatch(/--sidebar: var\(--mm-brand-950\)/);
+    expect(light).toMatch(/--sidebar: #ffffff/);
     expect(light).toMatch(/--badge: var\(--mm-neutral-\d+\)/);
     expect(light).toMatch(/--badge-foreground: var\(--mm-neutral-\d+\)/);
     // Gold is only the --reward family.
@@ -129,8 +132,8 @@ describe('tokens (src/app/globals.css)', () => {
       ['#ffffff', ramp['brand-600']], // primary button
       [ramp['neutral-200'], ramp['neutral-700']], // badge, light
       [ramp['neutral-700'], ramp['neutral-100']], // badge, dark
-      [ramp['brand-950'], ramp['brand-200']], // rail and phone nav items
-      [ramp['brand-800'], '#ffffff'], // selected nav item
+      ['#ffffff', ramp['neutral-700']], // sidebar and phone nav items, on the white sidebar
+      [ramp['brand-50'], ramp['brand-600']], // selected nav item: blue on its soft blue
       ['#ffffff', ramp['critical-600']], // destructive, light
       [ramp['critical-400'], ramp['critical-950']], // destructive, dark
       ['#ffffff', ramp['neutral-700']], // muted text on a card
@@ -250,15 +253,18 @@ describe('the shell', () => {
     expect(hits(/BandMotif/, files('src'))).toEqual([]);
   });
 
-  it('the band is flat navy and slimmer, and the PageHeader title is text-page', () => {
-    const masthead = read('src/ui/components/shell/Masthead.jsx');
-    expect(masthead).toMatch(/<h1 className="text-page text-ink-foreground">/);
-    expect(masthead).toMatch(/<header className="pt-4 @3xl\/page:pt-6">/);
-    const shell = read('src/ui/components/shell/AppShell.jsx');
-    expect(shell).toMatch(/className="relative bg-ink text-ink-foreground"/);
-    // Tighter padding and a shallower overlap than before (pb-6/pb-8, pb-[4.5rem] and -mt-12).
-    expect(shell).toMatch(/overlap \? 'pb-12' : 'pb-5 @3xl\/app:pb-6'/);
-    expect(shell).toMatch(/overlap \? '-mt-8'/);
+  it('no navy band: the PageHeader title is text-page on the page, and AppShell has no bg-ink', () => {
+    const masthead = stripComments(read('src/ui/components/shell/Masthead.jsx'));
+    expect(masthead).toMatch(/<h1 className="text-page text-foreground">/);
+    const shell = stripComments(read('src/ui/components/shell/AppShell.jsx'));
+    // PageHeader portals into the shell's <header>, on the light page, and nothing pulls content up over it.
+    expect(shell).toMatch(/<header ref=\{setTarget\}/);
+    expect(shell).not.toMatch(/-mt-\d/);
+    // Nothing in the shell is navy; the band utility stays defined for anything that still uses it.
+    for (const f of files('src/ui/components/shell')) {
+      const tokens = classTokens(read(f));
+      expect(tokens.filter((t) => /^(bg-ink|text-ink-foreground|text-ink-muted|ring-ink|band)$/.test(t)), f).toEqual([]);
+    }
   });
 
   it('the rail and phone nav show a text wordmark, not LogoMark; LogoMark stays for sign-in and the landing page', () => {
@@ -272,14 +278,20 @@ describe('the shell', () => {
     expect(existsSync(path.join(ROOT, 'public/logo-192.png'))).toBe(true);
   });
 
-  it('rail and phone nav are flat navy: the selected item a lighter navy with white text, icons 18px at 1.75', () => {
+  it('white sidebar, selected soft blue, icons 18px at 1.75', () => {
     for (const f of ['src/ui/components/shell/Rail.jsx', 'src/ui/components/shell/PhoneNav.jsx']) {
       const src = read(f);
-      expect(src, f).toMatch(/active \? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground/);
+      expect(src, f).toMatch(/active \? 'bg-sidebar-accent text-sidebar-accent-foreground[^']*' : 'text-sidebar-foreground/);
       expect(src, f).toMatch(/<Icon size=\{18\} strokeWidth=\{1\.75\}/);
     }
-    expect(read('src/ui/components/shell/Rail.jsx')).toMatch(/bg-sidebar/);
-    expect(read('src/ui/components/shell/PhoneNav.jsx')).toMatch(/aria-label="Main navigation" className="[^"]*bg-sidebar/);
-    expect(read('src/ui/components/shell/AppShell.jsx')).toMatch(/: 'bg-sidebar'\)/);
+    expect(read('src/ui/components/shell/Rail.jsx')).toMatch(/aria-label="Main navigation" className="[^"]*w-\[232px\][^"]*border-r border-sidebar-border bg-sidebar/);
+    expect(read('src/ui/components/shell/PhoneNav.jsx')).toMatch(/aria-label="Main navigation" className="[^"]*border-t border-sidebar-border bg-sidebar/);
+    const css = read('src/app/globals.css');
+    const light = css.slice(css.search(/:root \{/), css.indexOf('\n}', css.search(/:root \{/)));
+    expect(light).toMatch(/--sidebar: #ffffff/);
+    expect(light).toMatch(/--sidebar-accent: var\(--mm-brand-50\)/);
+    expect(light).toMatch(/--sidebar-accent-foreground: var\(--mm-brand-600\)/);
+    expect(css).toMatch(/--mm-brand-50: #eef3ff/);
+    expect(css).toMatch(/--mm-brand-600: #1f5eff/);
   });
 });

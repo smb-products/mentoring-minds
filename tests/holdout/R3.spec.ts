@@ -1,7 +1,7 @@
 /**
  * R3 holdouts: Vienne's restyled screens stay hers, and they hold up with nothing in them. A parent, a preview
  * parent and a signed-out visitor who open them get none of her data; with no sessions or homework the stat
- * row still sits on the page below the navy band.
+ * row still sits on the page below the page header.
  */
 import type { Page } from '@playwright/test';
 import { expect, freshData, openAs, test } from '../e2e/support/fixtures';
@@ -63,14 +63,14 @@ test('with no sessions or homework, Vienne’s stat rows sit below the band and 
 
   for (const url of ['/admin/today', '/admin/families', '/admin/assignments', '/admin/content']) {
     await settle(page, url);
-    const band = page.locator('.bg-ink', { has: page.getByRole('heading', { level: 1 }) }).first();
+    const band = page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).first();
     const stats = main(page).getByRole('region', { name: 'Key numbers' });
     await expect(stats, url).toBeVisible();
     const b = (await band.boundingBox())!;
     const s = (await stats.boundingBox())!;
     expect(s.y, `${url}: the stat row is on the band`).toBeGreaterThanOrEqual(b.y + b.height);
     await expect(band.getByRole('region', { name: 'Key numbers' }), url).toHaveCount(0);
-    // "About 120px" where the band has no tabs.
+    // "About 120px" where the page header has no tabs (P1: the header holding the h1, no navy band).
     if ((await band.getByRole('tablist').count()) === 0) expect(b.height, `${url}: band height`).toBeLessThanOrEqual(130);
     expect(await main(page).innerText(), url).not.toMatch(/undefined|NaN|\bnull\b|Invalid Date/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `${url} scrolls sideways`).toBe(true);

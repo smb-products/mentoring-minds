@@ -21,7 +21,7 @@ async function sizes(page: Page) {
   });
 }
 
-for (const [device, options, input, title] of [['phone', PHONE, 16, 22], ['desktop', DESKTOP, 14, 24]] as const) {
+for (const [device, options, input, title] of [['phone', PHONE, 16, 24], ['desktop', DESKTOP, 14, 28]] as const) {
   test(`${device}: fields are ${input}px, page titles ${title}px, in Inter`, async ({ browser }) => {
     const wrong: string[] = [];
     // [who, page, the field that has to be there]
