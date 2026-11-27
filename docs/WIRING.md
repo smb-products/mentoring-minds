@@ -76,7 +76,6 @@ const LIVE = new Set([
   // 'scheduling',
   // W7
   // 'reports',
-  // 'ai',
 ]);
 
 export const api = Object.fromEntries(Object.entries(mock).map(([k, v]) => [k, LIVE.has(k) ? live[k] : v]));
@@ -113,7 +112,6 @@ A suggested order, from least to most connected. Each is one ticket:
 - **Privacy:** parents never receive `adminNotes`, private session notes, or Vienne's video room link outside the join window.
 - **"Not found" errors** have the code `NOT_FOUND` (the mock said `INVALID`).
 - **Practice homework** also notifies the family (the mock didn't).
-- **Answer-key photo:** `readAnswerKeyPage` needs `image: { mediaType, base64 }`. `AnswerKeyPage` already sends it, using `shrinkPhoto()`.
 
 ## If something doesn't match
 

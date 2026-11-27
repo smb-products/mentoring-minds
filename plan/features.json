@@ -1616,6 +1616,32 @@
         "Not held. It waits for L2, which also edits src/components/landing/. Only text-display is new in globals.css; R2 and R3 don't touch that file.",
         "The page title and og:title keep 'K-6' as they are: this ticket changes only the hero's text."
       ]
+    },
+    {
+      "id": "S35",
+      "title": "A detail page with an unknown id says so, instead of loading forever",
+      "spec": "tests/e2e/s35-not-found.spec.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/ui/pages/parent/AssignmentItemPage.jsx",
+        "src/ui/pages/admin/FamilyPage.jsx",
+        "src/ui/pages/admin/AssignmentPage.jsx",
+        "src/ui/pages/admin/ResourcePage.jsx",
+        "src/ui/pages/admin/AnswerKeyPage.jsx",
+        "src/ui/pages/admin/ReportPage.jsx",
+        "src/ui/pages/admin/MessagesPage.jsx",
+        "tests/e2e/s35-not-found.spec.ts",
+        "plan/reports/S35.md"
+      ],
+      "checks": [
+        "Each detail route, opened by its own role with an id that doesn't exist, shows a plain message with a link back to its list, never an endless loading skeleton. Also covered: a parent opening another family's assignment id. The routes are /parent/learning/<id>, /admin/families/<id>, /admin/assignments/<id>, /admin/content/<id>, /admin/content/book/<book>/<test>, /admin/reports/<id> and /admin/messages/<id>. The wording is 'We couldn’t find that <assignment | family | resource | answer key | report | conversation>. It may have been removed.', and the link is 'Back to <Learning | Families | Assignments | Content | Content | Reports | Messages>'. The skeleton still shows while data is loading, and the message appears only once the read has come back without the item (or with NOT_FOUND).",
+        "Use the existing Empty component (src/ui/components/ui/Display.jsx) as it is. No shared component, server or shape changes. The other family's case shows the same message as a made-up id, so it reveals nothing about whether the item exists.",
+        "tests/e2e/s35-not-found.spec.ts visits each route with a made-up id (and Ana visits another family's submission), and expects the message and the link within 5 seconds, with the fixture's no-console-errors rule. A real id still opens its page. The whole browser suite passes."
+      ],
+      "hints": [
+        "From Rigg's holdout batch (#144): /parent/learning/<unknown or another family's id> stays on the loading skeleton, with no data leak. Pages like AssignmentItemPage find the item in a list and show PageLoading while it's missing, so they never stop loading.",
+        "Not held. It shares no touches with R1's redo (shared components and sign-in) or with L2 and L3 (the landing page)."
+      ]
     }
   ]
 }

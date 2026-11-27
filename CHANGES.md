@@ -3,6 +3,19 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: S35, unknown ids say so; band height with tabs; docs tidy
+
+- **S35 (new, not held):** a detail page opened with an unknown id, or a parent opening another family's
+  assignment, shows "We couldn’t find that …" with a link back, instead of loading forever. Why: Rigg's
+  holdout batch (#144) found `/parent/learning/<unknown id>` stuck on the skeleton. Nothing leaked. Approved:
+  Axis (lead).
+- **docs/DESIGN.md:** a band with tabs may be about 150px. The ~120px figure is for bands without tabs. Why:
+  R3's band measured 149px with tabs, and Rigg's holdout caps only bands without tabs (#144).
+- **Docs only:**
+  - WIRING drops the commented `'ai'` line and the answer-key photo bullet, which S33 removed (Rigg's nit,
+    via Zero).
+  - PRODUCTION_SETUP Part 7 step 3 now expects the landing page at `PROD_URL`, since L1.
+
 ## 2026-11-27: R1 reopened, fields are 15px on phones
 
 - **R1 (needs_checks, then ready after R2 and L1 merge):** new check 2.
