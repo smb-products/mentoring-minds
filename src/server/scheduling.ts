@@ -386,7 +386,8 @@ export const completeSession = action(
         const open = await tx.redoItem.findFirst({ where: { studentId: cur.studentId, bookItemId: item.id, clearedAt: null } });
         if (!open) await tx.redoItem.create({ data: { studentId: cur.studentId, bookItemId: item.id, source: 'SESSION' } });
       }
-      if (v.clearRedoIds.length) await tx.redoItem.updateMany({ where: { id: { in: v.clearRedoIds }, studentId: cur.studentId, clearedAt: null }, data: { clearedAt: now } });      return tx.session.update({
+      if (v.clearRedoIds.length) await tx.redoItem.updateMany({ where: { id: { in: v.clearRedoIds }, studentId: cur.studentId, clearedAt: null }, data: { clearedAt: now } });
+      return tx.session.update({
         where: { id: cur.id },
         data: { status: 'COMPLETED', ...(cur.mode === 'VIDEO' && cur.callStartedAt && !cur.callEndedAt && { callEndedAt: now }) },
         include: sessionInclude,

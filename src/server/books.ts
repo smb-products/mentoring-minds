@@ -90,7 +90,8 @@ export const saveAnswerKey = action(
           points: r.points || (r.format === 'OPEN' ? 2 : 1),
         };
         await tx.bookItem.upsert({ where: { bookId_test_number: { bookId: book.id, test: t.key, number: r.number } }, create: { bookId: book.id, test: t.key, number: r.number, ...data }, update: data });
-      }    });
+      }
+    });
     return db.bookItem.count({ where: { bookId: book.id, test: t.key } });
   },
 );

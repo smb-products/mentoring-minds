@@ -96,7 +96,7 @@ A suggested order, from least to most connected. Each is one ticket:
 | W4 | `books`, `content` | Content → Book → Answer key; Library; upload a worksheet; parent opens it | Vercel Blob (`BLOB_READ_WRITE_TOKEN` via `vercel env pull`), or the local `./uploads` folder in dev. **Opening a file:** in `ResourceViewer` (`pages/parent/LearningPage.jsx`), replace the "File viewing isn’t part of the prototype" toast with `` window.open(`/api/files/${r.file.id}`, '_blank', 'noopener') ``. |
 | W5 | `assignments` | New assignment; parent answer sheet with a photo; Work → check written answers | **Opening a photo:** in `pages/admin/AssignmentPage.jsx`, replace the "Photo viewing isn’t part of the prototype" toast with `` window.open(`/api/files/${photo.file.id}`, '_blank', 'noopener') ``. |
 | W6 | `scheduling` | Request, confirm, decline, cancel; Join call; complete with a note | `dashboard` is live from W0. No screen calls `rescheduleSession` yet, so reschedule isn't part of it |
-| W7 | `reports`, `ai` | Report page; Today updating live; "Talk about it" and "Set up from photos" | Needs `ANTHROPIC_API_KEY` |
+| W7 | `reports` | Report page; Today updating live | (The AI helpers it also wired were removed in S33.) |
 | W8 | delete `src/mock` | Everything | Then `LIVE` goes away and `index.js` exports `live` directly. The B.E.S.T. data moves to `src/ui/api/best.js`, the demo seed under `prisma/demo/`, and the mock the contract check compares against under `tests/contract/mock/` |
 
 **Done for each area means:**
