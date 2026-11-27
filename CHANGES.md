@@ -3,6 +3,17 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: /privacy wording approved
+
+- **L1's /privacy page:** Javaris approved the wording with two edits.
+  - The account item names the phone number (User.phone). Google shares only name and email.
+  - The invite-request item lists name, email, phone and message.
+  - A new section after "Who sees it", titled "Who else handles it", says it's never sold or shared, and only
+    Vercel, Neon and Google (with Google sign-in) handle it.
+
+  It's a lead edit of the approved copy, outside any ticket. The L1 spec's headings and phrases still hold.
+  Approved: Javaris (2026-11-27, via OSA).
+
 ## 2026-11-27: S35, unknown ids say so; band height with tabs; docs tidy
 
 - **S35 (new, not held):** a detail page opened with an unknown id, or a parent opening another family's

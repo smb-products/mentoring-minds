@@ -208,7 +208,7 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [x] The library sends families no other family's children (S15, #76) and Vienne's email can't be squatted before the seed (S19, #82). Both merged and checked.
 - [x] Deleting a family or a child matches only by id (S23b, #107), merged and checked; the Delete buttons are back and the runbook is **Deleting a family or a child on request**. S23 is closed, superseded by S23b.
 - [ ] The restyle (R1–R3, `docs/DESIGN.md`) and the landing page with Request an invite (L1, L2) are merged and checked. **Lanes** (Javaris approved, 2026-11-27). Then Javaris clicks through as Vienne and as a parent on a phone.
-- [ ] Javaris reviews the wording on `/privacy` (L1). Google's consent screen links to it. **Javaris**.
+- [x] Javaris reviewed the wording on `/privacy` (L1) and approved it with two edits (2026-11-27). Google's consent screen links to it.
 - [x] Firewall rate limit on sign-up and sign-in: **after launch** (Javaris, 2026-11-26). Accepted risk: throwaway accounts can pause invite codes for everyone for up to an hour (`GLOBAL_REDEEM_FAILURES_PER_HOUR`).
 
 ## Limits
