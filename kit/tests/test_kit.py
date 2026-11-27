@@ -305,6 +305,13 @@ class Kit(unittest.TestCase):
         (panes / "atlas").write_text(idle)
         self.kit("watch.py", "--seats", env=env)
         self.assertIn("New message from OSA: run kit/msg.py inbox atlas", typed()[-1])
+        lines = keys.read_text().splitlines()
+        self.assertEqual(lines[1], "t-axis send-keys -t t-axis Enter")  # its own call, after the text
+        (panes / "axis").write_text("❯ New message from OSA: run kit/msg.py inbox axis and act on it.\n")
+        self.kit("watch.py", "--seats", env=env)  # the Enter was lost: the line still sits in the box
+        self.assertEqual(keys.read_text().splitlines()[-1], "t-axis send-keys -t t-axis Enter")
+        self.assertEqual(len(typed()), 2, "typed the line again instead of pressing Enter")
+        (panes / "axis").write_text(idle)
         send("axis", "and #4", by="zero")
         self.kit("watch.py", "--seats", env=env)
         self.assertIn("New message from OSA, zero: run kit/msg.py inbox axis", typed()[-1])

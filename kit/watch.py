@@ -116,8 +116,14 @@ def age_s(m):
         return 0
 
 
+WAKE_TEXT = "New message from "
+
+
 def wake(memo, seat, all_msgs):
     """Type one line into a lead or ops seat that has work in its inbox, as the guard does for idle lanes."""
+    if unsent(seat).startswith(WAKE_TEXT):  # our line is in the box but its Enter didn't register: press it again
+        tmux("send-keys", "-t", f"{P}-{seat}", "Enter")
+        return
     todo = waiting(seat, all_msgs)
     if not todo or age_s(todo[0]) < minutes("WATCH_WAKE_MIN", 1):
         return
@@ -125,7 +131,8 @@ def wake(memo, seat, all_msgs):
     if key in memo["sent"] or not idle_box(seat):
         return  # already woken for these, or busy: try again next pass
     senders = ", ".join(dict.fromkeys("OSA" if m["from"] == "osa" else m["from"] for m in todo))
-    tmux("send-keys", "-t", f"{P}-{seat}", "-l", f"New message from {senders}: run kit/msg.py inbox {seat} and act on it.")
+    tmux("send-keys", "-t", f"{P}-{seat}", "-l", f"{WAKE_TEXT}{senders}: run kit/msg.py inbox {seat} and act on it.")
+    time.sleep(float(ENV.get("WATCH_ENTER_DELAY_S", "1")))  # an Enter sent with the text can be lost while it pastes
     tmux("send-keys", "-t", f"{P}-{seat}", "Enter")
     memo["sent"][key] = int(time.time())
 
