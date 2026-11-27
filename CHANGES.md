@@ -3,6 +3,14 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: P2b gets OSA's five P1 review nits
+
+- **P2b, new check 2:** stat sublines wrap to 2 lines (no ellipsis), Families' stat cards get their own icons,
+  Today's selected day uses the accent rather than navy, the Up next card's left border goes, and avatars become
+  soft blue tints. Its test check covers each one. `src/ui/components/ui/Display.jsx` (Figures, Avatar) joins
+  P2b's touches, so P2a stays clear of it. Why: OSA's screenshot review of P1 (#178) against the approved
+  mockup, under Javaris's polish approval.
+
 ## 2026-11-27: P2 split into P2a (parent) and P2b (admin)
 
 - **P2** is superseded by **P2a** (the parent screens and their drawers, plus the shared SessionParts, Thread and

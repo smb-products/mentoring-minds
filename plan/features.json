@@ -1828,7 +1828,8 @@
       "hints": [
         "Split from P2 (OSA, 2026-11-27). It runs in parallel with P2b, with no shared touches. Don't edit a file outside these touches: a needed change elsewhere goes in the report.",
         "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
-        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead."
+        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead.",
+        "Display.jsx (Figures, Avatar) belongs to P2b for OSA's nits. Don't edit it here."
       ]
     },
     {
@@ -1840,6 +1841,7 @@
       ],
       "touches": [
         "src/ui/pages/admin/",
+        "src/ui/components/ui/Display.jsx",
         "src/ui/components/sessions/AddSessionDrawer.jsx",
         "src/ui/components/sessions/AdminSessionDrawer.jsx",
         "src/ui/components/sessions/DayTimeline.jsx",
@@ -1849,8 +1851,9 @@
       ],
       "checks": [
         "Every admin screen under src/ui/pages/admin/, and these components: src/ui/components/sessions/AddSessionDrawer.jsx, src/ui/components/sessions/AdminSessionDrawer.jsx, src/ui/components/sessions/DayTimeline.jsx, matches P1 (docs/DESIGN.md → App polish). Cards are the shared white card (1px border, the 16px token), badges are the shared Badge, StatusBadge or LevelBadge (a soft tint or a dot), and buttons are the shared Button. There are no one-off radii (rounded-[…], or rounded-sm/xl/2xl/3xl on cards or controls) and no navy left from the band (bg-ink, text-ink-*, the band utility). The shared SessionParts, Thread and FastResults belong to P2a, so don't edit them here.",
+        "OSA's P1 review nits (2026-11-27), all in P2b. (1) The stat card sublines (Figures' note, Display.jsx) wrap to at most 2 lines with no ellipsis at 1280px, so 'Oldest asked 2d ago', '8 students in grades 3–6' and 'Kindergarten to grade 6' read in full. (2) Each Families stat card has its own lucide icon (users, graduation-cap, key-round, clock), passed as the item's icon, not the default chart. (3) Today's 'This week' selected day is the accent (#1F5EFF via bg-primary, with primary-foreground text), not a navy block (no bg-ink). (4) Today's Up next card has no left accent border. (5) Avatar (Display.jsx) is a soft tinted circle: bg-brand-soft (#EEF3FF) with text-primary (#1F5EFF) initials, like the mockup's VE, never a filled navy. Its accessible name and initials don't change.",
         "Only the look changes: layout order, wording, and every role, label and name stay. The r2-design and r3-design source tests pass unchanged, and so do the whole browser suite and every holdout. Dark mode keeps working.",
-        "Tests: tests/p2b-design.test.ts, a source test over its touches, checks for no bg-ink, text-ink-, band, rounded-[ or rounded-(sm|xl|2xl|3xl) class tokens, no font-bold and no text-[Npx]. tests/e2e/p2b-screens.spec.ts, as Vienne at 1280×800, opens each admin screen in the sidebar and checks that its first card has a white background, a 1px border and 16px corners, and that nothing behind its h1 is navy. Its @phone test checks there's no sideways scroll on each screen.",
+        "Tests: tests/p2b-design.test.ts, a source test over its touches, checks for no bg-ink, text-ink-, band, rounded-[ or rounded-(sm|xl|2xl|3xl) class tokens, no font-bold and no text-[Npx]. tests/e2e/p2b-screens.spec.ts, as Vienne at 1280×800, opens each admin screen in the sidebar and checks that its first card has a white background, a 1px border and 16px corners, and that nothing behind its h1 is navy. It also checks nits 1–5: no stat subline has text-overflow: ellipsis, and each wraps to 2 lines or fewer; the Families stat icons are 4 different svgs; the Today selected day's background is rgb(31, 94, 255); Up next has a border-left-width of 0; and an avatar's background isn't navy. Its @phone test checks there's no sideways scroll on each screen.",
         "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
       ],
       "hints": [
