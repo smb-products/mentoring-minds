@@ -17,7 +17,6 @@ import pg from 'pg';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { as, db, fails, freshDemo, localTarget, ok, valuesOf } from './helpers';
 import { DEMO_PASSWORD } from '../../prisma/data';
-import { AI_DAILY_LIMIT, EFFORT, MODEL } from '@/lib/ai/prompts';
 import { MAX_BYTES } from '@/lib/storage';
 import * as assignments from '@/server/assignments';
 import * as books from '@/server/books';
@@ -31,7 +30,6 @@ import * as notifications from '@/server/notifications';
 import * as reports from '@/server/reports';
 import * as scheduling from '@/server/scheduling';
 import * as taxonomy from '@/server/taxonomy';
-import * as ai from '@/server/ai';
 import { GET as download } from '@/app/api/files/[id]/route';
 import { POST as blobTokenRoute } from '@/app/api/files/blob/route';
 import { PUT as localUploadRoute } from '@/app/api/files/upload/[id]/route';
@@ -492,20 +490,6 @@ describe('limits: each named constant is reached', () => {
     fails(await invites.redeemInvite({ code: code2 }), 'LOCKED');
   });
 
-  it(`AI_DAILY_LIMIT (${AI_DAILY_LIMIT}) drafts a day, counted before Claude is called`, async () => {
-    await db.aiDraft.deleteMany();
-    const session = await db.session.findFirstOrThrow({ where: { status: 'COMPLETED' } });
-    const fill = (n: number) =>
-      db.aiDraft.createMany({ data: Array.from({ length: n }, () => ({ kind: 'SESSION_NOTE' as const, model: MODEL, effort: EFFORT, refId: 'p_sec_cap', input: {}, output: {} })) });
-    as('u_admin');
-    const draft = () => ai.draftSessionNote({ sessionId: session.id, transcript: 'We practiced fractions on a number line today.' });
-    await fill(AI_DAILY_LIMIT - 1);
-    const under = await draft();
-    expect(under.ok ? 'ok' : under.code).not.toBe('LIMIT'); // one under: it goes on (and stops at the missing key in tests)
-    await fill(1);
-    fails(await draft(), 'LIMIT');
-  });
-
   it(`MAX_BYTES (${MAX_BYTES / 1024 / 1024} MB) is the largest upload`, async () => {
     as('u_ana');
     ok(await content.createUpload({ filename: 'big.pdf', mimeType: 'application/pdf', sizeBytes: MAX_BYTES }));
@@ -515,7 +499,7 @@ describe('limits: each named constant is reached', () => {
   it('what has no limit in the app is listed in docs/DEPLOY.md with what covers it', () => {
     const deploy = read('docs/DEPLOY.md');
     const limits = deploy.slice(deploy.indexOf('## Limits'), deploy.indexOf('\n## ', deploy.indexOf('## Limits') + 1));
-    for (const name of ['MAX_FAILED_LOGINS', 'MAX_FAILURES', 'GLOBAL_REDEEM_FAILURES_PER_HOUR', 'AI_DAILY_LIMIT', 'MAX_BYTES']) expect(limits, name).toContain(`\`${name}\``);
+    for (const name of ['MAX_FAILED_LOGINS', 'MAX_FAILURES', 'GLOBAL_REDEEM_FAILURES_PER_HOUR', 'MAX_BYTES']) expect(limits, name).toContain(`\`${name}\``);
     for (const open of ['Sign-up', 'Sign-in by IP']) expect(limits, open).toMatch(new RegExp(`\\*\\*${open}[^\\n]*(Vercel Firewall|Hardening later)`));
   });
 });
@@ -528,8 +512,11 @@ const migrations = () =>
     .filter((d) => statSync(path.join(ROOT, MIGRATIONS, d)).isDirectory())
     .sort();
 
-/** Migrations allowed to drop something, each with why no data is lost. None so far. */
-const DROPS_ALLOWED: Record<string, string> = {};
+/** Migrations allowed to drop something, each with why no data is lost. */
+const DROPS_ALLOWED: Record<string, string> = {
+  '20261127120000_remove_ai':
+    'S33 (Javaris, 2026-11-27): the AI features were removed before production was ever migrated, so AiDraft and the VOICE/PHOTO sources held nothing. The enum swap drops and re-sets the source columns’ TYPED default.',
+};
 
 describe('migrations', () => {
   // A throwaway database next to the test one (its name still contains "test"). Prisma compares a datamodel

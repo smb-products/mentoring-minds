@@ -72,8 +72,7 @@ enum Attendance {
 }
 
 enum NoteSource {
-  TYPED
-  VOICE // drafted by "Talk about it" and accepted by Vienne
+  TYPED // the only source since the AI features were removed (S33)
 }
 
 enum ResourceKind {
@@ -115,8 +114,7 @@ enum ItemFormat {
 }
 
 enum KeySource {
-  TYPED
-  PHOTO // read from a photo by Claude and accepted by Vienne
+  TYPED // the only source since the AI features were removed (S33)
 }
 
 enum RedoSource {
@@ -133,18 +131,6 @@ enum FastWindow {
   PM1
   PM2
   PM3
-}
-
-enum DraftKind {
-  SESSION_NOTE
-  BOOK_PAGE
-}
-
-enum DraftStatus {
-  DRAFT
-  ACCEPTED
-  DISCARDED
-  FAILED // a call to Claude that gave no usable draft (still counts toward AI_DAILY_LIMIT)
 }
 
 enum Audience {
@@ -638,23 +624,6 @@ model ReportRating {
   skill    Skill          @relation(fields: [skillId], references: [id])
 
   @@unique([reportId, skillId])
-}
-
-/**
- * ── AI drafts (audit trail; nothing is saved from a draft without Vienne's tap) ──
- */
-
-model AiDraft {
-  id        String      @id @default(cuid())
-  kind      DraftKind
-  model     String // "claude-haiku-5-5"
-  effort    String // "high"
-  refId     String // sessionId, or "bookId:test"
-  status    DraftStatus @default(DRAFT)
-  input     Json // { transcript } or { photoName, photoDeletedAt }
-  output    Json
-  createdAt DateTime    @default(now())
-  decidedAt DateTime?
 }
 
 /**

@@ -82,22 +82,20 @@ describe('unused files', () => {
 });
 
 describe('files in use are never removed', () => {
-  it('keeps a file used anywhere: a resource, its thumbnail, a submission’s work, a photo, a draft, an AI draft', async () => {
+  it('keeps a file used anywhere: a resource, its thumbnail, a submission’s work, a photo, a draft', async () => {
     const asResource = await storedFile(old, 'u_admin');
     const asThumb = await storedFile(old, 'u_admin');
     const asWork = await storedFile(old);
     const asPhoto = await storedFile(old);
     const inDraft = await storedFile(old);
     const inAnswers = await storedFile(old);
-    const inAi = await storedFile(old, 'u_admin');
     await db.resource.create({ data: { title: 'S17 kept', kind: 'WORKSHEET', fileId: asResource.id, thumbnailId: asThumb.id } });
     const subs = await db.submission.findMany({ where: { studentId: 's_mateo' }, take: 2, orderBy: { id: 'asc' } });
     await db.submission.update({ where: { id: subs[0].id }, data: { fileId: asWork.id, photos: [{ number: 13, fileId: asPhoto.id }], answers: [{ number: 2, value: null, correct: null, photo: { fileId: inAnswers.id } }] } });
     await db.submission.update({ where: { id: subs[1].id }, data: { draft: [{ number: 13, value: null, photo: { fileId: inDraft.id } }] } });
-    await db.aiDraft.create({ data: { kind: 'BOOK_PAGE', model: 'claude-haiku-5-5', effort: 'high', refId: 'book_g3:T2', input: { photos: [{ fileId: inAi.id }] }, output: {} } });
 
     await cleanUp();
-    for (const f of [asResource, asThumb, asWork, asPhoto, inDraft, inAnswers, inAi]) await kept(f);
+    for (const f of [asResource, asThumb, asWork, asPhoto, inDraft, inAnswers]) await kept(f);
   });
 
   it('the demo’s files (all in use, three weeks old) all stay', async () => {

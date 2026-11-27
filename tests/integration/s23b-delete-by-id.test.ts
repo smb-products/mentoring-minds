@@ -78,7 +78,7 @@ function diff(before: Dump, after: Dump) {
 }
 const sorted = (xs: Iterable<string>) => [...new Set(xs)].sort();
 /** Tables keyed by id; the others (join tables) are keyed by their row. */
-const ID_TABLES = new Set(['User', 'Account', 'PushSubscription', 'RedeemFailure', 'Invite', 'Student', 'Session', 'SessionNote', 'FileAsset', 'Assignment', 'Submission', 'RedoItem', 'FastResult', 'ProgressReport', 'ReportRating', 'AiDraft', 'Conversation', 'Message', 'Notification']);
+const ID_TABLES = new Set(['User', 'Account', 'PushSubscription', 'RedeemFailure', 'Invite', 'Student', 'Session', 'SessionNote', 'FileAsset', 'Assignment', 'Submission', 'RedoItem', 'FastResult', 'ProgressReport', 'ReportRating', 'Conversation', 'Message', 'Notification']);
 
 /** Every row about these children, found by foreign key, as the delete should remove it. */
 async function childRows(studentIds: string[]) {
@@ -90,7 +90,6 @@ async function childRows(studentIds: string[]) {
     Student: studentIds,
     Session: sessions.map((s) => s.id),
     SessionNote: (await db.sessionNote.findMany({ where: { sessionId: { in: sessions.map((s) => s.id) } }, select: { id: true } })).map((x) => x.id),
-    AiDraft: (await db.aiDraft.findMany({ where: { kind: 'SESSION_NOTE', refId: { in: sessions.map((s) => s.id) } }, select: { id: true } })).map((x) => x.id),
     Submission: subs.map((s) => s.id),
     Assignment: onlyTheirs.map((a) => a.id),
     RedoItem: (await db.redoItem.findMany({ where: { studentId: { in: studentIds } }, select: { id: true } })).map((x) => x.id),

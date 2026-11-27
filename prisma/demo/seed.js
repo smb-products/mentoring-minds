@@ -493,7 +493,7 @@ export function createSeed() {
   return {
     users, students, studentSubjects, subjects, skills, locations, availability, timeOff, settings, sessions, sessionNotes, sessionNoteSkills,
     fileAssets, tags, resources, resourceTags, resourceShares, books, bookItems, assignments, submissions, redoItems, fastResults,
-    progressReports, reportRatings, conversations, messages, notifications, invites, aiDrafts: [],
+    progressReports, reportRatings, conversations, messages, notifications, invites,
     /* Book-only: no authored question bank. Kept empty so old imports don't break during the port. */
     questions: [], assignmentQuestions: [],
   };

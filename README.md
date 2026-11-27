@@ -2,7 +2,7 @@
 
 Math tutoring app for Vienne Elliott (K–6, Miami-Dade). Vienne runs her sessions, families book her (in person or by video call), and kids do homework from the **Florida Test Prep F.A.S.T. Mathematics** book on a digital answer sheet. Progress is tracked against Florida's B.E.S.T. standards and FAST results.
 
-- **Stack:** Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS v4, Prisma 6 + Postgres (Neon), Rust-free client via the `pg` driver, Auth.js v5 (Google + email/password), Anthropic SDK (Claude Haiku 5.5), installable PWA.
+- **Stack:** Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS v4, Prisma 6 + Postgres (Neon), Rust-free client via the `pg` driver, Auth.js v5 (Google + email/password), installable PWA. No AI features (removed for launch, S33).
 - **Status:**
   - **Screens:** all 20 are built and run on the real backend.
   - **Backend:** finished, with every server function tested against Postgres. The tests cover permissions, data leaks, each area, and the shapes the screens were built on.
@@ -48,7 +48,7 @@ prisma/schema.prisma      data model (mirrors the mock's collections)
 prisma/seed.ts, data.ts   day-one data (db:seed) and the full demo (db:seed:demo), loaded from prisma/demo/seed.js
 prisma/migrations/        SQL migrations (CI fails if the schema drifts)
 src/server/*.ts           server functions ('use server'): every export is a public endpoint behind a guard
-src/lib/                  auth, guards, result, validate, dto, grading, slots, time, best (FL standards), storage (Vercel Blob/local), files, notify, push, jobs, ai
+src/lib/                  auth, guards, result, validate, dto, grading, slots, time, best (FL standards), storage (Vercel Blob/local), files, notify, push, jobs
 src/proxy.ts              routing by sign-in and role
 src/app/api/files/[id]    permission-checked downloads (streams private Blob files)
 src/app/api/files/blob    Blob client-upload tokens (only for a file the server reserved)

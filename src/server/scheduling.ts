@@ -339,7 +339,6 @@ export const createSessionAsAdmin = action(
 /**
  * Saves the note and completes the session. `redoItemIds` are book questions to add
  * to the student's redo list; `clearRedoIds` are ones they got right today.
- * `source` is VOICE when Vienne used "Talk about it" and accepted the draft.
  */
 export const completeSession = action(
   async (input: {
@@ -351,8 +350,6 @@ export const completeSession = action(
     skillIds?: string[];
     redoItemIds?: string[];
     clearRedoIds?: string[];
-    source?: 'TYPED' | 'VOICE';
-    aiDraftId?: string | null;
   }) => {
     await requireAdmin();
     const v = parse(
@@ -365,8 +362,6 @@ export const completeSession = action(
         skillIds: ids.default([]),
         redoItemIds: ids.default([]),
         clearRedoIds: ids.default([]),
-        source: z.enum(['TYPED', 'VOICE']).default('TYPED'),
-        aiDraftId: id.nullish(),
       }),
       input,
     );
@@ -382,7 +377,6 @@ export const completeSession = action(
           summary: v.summary,
           homework: v.homework,
           sharedWithParent: v.sharedWithParent,
-          source: v.source,
           skills: { create: skills.map((k) => ({ skillId: k.id })) },
         },
       });
@@ -392,9 +386,7 @@ export const completeSession = action(
         const open = await tx.redoItem.findFirst({ where: { studentId: cur.studentId, bookItemId: item.id, clearedAt: null } });
         if (!open) await tx.redoItem.create({ data: { studentId: cur.studentId, bookItemId: item.id, source: 'SESSION' } });
       }
-      if (v.clearRedoIds.length) await tx.redoItem.updateMany({ where: { id: { in: v.clearRedoIds }, studentId: cur.studentId, clearedAt: null }, data: { clearedAt: now } });
-      if (v.aiDraftId) await tx.aiDraft.updateMany({ where: { id: v.aiDraftId, kind: 'SESSION_NOTE', refId: cur.id, status: 'DRAFT' }, data: { status: 'ACCEPTED', decidedAt: now } });
-      return tx.session.update({
+      if (v.clearRedoIds.length) await tx.redoItem.updateMany({ where: { id: { in: v.clearRedoIds }, studentId: cur.studentId, clearedAt: null }, data: { clearedAt: now } });      return tx.session.update({
         where: { id: cur.id },
         data: { status: 'COMPLETED', ...(cur.mode === 'VIDEO' && cur.callStartedAt && !cur.callEndedAt && { callEndedAt: now }) },
         include: sessionInclude,

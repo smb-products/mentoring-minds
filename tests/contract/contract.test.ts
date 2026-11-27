@@ -15,23 +15,8 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { as, db } from '../integration/helpers';
 import { loadDemo, truncateAll } from '../../prisma/data';
 
-// Claude is stubbed so the AI functions can be compared without network calls.
-vi.mock('@anthropic-ai/sdk', () => ({
-  default: class {
-    messages = {
-      create: async (req: { output_config: { format: { schema: { properties: Record<string, unknown> } } } }) => {
-        const isNote = 'note' in req.output_config.format.schema.properties;
-        const text = isNote
-          ? JSON.stringify({ note: 'We worked on fractions.', homework: null, skills: [{ skillId: 'sk_fractions', rating: 3 }], redo: [{ test: 'T1', number: 2 }], unsure: [] })
-          : JSON.stringify({ test: 'T4', items: [{ number: 1, answer: 'B', format: 'MC', benchmarkCode: null, confident: true }] });
-        return { stop_reason: 'end_turn', content: [{ type: 'text', text }] };
-      },
-    };
-  },
-}));
-
 import { getDb, setSessionUser } from './mock/core';
-import * as mAi from './mock/server/ai';
+// The mock's ai area stays in the frozen copy, but the AI features were removed (S33): it isn't compared.
 import * as mAssignments from './mock/server/assignments';
 import * as mBooks from './mock/server/books';
 import * as mContent from './mock/server/content';
@@ -44,7 +29,6 @@ import * as mNotifications from './mock/server/notifications';
 import * as mReports from './mock/server/reports';
 import * as mScheduling from './mock/server/scheduling';
 import * as mTaxonomy from './mock/server/taxonomy';
-import * as rAi from '@/server/ai';
 import * as rAssignments from '@/server/assignments';
 import * as rBooks from '@/server/books';
 import * as rContent from '@/server/content';
@@ -60,7 +44,6 @@ import * as rTaxonomy from '@/server/taxonomy';
 
 type Mod = Record<string, unknown>;
 const MODULES: Record<string, [Mod, Mod]> = {
-  ai: [mAi, rAi],
   assignments: [mAssignments, rAssignments],
   books: [mBooks, rBooks],
   content: [mContent, rContent],
@@ -206,7 +189,6 @@ async function check(ns: string, fn: string, input: unknown, user: string, realI
 }
 
 beforeAll(async () => {
-  process.env.ANTHROPIC_API_KEY = 'test-key';
   await truncateAll(db as never);
   // The mock's own in-memory records, so both sides start identical (same ids, same times).
   await loadDemo(db as never, getDb() as never, { writeFiles: true });
@@ -381,14 +363,6 @@ describe('writes match the mock', () => {
     await check('notifications', 'markRead', { notificationId: 'n9' }, 'u_monique');
     await check('notifications', 'markAllRead', {}, 'u_monique');
     await check('notifications', 'runDailyReminders', {}, ADMIN);
-  });
-
-  it('AI drafts (Claude stubbed)', async () => {
-    // The mock's stand-in reads the words; the stub always answers T1 #2 to redo, so the recap says so.
-    const note = await check('ai', 'draftSessionNote', { sessionId: 'ses_15', transcript: 'Noah did great with fractions today. He missed number 2 on test 1.' }, ADMIN);
-    const mockDrafts = (getDb() as unknown as { aiDrafts: { id: string }[] }).aiDrafts;
-    await check('ai', 'discardDraft', { draftId: mockDrafts[mockDrafts.length - 1].id }, ADMIN, { draftId: (note as { data: { draftId: string } }).data.draftId });
-    await check('ai', 'readAnswerKeyPage', { bookId: 'book_g5', test: 'T4', fromNumber: 1, photoName: 'page.jpg', image: { mediaType: 'image/jpeg', base64: 'A'.repeat(400) } }, ADMIN);
   });
 
   it('prints what the real backend adds (informational)', () => {

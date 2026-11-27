@@ -119,10 +119,8 @@ describe('deleting a child', () => {
     await db.submission.update({ where: { id: subs[0].id }, data: { fileId: upload.id, draft: [{ number: 1, value: 'A', fileId: library.id }] } });
     // Ana's own upload not attached to anything: hers, not Lucia's, so it stays.
     const anasOther = await storedFile('u_ana');
-    // A share, a session note draft and alerts linked to her (S23b: by id, as the app links them).
+    // A share and alerts linked to her (S23b: by id, as the app links them).
     await db.resourceShare.create({ data: { resourceId: 'res_mult', studentId: lucia.id } });
-    const session = await db.session.findFirstOrThrow({ where: { studentId: lucia.id } });
-    await db.aiDraft.create({ data: { kind: 'SESSION_NOTE', model: 'claude-haiku-5-5', effort: 'high', refId: session.id, input: { transcript: 'Lucia did well' }, output: {} } });
     await db.notification.create({ data: { userId: 'u_ana', audience: 'PARENT', type: 'WORK_GRADED', title: 'Vienne checked Lucia’s Test 1', href: '/parent/learning', studentId: lucia.id } });
     await db.notification.create({ data: { userId: 'u_admin', audience: 'ADMIN', type: 'SUBMISSION_RECEIVED', title: 'Lucia finished Test 1', href: '/admin/assignments/x', studentId: lucia.id, parentId: 'u_ana' } });
     // The code Ana redeemed: each planned entry holds the id of the child it became (S23b).
