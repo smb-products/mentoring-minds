@@ -34,9 +34,8 @@ function ParentSessions() {
   return (
     <>
       <PageHeader
-        tabs={{ label: 'Session views', value: tab, onChange: setTab, items: [{ value: 'upcoming', label: 'Upcoming', count: waiting.length }, { value: 'past', label: 'Past' }] }} title="Sessions" subtitle={`${kid.firstName}’s sessions with Vienne.`} actions={<Button variant="primary" icon={CalendarPlus} onClick={() => setRequesting(true)}>Request a session</Button>}>
-        <ChildSwitcher className="mt-4" />
-      </PageHeader>
+        tabs={{ label: 'Session views', value: tab, onChange: setTab, items: [{ value: 'upcoming', label: 'Upcoming', count: waiting.length }, { value: 'past', label: 'Past' }] }} title="Sessions" subtitle={`${kid.firstName}’s sessions with Vienne.`} actions={<Button variant="primary" icon={CalendarPlus} onClick={() => setRequesting(true)}>Request a session</Button>} />
+      <ChildSwitcher className="mb-5" />
 
       {tab === 'upcoming' && (
         <div className="space-y-6">
@@ -66,7 +65,7 @@ function ParentSessions() {
               <div key={s.id}>
                 <SessionRow session={s} showDate forParent onClick={() => setSelected(s)} />
                 {s.note && (
-                  <p className="-mt-1 line-clamp-2 pb-3 pl-[calc(4.6rem+2rem+3px)] pr-5 text-[14px] leading-relaxed text-muted-foreground">{s.note.summary}</p>
+                  <p className="-mt-1 line-clamp-2 pb-3 pl-[calc(4.6rem+2rem+3px)] pr-5 text-body text-muted-foreground">{s.note.summary}</p>
                 )}
               </div>
             ))

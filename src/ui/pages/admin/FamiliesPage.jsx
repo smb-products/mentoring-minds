@@ -38,18 +38,17 @@ export default function FamiliesPage() {
         title="Families"
         subtitle="Everyone you teach, and the invite codes you’ve shared."
         actions={<Button variant="primary" icon={KeyRound} onClick={() => setInviting(true)}>Invite family</Button>}
-      >
-        <Figures
-          variant="band"
-          className="mt-6"
-          items={[
-            { label: 'Active families', value: families.filter((f) => f.status === 'ACTIVE').length, note: `${families.filter((f) => f.nextSession).length} with a session booked` },
-            { label: 'Students', value: families.reduce((n, f) => n + f.students.length, 0), note: 'Kindergarten to grade 6' },
-            { label: 'Open invite codes', value: activeInvites, onClick: () => setTab('invites'), note: 'Single use, 14 days' },
-            { label: 'Waiting for a code', value: families.filter((f) => f.status === 'PREVIEW').length, highlight: families.some((f) => f.status === 'PREVIEW'), note: families.filter((f) => f.status === 'PREVIEW').map((f) => f.name.split(' ')[0]).join(', ') || 'None' },
-          ]}
-        />
-      </PageHeader>
+      />
+
+      <Figures
+        className="mb-5"
+        items={[
+          { label: 'Active families', value: families.filter((f) => f.status === 'ACTIVE').length, note: `${families.filter((f) => f.nextSession).length} with a session booked` },
+          { label: 'Students', value: families.reduce((n, f) => n + f.students.length, 0), note: 'Kindergarten to grade 6' },
+          { label: 'Open invite codes', value: activeInvites, onClick: () => setTab('invites'), note: 'Single use, 14 days' },
+          { label: 'Waiting for a code', value: families.filter((f) => f.status === 'PREVIEW').length, highlight: families.some((f) => f.status === 'PREVIEW'), note: families.filter((f) => f.status === 'PREVIEW').map((f) => f.name.split(' ')[0]).join(', ') || 'None' },
+        ]}
+      />
 
       {tab === 'families' && (
         <div className="mb-4 flex flex-wrap items-center gap-2.5">
@@ -75,37 +74,37 @@ export default function FamiliesPage() {
         ) : (
           <div className="grid gap-4 @2xl/page:grid-cols-2 @5xl/page:grid-cols-3">
             {shown.map((f) => (
-              <div key={f.id} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && setOpenFamily(f.id)} onClick={() => setOpenFamily(f.id)} className="surface group flex cursor-pointer flex-col rounded-[14px] text-left transition-transform hover:-translate-y-0.5">
+              <div key={f.id} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && setOpenFamily(f.id)} onClick={() => setOpenFamily(f.id)} className="group flex cursor-pointer flex-col rounded-lg border border-border bg-card text-left shadow-card transition-colors hover:border-input">
                 <div className="flex items-start gap-3 px-4 pb-3 pt-4">
                   <Avatar name={f.name} size="lg" tone="ink" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[16px] font-extrabold group-hover:underline group-hover:decoration-border group-hover:underline-offset-4">{f.name}</p>
-                    <p className="truncate text-[13px] font-semibold text-muted-foreground">{f.phone || f.email}</p>
+                    <p className="truncate text-heading group-hover:underline group-hover:decoration-border group-hover:underline-offset-4">{f.name}</p>
+                    <p className="truncate text-small text-muted-foreground">{f.phone || f.email}</p>
                   </div>
                   <StatusBadge status={f.status} />
                 </div>
-                <ul className="mx-4 space-y-1.5 rounded-xl bg-muted/70 p-2">
-                  {f.students.length === 0 && <li className="px-1 py-1 text-[13.5px] font-semibold text-subtle-foreground">Waiting for their invite code</li>}
+                <ul className="mx-4 space-y-1.5 rounded-md bg-muted/70 p-2">
+                  {f.students.length === 0 && <li className="px-1 py-1 text-small text-subtle-foreground">Waiting for their invite code</li>}
                   {f.students.map((s) => (
-                    <li key={s.id} className="flex items-center gap-2.5 rounded-lg bg-card px-2 py-1.5 shadow-raised">
+                    <li key={s.id} className="flex items-center gap-2.5 rounded-md bg-card px-2 py-1.5">
                       <Avatar name={`${s.firstName} ${s.lastName}`} tone={s.avatarColor} size="sm" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[14px] font-extrabold">{s.firstName}</span>
-                        <span className="block text-[12px] font-semibold text-muted-foreground">{s.grade === 0 ? 'Kindergarten' : `Grade ${s.grade}`}</span>
+                        <span className="block truncate text-body font-medium">{s.firstName}</span>
+                        <span className="block text-caption font-normal text-muted-foreground">{s.grade === 0 ? 'Kindergarten' : `Grade ${s.grade}`}</span>
                       </span>
-                      {s.hasBook === false && <span className="inline-flex items-center gap-1 text-[12px] font-bold text-warning-soft-foreground"><BookX size={14} aria-hidden />No book yet</span>}
+                      {s.hasBook === false && <span className="inline-flex items-center gap-1 text-caption text-warning-soft-foreground"><BookX size={14} strokeWidth={1.75} aria-hidden />No book yet</span>}
                       <LevelBadge level={s.latestLevel} />
                     </li>
                   ))}
                 </ul>
-                <dl className="mt-auto grid grid-cols-2 gap-3 px-4 pb-1 pt-3 text-[13px]">
+                <dl className="mt-auto grid grid-cols-2 gap-3 px-4 pb-1 pt-3 text-small">
                   <div>
-                    <dt className="font-bold text-muted-foreground">Next session</dt>
-                    <dd className="tabular truncate font-extrabold">{f.nextSession ? `${fmtRelativeDay(f.nextSession.startsAt)}, ${fmtTime(f.nextSession.startsAt)}` : <span className="font-semibold text-subtle-foreground">None booked</span>}</dd>
+                    <dt className="font-medium text-muted-foreground">Next session</dt>
+                    <dd className="tabular truncate font-medium">{f.nextSession ? `${fmtRelativeDay(f.nextSession.startsAt)}, ${fmtTime(f.nextSession.startsAt)}` : <span className="font-normal text-subtle-foreground">None booked</span>}</dd>
                   </div>
                   <div>
-                    <dt className="font-bold text-muted-foreground">Sessions so far</dt>
-                    <dd className="tabular font-extrabold">{f.completedSessions}</dd>
+                    <dt className="font-medium text-muted-foreground">Sessions so far</dt>
+                    <dd className="tabular font-medium">{f.completedSessions}</dd>
                   </div>
                 </dl>
                 <div className="flex gap-2 px-4 pb-4 pt-3" onClick={(e) => e.stopPropagation()}>
@@ -128,9 +127,9 @@ export default function FamiliesPage() {
 function CodeReveal({ code, name, expiresAt }) {
   const toast = useToast();
   return (
-    <div className="rounded-xl border border-border bg-muted/50 p-5 text-center">
-      <p className="text-[13.5px] font-bold text-muted-foreground">Invite code for {name}</p>
-      <p className="tabular mt-2 select-all text-[34px] font-extrabold tracking-[0.06em] text-foreground">{code}</p>
+    <div className="rounded-lg border border-border bg-muted/50 p-5 text-center">
+      <p className="text-small font-medium text-muted-foreground">Invite code for {name}</p>
+      <p className="tabular mt-2 select-all text-figure tracking-[0.06em] text-foreground">{code}</p>
       <Button
         size="sm"
         icon={Copy}
@@ -146,7 +145,7 @@ function CodeReveal({ code, name, expiresAt }) {
       >
         Copy code
       </Button>
-      <p className="mt-4 text-[13.5px] leading-relaxed text-muted-foreground">
+      <p className="mt-4 text-small leading-relaxed text-muted-foreground">
         Text this to {name.split(' ')[0]}. It works once and expires {fmtDate(expiresAt)}. You won’t be able to see it again, but you can always make a new one.
       </p>
     </div>
@@ -170,15 +169,15 @@ function InviteList({ invites, onInvite }) {
           invites.map((inv) => (
             <div key={inv.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 @3xl/page:px-5">
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-extrabold">{inv.parentName}</p>
-                <p className="text-[13px] text-muted-foreground">
+                <p className="text-body font-medium">{inv.parentName}</p>
+                <p className="text-small text-muted-foreground">
                   {inv.plannedStudents.map((s) => `${s.firstName} (${gradeShort(s.grade)})`).join(', ')}
                   {inv.status === 'USED' && `. Joined ${fmtDate(inv.usedAt)}`}
                   {inv.status === 'ACTIVE' && `. Expires ${fmtDate(inv.expiresAt)}`}
                   {inv.status === 'EXPIRED' && `. Expired ${fmtDate(inv.expiresAt)}`}
                 </p>
               </div>
-              <span className="tabular rounded-md border border-border px-2 py-0.5 text-[13px] font-bold text-muted-foreground">{inv.codeHint}</span>
+              <span className="tabular rounded-md border border-border px-2 py-0.5 text-small font-medium text-muted-foreground">{inv.codeHint}</span>
               <StatusBadge status={inv.status} />
               {['ACTIVE', 'EXPIRED', 'REVOKED'].includes(inv.status) && (
                 <div className="flex gap-1">
@@ -244,11 +243,11 @@ function InviteDrawer({ open, onClose }) {
             <Field label="Email (optional)" hint="For your records. Nothing is sent yet.">{(id) => <Input id={id} type="email" value={form.parentEmail} onChange={(e) => setForm({ ...form, parentEmail: e.target.value })} />}</Field>
           </div>
           {form.plannedStudents.map((c, i) => (
-            <fieldset key={i} className="space-y-4 rounded-xl border border-border p-4">
+            <fieldset key={i} className="space-y-4 rounded-lg border border-border p-4">
               <div className="flex items-center justify-between">
-                <legend className="text-[14px] font-extrabold">Child {form.plannedStudents.length > 1 ? i + 1 : ''}</legend>
+                <legend className="text-heading">Child {form.plannedStudents.length > 1 ? i + 1 : ''}</legend>
                 {form.plannedStudents.length > 1 && (
-                  <button type="button" className="text-[13px] font-bold text-muted-foreground hover:text-critical" onClick={() => setForm((f) => ({ ...f, plannedStudents: f.plannedStudents.filter((_, j) => j !== i) }))}>Remove</button>
+                  <button type="button" className="text-small font-medium text-muted-foreground hover:text-critical" onClick={() => setForm((f) => ({ ...f, plannedStudents: f.plannedStudents.filter((_, j) => j !== i) }))}>Remove</button>
                 )}
               </div>
               <div className="grid grid-cols-[1fr_1fr_5rem] gap-3">

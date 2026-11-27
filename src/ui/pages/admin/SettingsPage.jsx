@@ -65,15 +65,15 @@ function WeeklyHours() {
       action={dirty && <Button size="sm" variant="primary" disabled={saving} onClick={async () => show(await save({ rows }), 'Hours saved')}>Save hours</Button>}
     >
       <div className="px-4 py-4 @3xl/page:px-5" aria-hidden>
-        <div className="mb-1.5 flex justify-between pl-10 text-[11px] font-bold text-subtle-foreground">
+        <div className="mb-1.5 flex justify-between pl-10 text-caption text-subtle-foreground">
           {[8, 10, 12, 14, 16, 18, 20].map((h) => <span key={h}>{h % 12 || 12}{h < 12 ? 'a' : 'p'}</span>)}
         </div>
         {WEEKDAYS.map((wd) => (
           <div key={wd} className="flex items-center gap-2 py-[3px]">
-            <span className="w-8 text-[12px] font-bold text-muted-foreground">{DAY_NAMES[wd].slice(0, 3)}</span>
-            <span className="relative h-3.5 flex-1 rounded-full bg-muted">
+            <span className="w-8 text-caption text-muted-foreground">{DAY_NAMES[wd].slice(0, 3)}</span>
+            <span className="relative h-3.5 flex-1 rounded-sm bg-muted">
               {rows.filter((r) => r.weekday === wd).map((r, i) => (
-                <span key={i} className="absolute inset-y-0 rounded-full bg-primary" style={{ left: `${((r.startMin - 480) / 720) * 100}%`, width: `${((r.endMin - r.startMin) / 720) * 100}%` }} />
+                <span key={i} className="absolute inset-y-0 rounded-sm bg-primary" style={{ left: `${((r.startMin - 480) / 720) * 100}%`, width: `${((r.endMin - r.startMin) / 720) * 100}%` }} />
               ))}
             </span>
           </div>
@@ -83,15 +83,15 @@ function WeeklyHours() {
         const windows = rows.map((r, i) => ({ ...r, i })).filter((r) => r.weekday === weekday);
         return (
           <div key={weekday} className="flex flex-col gap-2 px-4 py-3 @xl/page:flex-row @xl/page:items-start @3xl/page:px-5">
-            <p className={cn('w-28 shrink-0 pt-2 text-[14.5px] font-extrabold', !windows.length && 'text-muted-foreground')}>{DAY_NAMES[weekday]}</p>
+            <p className={cn('w-28 shrink-0 pt-2 text-body font-medium', !windows.length && 'text-muted-foreground')}>{DAY_NAMES[weekday]}</p>
             <div className="flex flex-1 flex-col gap-2">
-              {windows.length === 0 && <p className="pt-2 text-[14px] text-subtle-foreground">Not available</p>}
+              {windows.length === 0 && <p className="pt-2 text-body text-subtle-foreground">Not available</p>}
               {windows.map((w) => (
                 <div key={w.i} className="flex flex-wrap items-center gap-2">
                   <Select aria-label="Start" value={w.startMin} onChange={(e) => update(w.i, { startMin: Number(e.target.value) })} className="w-32">
                     {TIME_OPTIONS.map((m) => <option key={m} value={m}>{minutesToLabel(m)}</option>)}
                   </Select>
-                  <span className="text-[14px] font-bold text-muted-foreground">to</span>
+                  <span className="text-body text-muted-foreground">to</span>
                   <Select aria-label="End" value={w.endMin} onChange={(e) => update(w.i, { endMin: Number(e.target.value) })} className="w-32">
                     {TIME_OPTIONS.map((m) => <option key={m} value={m}>{minutesToLabel(m)}</option>)}
                   </Select>
@@ -183,7 +183,7 @@ function FastWindows() {
     >
       {rows.map((r, i) => (
         <div key={r.window} className="grid grid-cols-[4rem_1fr_1fr] items-end gap-3 px-4 py-3 @3xl/page:px-5">
-          <p className="pb-2.5 text-[15px] font-extrabold">{r.window}</p>
+          <p className="pb-2.5 text-heading">{r.window}</p>
           <Field label="Starts">{(id) => <Input id={id} type="date" value={r.start} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, start: e.target.value } : x)))} />}</Field>
           <Field label="Ends">{(id) => <Input id={id} type="date" value={r.end} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, end: e.target.value } : x)))} />}</Field>
         </div>
@@ -218,12 +218,12 @@ function BookingRules() {
       {RULES.map((r) => (
         <div key={r.key} className="flex items-center gap-4 px-4 py-3 @3xl/page:px-5">
           <div className="min-w-0 flex-1">
-            <label htmlFor={r.key} className="text-[14.5px] font-bold">{r.label}</label>
-            <p className="text-[13px] text-muted-foreground">{r.hint}</p>
+            <label htmlFor={r.key} className="text-body font-medium">{r.label}</label>
+            <p className="text-small text-muted-foreground">{r.hint}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-20"><Input id={r.key} type="number" min={0} value={form[r.key]} onChange={(e) => setForm({ ...form, [r.key]: e.target.value })} className="tabular text-right" /></div>
-            <span className="w-24 text-[13px] font-semibold text-muted-foreground">{r.unit}</span>
+            <span className="w-24 text-small text-muted-foreground">{r.unit}</span>
           </div>
         </div>
       ))}
@@ -241,8 +241,8 @@ function Locations() {
           <div key={l.id} className="flex items-center gap-3 px-4 py-3 @3xl/page:px-5">
             <Icon size={18} className="shrink-0 text-muted-foreground" aria-hidden />
             <div className="min-w-0">
-              <p className="text-[14.5px] font-bold">{l.name}</p>
-              <p className="text-[13px] text-muted-foreground">{l.kind === 'HOME' ? 'The family adds their address when booking.' : l.address}</p>
+              <p className="text-body font-medium">{l.name}</p>
+              <p className="text-small text-muted-foreground">{l.kind === 'HOME' ? 'The family adds their address when booking.' : l.address}</p>
             </div>
           </div>
         );

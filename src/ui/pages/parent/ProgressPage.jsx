@@ -41,14 +41,13 @@ function ParentProgress() {
 
   return (
     <>
-      <PageHeader title="Progress" subtitle={`How ${kid.firstName} is doing, in Vienne’s words.`}>
-        <ChildSwitcher className="mt-4" />
-      </PageHeader>
+      <PageHeader title="Progress" subtitle={`How ${kid.firstName} is doing, in Vienne’s words.`} />
 
+      {/* Stars stay beside each graded assignment (Recent results), not in the stats. */}
+      <ChildSwitcher className="mb-4" />
       <Figures
         className="mb-6"
         items={[
-          { label: 'Stars earned', value: graded.reduce((n, w) => n + w.stars, 0) },
           { label: 'Done', value: graded.filter((w) => w.assignment.kind === 'BOOK').length },
           { label: 'Average score', value: avg != null ? `${avg}%` : '—' },
         ]}
@@ -63,19 +62,19 @@ function ParentProgress() {
             <Empty icon={FileBarChart} title="No reports yet">Vienne shares a report every so often, rating each skill {kid.firstName} is working on.</Empty>
           ) : (
             <>
-              <p className="px-4 py-4 text-[15.5px] leading-relaxed @3xl/page:px-5">{report.summary}</p>
+              <p className="px-4 py-4 text-body @3xl/page:px-5">{report.summary}</p>
               {Object.values(byArea).map(({ area, ratings }) => (
                 <div key={area.id} className="px-4 py-4 @3xl/page:px-5">
-                  <p className="mb-2 flex items-center gap-2 text-[14.5px] font-extrabold" title={area.fullName}>
-                    <span className={cn('size-2.5 rounded-[3px]', subjectBg(areaColor(area)))} aria-hidden />
+                  <p className="mb-2 flex items-center gap-2 text-heading" title={area.fullName}>
+                    <span className={cn('size-2.5 rounded-xs', subjectBg(areaColor(area)))} aria-hidden />
                     {area.name}
                   </p>
                   <ul className="space-y-3">
                     {ratings.map((r) => (
                       <li key={r.id} className="flex flex-col gap-1.5 @xl/page:flex-row @xl/page:items-center @xl/page:justify-between">
                         <div className="min-w-0">
-                          <p className="text-[14.5px] font-bold">{r.skill.name}</p>
-                          {r.comment && <p className="text-[13.5px] text-muted-foreground">{r.comment}</p>}
+                          <p className="text-body font-medium">{r.skill.name}</p>
+                          {r.comment && <p className="text-small text-muted-foreground">{r.comment}</p>}
                         </div>
                         <SkillMeter rating={r.rating} />
                       </li>
@@ -100,8 +99,8 @@ function ParentProgress() {
             <Section title="All reports">
               {reports.map((r) => (
                 <Row key={r.id} onClick={() => setOpenId(r.id)} className={cn(r.id === report?.id && 'bg-muted')}>
-                  <FileBarChart size={17} className="text-muted-foreground" aria-hidden />
-                  <span className="tabular flex-1 text-[14.5px] font-bold">{fmtDate(r.periodStart)} – {fmtDateYear(r.periodEnd)}</span>
+                  <FileBarChart size={17} strokeWidth={1.75} className="text-muted-foreground" aria-hidden />
+                  <span className="tabular flex-1 text-body font-medium">{fmtDate(r.periodStart)} – {fmtDateYear(r.periodEnd)}</span>
                 </Row>
               ))}
             </Section>
@@ -113,10 +112,10 @@ function ParentProgress() {
               graded.slice(-5).reverse().map((w) => (
                 <Row key={w.id} onClick={() => navigate(`/parent/learning/${w.id}`)}>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14.5px] font-bold">{w.assignment.title}</p>
-                    <p className="text-[13px] text-muted-foreground">{fmtDate(w.submittedAt)}</p>
+                    <p className="truncate text-body font-medium">{w.assignment.title}</p>
+                    <p className="text-small text-muted-foreground">{fmtDate(w.submittedAt)}</p>
                   </div>
-                  {w.maxScore != null && <span className="tabular text-[14px] font-extrabold">{w.score}/{w.maxScore}</span>}
+                  {w.maxScore != null && <span className="tabular text-body font-semibold">{w.score}/{w.maxScore}</span>}
                   <Stars count={w.stars} size={14} />
                 </Row>
               ))

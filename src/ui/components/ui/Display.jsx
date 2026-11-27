@@ -195,13 +195,14 @@ export function Empty({ icon: Icon, title, children, action, className }) {
   );
 }
 
-/* ── Figures ── key numbers. variant="band" renders flat tiles on the navy masthead. */
+/* ── Figures ── key numbers: one card on the gray page, below the band. variant="band" (flat tiles on the
+   navy masthead) stays until the admin screens move theirs off the band too (R3). */
 export function Figures({ items, className, variant }) {
   const band = variant === 'band';
   return (
     <div
-      role={band ? 'region' : undefined}
-      aria-label={band ? 'Key numbers' : undefined}
+      role="region"
+      aria-label="Key numbers"
       tabIndex={band ? 0 : undefined}
       className={cn(band ? 'scrollbar-none -mx-4 grid auto-cols-[minmax(9.5rem,1fr)] grid-flow-col gap-2.5 overflow-x-auto px-4 @3xl/page:mx-0 @3xl/page:px-0' : `${CARD} grid overflow-hidden`, className)}
       style={band ? undefined : { gridTemplateColumns: `repeat(${items.length}, minmax(0,1fr))` }}
@@ -224,9 +225,9 @@ export function Figures({ items, className, variant }) {
               {Icon && <Icon size={14} strokeWidth={1.75} aria-hidden className="hidden shrink-0 @xl/page:block" />}
               {item.label}
             </span>
-            <span className={cn('tabular mt-1.5 flex items-baseline gap-2 text-figure leading-none', band ? 'text-ink-foreground' : item.highlight ? 'text-brand' : 'text-foreground')}>
+            <span className={cn('tabular mt-1.5 flex items-baseline gap-2 text-figure leading-none', band ? 'text-ink-foreground' : 'text-foreground')}>
               {item.value}
-              {band && item.highlight && (
+              {item.highlight && (
                 <>
                   <span className="size-2 -translate-y-1 rounded-full bg-warning" aria-hidden />
                   <span className="sr-only">needs attention</span>

@@ -39,7 +39,7 @@ export function ParentSessionDrawer({ session, onClose }) {
             if (show(await cancel({ sessionId: s.id, reason }), 'Session cancelled', 'Vienne has been told.')) onClose();
           }}
         >
-          <p className="text-[14.5px] leading-relaxed text-muted-foreground">This frees the time for another family. Vienne gets a notification.</p>
+          <p className="text-body text-muted-foreground">This frees the time for another family. Vienne gets a notification.</p>
           <Field label="Reason (optional)">{(id) => <Textarea id={id} value={reason} onChange={(e) => setReason(e.target.value)} />}</Field>
           <div className="flex justify-end gap-2 border-t border-border pt-4">
             <Button variant="ghost" onClick={() => setCancelling(false)}>Keep session</Button>
@@ -49,9 +49,9 @@ export function ParentSessionDrawer({ session, onClose }) {
       ) : (
         <>
           {s.mode === 'VIDEO' && s.status === 'CONFIRMED' && open && (
-            <div className="mb-4 rounded-xl border border-border bg-muted/50 p-4">
-              <p className="flex items-center gap-2 text-[15px] font-extrabold"><Video size={18} className="text-brand" aria-hidden />Video call, 1-on-1</p>
-              <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+            <div className="mb-4 rounded-lg border border-border bg-secondary p-4">
+              <p className="flex items-center gap-2 text-heading"><Video size={18} strokeWidth={1.75} className="text-brand" aria-hidden />Video call, 1-on-1</p>
+              <p className="mt-1 text-body text-muted-foreground">
                 {s.student.firstName} joins on your phone or tablet. You don’t need to stay, but please be nearby. Nothing is recorded.
               </p>
               <Button
@@ -73,16 +73,16 @@ export function ParentSessionDrawer({ session, onClose }) {
             <Detail label="Status"><StatusBadge status={s.status} label={s.status === 'REQUESTED' ? 'Waiting on Vienne' : undefined} /></Detail>
             <Detail label="For">{s.student.firstName}</Detail>
             <Detail label="How">{s.mode === 'VIDEO' ? 'Video call' : 'In person'}</Detail>
-            {s.mode !== 'VIDEO' && <Detail label="Where">{placeLabel(s, { forParent: true })}{s.location?.kind !== 'HOME' && s.location?.address && <span className="block text-[13px] font-semibold text-muted-foreground">{s.location.address}</span>}</Detail>}
+            {s.mode !== 'VIDEO' && <Detail label="Where">{placeLabel(s, { forParent: true })}{s.location?.kind !== 'HOME' && s.location?.address && <span className="block text-small font-normal text-muted-foreground">{s.location.address}</span>}</Detail>}
             {s.callStartedAt && <Detail label="Call">Started {fmtTime(s.callStartedAt)}{s.callEndedAt ? `, ended ${fmtTime(s.callEndedAt)}` : ''}</Detail>}
             {s.parentNote && <Detail label="Your note">“{s.parentNote}”</Detail>}
             {s.declineReason && <Detail label="From Vienne">{s.declineReason}</Detail>}
           </dl>
           {s.note && (
-            <div className="mt-5 rounded-xl border border-border p-4">
-              <p className="text-[14px] font-extrabold">Vienne’s note</p>
-              <p className="mt-2 text-[14.5px] leading-relaxed">{s.note.summary}</p>
-              {s.note.homework && <p className="mt-2 text-[14px] text-muted-foreground"><span className="font-bold text-foreground">Homework: </span>{s.note.homework}</p>}
+            <div className="mt-5 rounded-lg border border-border p-4">
+              <p className="text-heading">Vienne’s note</p>
+              <p className="mt-2 text-body">{s.note.summary}</p>
+              {s.note.homework && <p className="mt-2 text-body text-muted-foreground"><span className="font-medium text-foreground">Homework: </span>{s.note.homework}</p>}
             </div>
           )}
           {open && (
@@ -91,7 +91,7 @@ export function ParentSessionDrawer({ session, onClose }) {
                 <Button variant="destructive" onClick={() => setCancelling(true)}>Cancel session</Button>
               ) : (
                 <>
-                  <p className="text-[14px] text-muted-foreground">It’s less than {settings.cancelCutoffHours} hours away, so please message Vienne to change it.</p>
+                  <p className="text-body text-muted-foreground">It’s less than {settings.cancelCutoffHours} hours away, so please message Vienne to change it.</p>
                   <Button icon={MessageSquare} onClick={() => navigate('/parent/messages')}>Message Vienne</Button>
                 </>
               )}

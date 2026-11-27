@@ -40,9 +40,8 @@ function ParentLearning() {
   return (
     <>
       <PageHeader
-        tabs={{ label: 'Learning views', value: tab, onChange: setTab, items: [{ value: 'todo', label: 'To do', count: todo.length }, { value: 'redo', label: 'Redo', count: redo.length }, { value: 'done', label: 'Finished' }, { value: 'library', label: 'Library' }] }} title="Learning" subtitle={`Homework and resources Vienne has shared with ${kid.firstName}.`}>
-        <ChildSwitcher className="mt-4" />
-      </PageHeader>
+        tabs={{ label: 'Learning views', value: tab, onChange: setTab, items: [{ value: 'todo', label: 'To do', count: todo.length }, { value: 'redo', label: 'Redo', count: redo.length }, { value: 'done', label: 'Finished' }, { value: 'library', label: 'Library' }] }} title="Learning" subtitle={`Homework and resources Vienne has shared with ${kid.firstName}.`} />
+      <ChildSwitcher className="mb-5" />
 
       {tab === 'todo' && book && !kid.hasBook && <GetTheBook student={kid} book={book} className="mb-5" />}
 
@@ -53,9 +52,9 @@ function ParentLearning() {
           ) : (
             redo.map((r) => (
               <div key={r.id} className="flex items-center gap-4 px-4 py-3 @3xl/page:px-5">
-                <span className="tabular grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-[17px] font-extrabold">#{r.item.number}</span>
+                <span className="tabular grid size-11 shrink-0 place-items-center rounded-md bg-muted text-heading">#{r.item.number}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15.5px] font-extrabold">{r.testName}, question {r.item.number}</p>
+                  <p className="text-body font-medium">{r.testName}, question {r.item.number}</p>
                   <AreaTag area={r.item.area} />
                 </div>
               </div>
@@ -75,10 +74,10 @@ function ParentLearning() {
                 <Row key={w.id} onClick={() => navigate(`/parent/learning/${w.id}`)}>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-[15.5px] font-extrabold">{w.assignment.title}</p>
+                      <p className="truncate text-body font-medium">{w.assignment.title}</p>
                       {w.status === 'RETURNED' && <StatusBadge status="RETURNED" />}
                     </div>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[13.5px] font-semibold text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-small text-muted-foreground">
                       <span>{KIND[w.assignment.kind]}{w.assignment.kind === 'BOOK' && `, ${w.assignment.slots.length} questions`}</span>
                       {w.draft?.length > 0 && <span className="text-brand">{w.draft.filter((d) => d.value).length} answered so far</span>}
                       <span className={cn(late && 'text-serious')}>{fmtDue(w.assignment.dueAt)}</span>
@@ -100,15 +99,15 @@ function ParentLearning() {
             done.map((w) => (
               <Row key={w.id} onClick={() => navigate(`/parent/learning/${w.id}`)}>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-extrabold">{w.assignment.title}</p>
-                  <p className="text-[13.5px] text-muted-foreground">
+                  <p className="truncate text-body font-medium">{w.assignment.title}</p>
+                  <p className="text-small text-muted-foreground">
                     {w.submittedAt && `Finished ${fmtDate(w.submittedAt)}`}
                     {w.feedback && `. “${w.feedback}”`}
                   </p>
                 </div>
                 {w.status === 'GRADED' ? (
                   <div className="flex items-center gap-3">
-                    {w.maxScore != null && <span className="tabular text-[14.5px] font-extrabold">{w.score}/{w.maxScore}</span>}
+                    {w.maxScore != null && <span className="tabular text-body font-semibold">{w.score}/{w.maxScore}</span>}
                     <Stars count={w.stars} />
                   </div>
                 ) : (
@@ -129,12 +128,12 @@ function ParentLearning() {
               const Kind = KIND_META[r.kind];
               return (
                 <Row key={r.id} onClick={() => setViewing(r)}>
-                  <span className="grid size-10 shrink-0 place-items-center rounded-[10px] bg-muted text-muted-foreground"><Kind.icon size={19} aria-hidden /></span>
+                  <span className="grid size-9 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground"><Kind.icon size={18} strokeWidth={1.75} aria-hidden /></span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px] font-extrabold">{r.title}</p>
-                    <p className="truncate text-[13.5px] text-muted-foreground">{r.description}</p>
+                    <p className="truncate text-body font-medium">{r.title}</p>
+                    <p className="truncate text-small text-muted-foreground">{r.description}</p>
                   </div>
-                  <span className="hidden text-[13px] font-semibold text-muted-foreground @xl/page:inline">{KIND_META[r.kind].label}</span>
+                  <span className="hidden text-small font-medium text-muted-foreground @xl/page:inline">{KIND_META[r.kind].label}</span>
                 </Row>
               );
             })
@@ -151,23 +150,23 @@ function ResourceViewer({ resource: r, onClose }) {
   if (!r) return null;
   return (
     <Drawer open onClose={onClose} title={r.title} subtitle={KIND_META[r.kind].label}>
-      {r.description && <p className="mb-5 text-[15px] leading-relaxed text-muted-foreground">{r.description}</p>}
-      {r.kind === 'NOTE' && <div className="whitespace-pre-wrap rounded-xl bg-muted p-4 text-[15.5px] leading-relaxed">{r.body?.text}</div>}
+      {r.description && <p className="mb-5 text-body text-muted-foreground">{r.description}</p>}
+      {r.kind === 'NOTE' && <div className="whitespace-pre-wrap rounded-lg bg-muted p-4 text-body">{r.body?.text}</div>}
       {(r.kind === 'LINK' || r.kind === 'VIDEO') && (
-        <a href={r.url} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-primary px-4 text-[14.5px] font-bold text-primary-foreground">
-          {r.kind === 'VIDEO' ? 'Watch video' : 'Open link'} <ExternalLink size={16} aria-hidden />
+        <a href={r.url} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-body font-medium text-primary-foreground hover:bg-primary-hover">
+          {r.kind === 'VIDEO' ? 'Watch video' : 'Open link'} <ExternalLink size={16} strokeWidth={1.75} aria-hidden />
         </a>
       )}
       {r.file && (
         <button
           type="button"
           onClick={() => window.open(`/api/files/${r.file.id}`, '_blank', 'noopener')}
-          className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left hover:bg-muted/60"
+          className="flex w-full items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-muted/60"
         >
-          <span className="grid size-11 place-items-center rounded-lg bg-muted text-muted-foreground"><FileText size={20} aria-hidden /></span>
+          <span className="grid size-10 place-items-center rounded-md bg-muted text-muted-foreground"><FileText size={18} strokeWidth={1.75} aria-hidden /></span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[14.5px] font-bold">{r.file.filename}</span>
-            <span className="block text-[13px] text-muted-foreground">{fmtBytes(r.file.sizeBytes)}. Tap to open or print.</span>
+            <span className="block truncate text-body font-medium">{r.file.filename}</span>
+            <span className="block text-small text-muted-foreground">{fmtBytes(r.file.sizeBytes)}. Tap to open or print.</span>
           </span>
         </button>
       )}

@@ -29,7 +29,7 @@ export function DayTimeline({ sessions, onSelect }) {
       <div className="relative h-[86px]">
         {ticks.map((h) => (
           <div key={h} className="absolute inset-y-0 border-l border-dashed border-border" style={{ left: pct(h) }}>
-            <span className="tabular absolute -top-5 -translate-x-1/2 text-[11.5px] font-bold text-subtle-foreground">
+            <span className="tabular absolute -top-5 -translate-x-1/2 text-caption text-subtle-foreground">
               {h % 12 === 0 ? 12 : h % 12}
               {h < 12 ? 'a' : 'p'}
             </span>
@@ -43,21 +43,21 @@ export function DayTimeline({ sessions, onSelect }) {
               type="button"
               onClick={() => onSelect(s)}
               className={cn(
-                '@container absolute top-2 bottom-2 flex min-w-0 flex-col justify-center overflow-hidden rounded-lg border-l-[3px] pl-2 pr-1 text-left transition-[filter] hover:brightness-[0.97]',
+                '@container absolute top-2 bottom-2 flex min-w-0 flex-col justify-center overflow-hidden rounded-md border-l-[3px] pl-2 pr-1 text-left transition-[filter] hover:brightness-[0.97]',
                 done ? 'border-border bg-muted text-muted-foreground' : 'border-transparent text-foreground',
               )}
               style={{
                 ...(!done && { background: `color-mix(in oklch, var(--${sessionColor(s)}) var(--tint), var(--card))` }), left: `calc(${pct(hoursOf(s.startsAt))} + 2px)`, width: `calc(${((hoursOf(s.endsAt) - hoursOf(s.startsAt)) / span) * 100}% - 4px)` }}
             >
               {!done && <span className={cn('absolute inset-y-0 left-0 w-[3px]', sessionBg(s))} aria-hidden />}
-              <span className="truncate text-[13px] font-extrabold">{s.student.firstName}</span>
-              <span className="tabular sr-only truncate text-[11.5px] font-semibold opacity-80 @[3.5rem]:not-sr-only">{fmtTime(s.startsAt)}</span>
+              <span className="truncate text-small font-medium">{s.student.firstName}</span>
+              <span className="tabular sr-only truncate text-caption opacity-80 @[3.5rem]:not-sr-only">{fmtTime(s.startsAt)}</span>
               <span className="sr-only">{s.mode === 'VIDEO' ? ', video call' : ''}</span>
             </button>
           );
         })}
         {nowH >= startH && nowH <= endH && (
-          <div className="pointer-events-none absolute -bottom-1 -top-1 w-0.5 rounded-full bg-primary" style={{ left: pct(nowH) }} aria-hidden>
+          <div className="pointer-events-none absolute -bottom-1 -top-1 w-0.5 rounded-xs bg-primary" style={{ left: pct(nowH) }} aria-hidden>
             <span className="absolute -top-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-primary" />
           </div>
         )}
