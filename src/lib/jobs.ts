@@ -45,6 +45,22 @@ export async function sendSessionReminders(now = new Date()) {
 export const ORPHAN_FILE_DAYS = 7;
 
 /**
+ * L2: invite requests (a stranger's name, email, phone and message) are kept this many days. The same value
+ * as REQUEST_KEEP_DAYS in src/server/requests.ts, which can't export it ('use server'); a test checks they match.
+ */
+export const REQUEST_KEEP_DAYS = 90;
+
+/** Deletes invite requests older than REQUEST_KEEP_DAYS, and their alerts by Notification.inviteRequestId. Nothing else. */
+export async function deleteOldInviteRequests(now = new Date()) {
+  const cutoff = new Date(now.getTime() - REQUEST_KEEP_DAYS * 86400000);
+  const old = await db.inviteRequest.findMany({ where: { createdAt: { lt: cutoff } }, select: { id: true } });
+  if (!old.length) return 0;
+  const ids = old.map((r) => r.id);
+  await db.$transaction([db.notification.deleteMany({ where: { inviteRequestId: { in: ids } } }), db.inviteRequest.deleteMany({ where: { id: { in: ids } } })]);
+  return ids.length;
+}
+
+/**
  * Row first, in one statement that re-checks the relations (their foreign keys would only
  * set the column to null), so a file attached since the in-use scan keeps its row and bytes.
  */
@@ -82,5 +98,6 @@ export async function cleanUp(now = new Date()) {
 
   // Wrong invite codes count toward the limit for an hour; after a day they're only clutter.
   const oldFailures = await db.redeemFailure.deleteMany({ where: { at: { lt: new Date(now.getTime() - 86400000) } } });
+  await deleteOldInviteRequests(now);
   return { purgedResources: purged.count, abandonedUploads: abandoned, redeemFailures: oldFailures.count };
 }

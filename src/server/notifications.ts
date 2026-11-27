@@ -13,8 +13,8 @@ import { sendSessionReminders } from '@/lib/jobs';
 
 export const listForUser = query(async () => {
   const user = await requireUser();
-  // S23b's studentId / parentId links are only for deleting on request: the feed doesn't carry them.
-  return db.notification.findMany({ where: { userId: user.id }, omit: { studentId: true, parentId: true }, orderBy: { createdAt: 'desc' }, take: 100 });
+  // S23b's studentId / parentId links (and L2's inviteRequestId) are only for deleting: the feed doesn't carry them.
+  return db.notification.findMany({ where: { userId: user.id }, omit: { studentId: true, parentId: true, inviteRequestId: true }, orderBy: { createdAt: 'desc' }, take: 100 });
 });
 
 export const markRead = action(async (input: { notificationId: string }) => {

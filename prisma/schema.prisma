@@ -669,11 +669,32 @@ model Notification {
   /// alert is never refused because its child was just deleted.
   studentId String?
   parentId  String?
+  /// L2: the invite request this alert is about. The daily job deletes the alert with its request, by this
+  /// id. No foreign key, like studentId and parentId.
+  inviteRequestId String?
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt])
   @@index([studentId])
   @@index([parentId])
+  @@index([inviteRequestId])
+}
+
+/// L2: a signed-out family asked for an invite. No account. Kept REQUEST_KEEP_DAYS, then the daily job deletes it.
+model InviteRequest {
+  id         String   @id @default(cuid())
+  parentName String
+  email      String
+  phone      String?
+  grade      Int
+  message    String
+  /// sha256(ip + ':' + INVITE_PEPPER), for the per-IP limit. Never the IP itself.
+  ipHash     String
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([email, createdAt])
+  @@index([ipHash, createdAt])
 }
 
 /// PWA push (phase 2). One row per device that allowed notifications.

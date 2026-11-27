@@ -28,6 +28,8 @@ import * as invites from '@/server/invites';
 import * as messages from '@/server/messages';
 import * as notifications from '@/server/notifications';
 import * as reports from '@/server/reports';
+import * as requests from '@/server/requests';
+import { cleanUp } from '@/lib/jobs';
 import * as scheduling from '@/server/scheduling';
 import * as taxonomy from '@/server/taxonomy';
 import { GET as download } from '@/app/api/files/[id]/route';
@@ -58,9 +60,11 @@ type Fn = (input?: unknown) => Promise<R>;
 const SERVER = 'src/server';
 const MODULES = readdirSync(path.join(ROOT, SERVER)).filter((f) => f.endsWith('.ts')).map((f) => f.slice(0, -3)).sort();
 
-/** Exports anyone may call signed out, each with its reason. None today: sign-in and sign-up are Auth.js
- *  and src/app/(auth)/sign-in/actions.ts, not src/server. */
-const PUBLIC: Record<string, string> = {};
+/** Exports anyone may call signed out, each with its reason. Sign-in and sign-up are Auth.js and
+ *  src/app/(auth)/sign-in/actions.ts, not src/server. A public export still parse()s first. */
+const PUBLIC: Record<string, string> = {
+  'requests.requestInvite': 'the landing page’s Request an invite form (L2): no account, rate-limited',
+};
 
 /** Exports that take no input (nothing to parse). Each still has its guard; a wrong input is ignored. */
 const NO_INPUT = new Set([
@@ -187,7 +191,7 @@ describe('endpoints: every src/server export', () => {
 /* ── 2. Leaks ───────────────────────────────────────────── */
 
 /** Keys no family response may carry (answer keys, hashes, Vienne's notes, lockout state, her room link). */
-const SECRET_KEYS = ['answer', 'passwordHash', 'codeHash', 'adminNotes', 'failedLogins', 'lockedUntil', 'sessionVersion', 'redeemFailures', 'redeemLockedUntil', 'storageKey', 'uploadedById'];
+const SECRET_KEYS = ['answer', 'passwordHash', 'codeHash', 'adminNotes', 'failedLogins', 'lockedUntil', 'sessionVersion', 'redeemFailures', 'redeemLockedUntil', 'storageKey', 'uploadedById', 'ipHash'];
 
 /** Every object (at any depth) that has `key` with a truthy value. */
 function holders(obj: unknown, key: string, out: Record<string, unknown>[] = []): Record<string, unknown>[] {
@@ -296,6 +300,21 @@ describe('leaks: what a family can read', () => {
       requestSession: await scheduling.requestSession({ studentId: 's_mateo', mode: 'IN_PERSON', startsAt: later(), durationMin: 45 }),
     };
     for (const key of SECRET_KEYS) expect(valuesOf(out, key), key).toEqual([]);
+  });
+
+  it('the one public export answers only { received: true }, signed out or in, new or repeat (L2)', async () => {
+    const request = { parentName: 'P-sec Visitor', email: 'p-sec.visitor@example.com', phone: '305 555 0100', grade: 4, message: 'Hello' };
+    const out: Record<string, R> = {};
+    for (const who of [null, 'u_ana', 'u_admin']) {
+      as(who);
+      out[`requests.requestInvite:${who}`] = await requests.requestInvite(request);
+    }
+    as(null);
+    out['requests.requestInvite:honeypot'] = await requests.requestInvite({ ...request, website: 'x' });
+    const row = await db.inviteRequest.findFirstOrThrow({ where: { email: request.email } });
+    for (const key of [...SECRET_KEYS, 'id', 'email', 'parentName']) expect(valuesOf(out, key), key).toEqual([]);
+    for (const r of Object.values(out)) expect(r).toEqual({ ok: true, data: { received: true } });
+    expect(JSON.stringify(out)).not.toContain(row.ipHash);
   });
 });
 
@@ -422,6 +441,18 @@ const MAX_FAILED_LOGINS = constant('src/lib/auth.ts', 'MAX_FAILED_LOGINS');
 const LOCK_MINUTES = constant('src/lib/auth.ts', 'LOCK_MINUTES');
 const MAX_FAILURES = constant('src/server/invites.ts', 'MAX_FAILURES');
 const GLOBAL_REDEEM_FAILURES_PER_HOUR = constant('src/server/invites.ts', 'GLOBAL_REDEEM_FAILURES_PER_HOUR');
+const REQUESTS_PER_IP_PER_HOUR = constant('src/server/requests.ts', 'REQUESTS_PER_IP_PER_HOUR');
+const REQUESTS_PER_HOUR = constant('src/server/requests.ts', 'REQUESTS_PER_HOUR');
+const DUPLICATE_EMAIL_HOURS = constant('src/server/requests.ts', 'DUPLICATE_EMAIL_HOURS');
+const REQUEST_KEEP_DAYS = constant('src/server/requests.ts', 'REQUEST_KEEP_DAYS');
+const REQUEST_LIMITS = ['REQUESTS_PER_IP_PER_HOUR', 'REQUESTS_PER_HOUR', 'DUPLICATE_EMAIL_HOURS', 'REQUEST_KEEP_DAYS'];
+
+let visitors = 0;
+/** An invite request from the landing page (L2). Here there's no request, so every call shares the missing-IP bucket. */
+const inviteRequest = (over: Record<string, unknown> = {}) =>
+  requests.requestInvite({ parentName: 'P-sec Visitor', email: `p-sec.visitor.${(visitors += 1)}@example.com`, grade: 2, message: '', ...over });
+const pastRequests = (count: number, at = new Date(Date.now() - 60000)) =>
+  db.inviteRequest.createMany({ data: Array.from({ length: count }, (_, i) => ({ parentName: 'Earlier', email: `p-sec.earlier.${(visitors += 1)}.${i}@example.com`, grade: 1, message: '', ipHash: `p-sec-${visitors}-${i}`, createdAt: at })) });
 
 let guessers = 0;
 const preview = () => db.user.create({ data: { email: `p-sec.${(guessers += 1)}@example.com`, name: `Preview ${guessers}`, status: 'PREVIEW' } });
@@ -434,6 +465,38 @@ const wrongCode = (i: number) => `MM-Q${String(i).padStart(3, '0').replace(/[01]
 describe('limits: each named constant is reached', () => {
   beforeEach(async () => {
     await db.redeemFailure.deleteMany();
+    await db.inviteRequest.deleteMany();
+    as(null);
+  });
+
+  it(`REQUESTS_PER_IP_PER_HOUR (${REQUESTS_PER_IP_PER_HOUR}) invite requests from one IP in an hour, then LIMIT`, async () => {
+    for (let i = 0; i < REQUESTS_PER_IP_PER_HOUR; i++) ok(await inviteRequest());
+    fails(await inviteRequest(), 'LIMIT', /Vienne will reply by email/);
+    expect(await db.inviteRequest.count()).toBe(REQUESTS_PER_IP_PER_HOUR);
+  });
+
+  it(`past REQUESTS_PER_HOUR (${REQUESTS_PER_HOUR}) invite requests in an hour, everyone gets LIMIT`, async () => {
+    await pastRequests(REQUESTS_PER_HOUR - 1);
+    ok(await inviteRequest());
+    fails(await inviteRequest(), 'LIMIT');
+    expect(await db.inviteRequest.count()).toBe(REQUESTS_PER_HOUR);
+  });
+
+  it(`a repeat email within DUPLICATE_EMAIL_HOURS (${DUPLICATE_EMAIL_HOURS}) stores nothing new`, async () => {
+    const email = 'p-sec.repeat@example.com';
+    ok(await inviteRequest({ email }));
+    ok(await inviteRequest({ email }));
+    expect(await db.inviteRequest.count()).toBe(1);
+    await db.inviteRequest.updateMany({ data: { createdAt: new Date(Date.now() - (DUPLICATE_EMAIL_HOURS * 60 + 1) * 60000) } });
+    ok(await inviteRequest({ email }));
+    expect(await db.inviteRequest.count()).toBe(2);
+  });
+
+  it(`the daily job deletes invite requests after REQUEST_KEEP_DAYS (${REQUEST_KEEP_DAYS})`, async () => {
+    await pastRequests(1, new Date(Date.now() - (REQUEST_KEEP_DAYS - 1) * 86400000));
+    await pastRequests(1, new Date(Date.now() - (REQUEST_KEEP_DAYS + 1) * 86400000));
+    await cleanUp();
+    expect(await db.inviteRequest.count()).toBe(1);
   });
 
   it(`MAX_FAILED_LOGINS (${MAX_FAILED_LOGINS}) wrong passwords lock password sign-in for LOCK_MINUTES`, async () => {
@@ -499,7 +562,9 @@ describe('limits: each named constant is reached', () => {
   it('what has no limit in the app is listed in docs/DEPLOY.md with what covers it', () => {
     const deploy = read('docs/DEPLOY.md');
     const limits = deploy.slice(deploy.indexOf('## Limits'), deploy.indexOf('\n## ', deploy.indexOf('## Limits') + 1));
-    for (const name of ['MAX_FAILED_LOGINS', 'MAX_FAILURES', 'GLOBAL_REDEEM_FAILURES_PER_HOUR', 'MAX_BYTES']) expect(limits, name).toContain(`\`${name}\``);
+    for (const name of ['MAX_FAILED_LOGINS', 'MAX_FAILURES', 'GLOBAL_REDEEM_FAILURES_PER_HOUR', 'MAX_BYTES', ...REQUEST_LIMITS]) expect(limits, name).toContain(`\`${name}\``);
+    // The invite-request rows name the same values as src/server/requests.ts.
+    for (const name of REQUEST_LIMITS) expect(limits, name).toContain(`\`${name}\` (${constant('src/server/requests.ts', name)})`);
     for (const open of ['Sign-up', 'Sign-in by IP']) expect(limits, open).toMatch(new RegExp(`\\*\\*${open}[^\\n]*(Vercel Firewall|Hardening later)`));
   });
 });

@@ -224,7 +224,7 @@ What stops guessing and runaway costs. Each is a named constant, and `tests/inte
 | `REQUESTS_PER_IP_PER_HOUR` (3) | `src/server/requests.ts` | Invite requests from one visitor's IP (stored only as a hash) in an hour. Arrives with L2. |
 | `REQUESTS_PER_HOUR` (20) | `src/server/requests.ts` | Invite requests from everyone in an hour. Past it, requests pause for the hour, and Vienne gets one alert. Arrives with L2. |
 | `DUPLICATE_EMAIL_HOURS` (24) | `src/server/requests.ts` | A second request from the same email within this time is answered the same way, but nothing is stored and Vienne isn't told again. Arrives with L2. |
-| `REQUEST_KEEP_DAYS` (90) | `src/server/requests.ts` | The daily job deletes invite requests, and their alerts, after this many days. Arrives with L2. |
+| `REQUEST_KEEP_DAYS` (90) | `src/server/requests.ts`, mirrored in `src/lib/jobs.ts` | The daily job deletes invite requests, and their alerts, after this many days. Arrives with L2. |
 
 No limit in the app yet, and what covers it:
 
