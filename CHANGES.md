@@ -3,6 +3,14 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S28 reopened, two cases
+
+- **S28 check 1:** a path whose folder or file name starts with two dots (`..places/…`) inside the checkout
+  is still inside, and is refused. **Check 3:** a refusal never prints anything the file holds, field names
+  and unknown keys included. It names only the entry number and the problem. **Check 4** adds the holdout
+  `plan/holdouts/S28.test.ts`. Why: Rigg's holdout reopened S28 on both cases. The second could print a real
+  place into a log. Approved: Axis; Zero reviews.
+
 ## 2026-11-26: AGENTS.md keeps Next's agent-rules block; S29
 
 - **AGENTS.md:** commits the `nextjs-agent-rules` block that `next dev` 16.4 appends on every start. It tells
