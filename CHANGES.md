@@ -3,6 +3,17 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: R1 reopened, fields are really 16px on phones
+
+- **R1 (check 2, new):** the field type token is renamed from `text-input` to `text-field`, and every field must
+  compute to 16px on a 390px phone and 14px on desktop, with the foreground color. There's a new
+  `tests/e2e/r1-fields.spec.ts`. `docs/DESIGN.md`'s table already says `text-field`.
+- Why: Rigg's R1 holdout (#140) found fields at 15px on phones, so iOS zooms on focus (invite code, message
+  composer, admin Settings). `--color-input` and `--text-input` share the name `input`, and Tailwind v4 compiles
+  `.text-input` to the color only. R1's source test checked class names, not computed sizes. Approved: Zero
+  (lead, R1 is held for Zero), under Javaris's restyle approval.
+- R1 runs again only after R2 and R3 merge, because they own the files the rename touches.
+
 ## 2026-11-27: R2, R3 and L1 take OSA's taste review of R1
 
 - **docs/DESIGN.md:**

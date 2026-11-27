@@ -21,7 +21,7 @@ If a test breaks, the change is wrong, not the test.
 | `text-caption` | 12px | 12px | 500 | Badges, table heads, small meta |
 | `text-small` | 13px | 13px | 400–500 | Secondary lines, hints, timestamps |
 | `text-body` | 15px | 14px | 400 | Body text, list rows, buttons |
-| `text-input` | 16px | 14px | 400 | Inputs, selects and textareas. Phones stay at 16px, because iOS zooms the page on focus below that |
+| `text-field` | 16px | 14px | 400 | Inputs, selects and textareas. Phones stay at 16px, because iOS zooms the page on focus below that |
 | `text-heading` | 15px | 15px | 600 | Section and card titles |
 | `text-title` | 18px | 18px | 600 | Drawer, sheet and dialog titles |
 | `text-page` | 22px | 24px | 600 | Page titles (the `PageHeader` h1). Today they're 26–36px |
