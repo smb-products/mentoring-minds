@@ -9,7 +9,6 @@ order, for the person doing it: `docs/PRODUCTION_SETUP.md`.
 | Database | **Neon** (Postgres) | Free plan |
 | Files (work photos, worksheets) | **Vercel Blob** (private store) | Paid from Pro's monthly credit: pennies at this size |
 | Sign-in | Google (Auth.js) + email/password | |
-| AI drafts | Claude API (Haiku 5.5) | Set a monthly spend limit |
 | Push notifications | Web push (VAPID keys) | Optional |
 
 ## 1. Neon
@@ -163,7 +162,6 @@ A mistaken delete can come back only from Neon's history, inside that window. On
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | all | Google OAuth client |
 | `INVITE_PEPPER` | all | Long random string. **Never change it after launch**: existing invite codes would stop working. |
 | `BLOB_READ_WRITE_TOKEN` (+ `BLOB_STORE_ID`, set by Vercel) | all | Added when you connect the Blob store with a read-write token. Without it, production uploads are refused. |
-| `ANTHROPIC_API_KEY` | all | Claude API key. Without it, the AI buttons say "type it in instead". |
 | `CRON_SECRET` | production | Random letters and numbers, 16 or more |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | optional | `npx web-push generate-vapid-keys`. Push stays off until these are set. |
 | `ADMIN_EMAIL`, `ADMIN_NAME`, `ADMIN_PASSWORD` | seed only | Vienne's account. With Google sign-in, use her Google address; the password is optional. |
@@ -181,11 +179,11 @@ CI fails if `schema.prisma` and the migrations disagree. Preview builds apply ne
 
 ## Before launch
 
-Who does each one, and what it waits on. Javaris does every click in Vercel, Neon, Google and the Claude Console;
+Who does each one, and what it waits on. Javaris does every click in Vercel, Neon and Google;
 the audit tickets (P-product, P-ops) check the result. Production setup starts after W8.
 
 - [x] `npm run build && npm test` green in CI: the required `check` job, green on main after W8 (3828ab3). P-product, 2026-11-26.
-- [ ] Spend limit set in the Claude Console (e.g. $5/month). **Javaris**; P-ops checks it next to `AI_DAILY_LIMIT`.
+- [ ] The AI features are gone: code, schema, the Claude SDK and `ANTHROPIC_API_KEY` (S33), before Javaris's first production migrate. **Lanes**, held for Zero (Javaris, 2026-11-27).
 - [ ] Blob store is **Private**, with a read-write token on the connection. **Javaris** at setup; P-ops checks a raw Blob URL doesn't open.
 - [ ] `CRON_SECRET` set; after the first 13:00 UTC run, the job shows 200 in Vercel → Schedules → Cron Jobs → View Logs. **Javaris** sets it; **Atlas** (P-ops) reads the first run. Waits on the first production deploy.
 - [ ] Vienne signs in with Google and lands on Today (the consent screen is published, not "Testing"). **Javaris with Vienne**, on her account. Waits on Google OAuth setup.
@@ -210,7 +208,6 @@ What stops guessing and runaway costs. Each is a named constant, and `tests/inte
 | `MAX_FAILED_LOGINS` (5) | `src/lib/auth.ts` | Wrong passwords in a row lock password sign-in on that account for `LOCK_MINUTES` (15), even with the right password. |
 | `MAX_FAILURES` (10) | `src/server/invites.ts` | Wrong invite codes lock code entry on that account for an hour. |
 | `GLOBAL_REDEEM_FAILURES_PER_HOUR` (30) | `src/server/invites.ts` | More wrong codes than this from everyone in an hour pause code entry for everyone, and Vienne is told. |
-| `AI_DAILY_LIMIT` (150) | `src/lib/ai/prompts.ts` | AI drafts per 24 hours (only Vienne can ask), counted before Claude is called. The Claude Console spend limit backs it. |
 | `MAX_BYTES` (25 MB) | `src/lib/storage.ts` | The largest upload. Blob enforces it again on the upload token. |
 
 No limit in the app yet, and what covers it:

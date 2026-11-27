@@ -12,7 +12,7 @@ These click through the real app in Chrome, signed in as the demo families, agai
 | `w4-books-content.spec.ts` | Answer keys; "We have it"; upload, open, drafts, delete/undo | `books`, `content` |
 | `w5-assignments.spec.ts` | Assign → answer sheet with a photo → Vienne checks; **the answer key never reaches a family's browser** | `assignments`, `books`, `content`, `families` |
 | `w6-scheduling.spec.ts` | Request, confirm, decline, cancel; "just booked" race; Join call; complete with a note | `scheduling`, `dashboard`, `families` |
-| `w7-reports-dashboard-ai.spec.ts` | Reports draft → publish; Today updates live; AI helper messages | `reports`, `dashboard`, `ai`, `scheduling`, `families` |
+| `w7-reports-dashboard-ai.spec.ts` | Reports draft → publish; Today updates live (the AI helpers were removed in S33) | `reports`, `dashboard`, `scheduling`, `families` |
 
 A spec whose areas aren't in `LIVE` (in `src/ui/api/index.js`) is **skipped**, and the report says which areas to switch on. So CI stays green while wiring is in progress, and each spec starts counting the moment its areas go live.
 
@@ -46,7 +46,6 @@ Settings come from `.env` (`E2E_DATABASE_URL`, default `postgresql://postgres@lo
 - **No browser errors.** Any console error or uncaught exception fails the test (`support/fixtures.ts`).
 - **Found by what people see.** Locators use roles and labels (`getByRole('button', { name: 'Send request' })`), so a test breaks when the wording a parent reads changes. That's on purpose.
 - **Two widths.** Tests tagged `@phone` also run on a phone-sized screen.
-- **One real AI call, opt-in.** It needs `ANTHROPIC_API_KEY` and `E2E_AI=1`. Without a key, the "AI isn't available" message is tested instead.
 
 ## When one fails
 

@@ -3,6 +3,26 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: S33, no AI for launch
+
+- **S33 (new, held for Zero):** the voice session-note draft ("Talk about it") and the answer-key photo read
+  ("Set up from photos") are removed, not hidden. That covers the UI, src/server/ai.ts, src/lib/ai/, the Claude
+  SDK, the AiDraft table and the AI-only columns and enum values, and AGENTS.md rule 9. Typing is the only way to
+  write a note or an answer key. Why: Javaris doesn't want AI at launch. Production is empty and not migrated
+  yet, so the drop migration loses nothing. Approved: Javaris (2026-11-27, via OSA).
+- **Retired:** W7 checks 4–6, S20 and S22 (the AI helpers, the AI daily cap and the photo size limit), and
+  AI_DAILY_LIMIT in P-sec check 4. P-ops check 5 now asks for the Vercel and Neon caps and no
+  `ANTHROPIC_API_KEY`, instead of a Claude Console limit.
+- **Lead edits to locked tests**, so main stays green before S33 lands:
+  - deleted `tests/holdout/S20.test.ts`, `tests/holdout/S22.test.ts`, `tests/holdout/S22.spec.ts` and
+    `tests/e2e/s22-answer-key-photo.spec.ts`;
+  - removed the AI cases from `tests/holdout/W7.test.ts`, `tests/holdout/WC.test.ts` (the `discardDraft`
+    refusals and the draft in the snapshot) and `tests/e2e/w7-reports-dashboard-ai.spec.ts` (both AI tests,
+    and `ai` from its `requires`).
+  S33's new tests check that the controls are gone and typing still works.
+- **Docs:** PRODUCTION_SETUP no longer asks for a Claude key (Part 5) or a Claude Console limit (Part 8).
+  DEPLOY and COSTS drop the Claude rows, and Before launch tracks S33.
+
 ## 2026-11-26: S23 closed, delete runbook by id
 
 - **S23 (closed):** marked `superseded` in the plan. S23b replaced its name and email matching with ids, and S23b

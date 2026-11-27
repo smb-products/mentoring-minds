@@ -116,15 +116,12 @@ printf '' | clip.exe                              # clear the clipboard when you
 | `INVITE_PEPPER` | new value | new value | new value |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | from Part 4 | not set | not set |
 | `CRON_SECRET` | new value | not set | not set |
-| `ANTHROPIC_API_KEY` | new key, see below | not set, or a second key, see below | not set |
 | `BLOB_READ_WRITE_TOKEN` | already there (`mm-prod`) | already there (`mm-preview`) | already there (`mm-preview`) |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | optional, see below | not set | not set |
 | `DEMO_MODE`, `ALLOW_LOCAL_UPLOADS`, `DATABASE_POOL_MAX` | **never set** | **never set** | **never set** |
 
-- **Claude key:** **console.anthropic.com → Settings → Workspaces → Create** `mentoring-minds`, then
-  **API keys → Create key** in that workspace and paste it. The workspace keeps its spend limit apart from
-  anything else (Part 8). For previews, either leave the key out (the AI buttons say "type it in instead")
-  or make a second workspace `mentoring-minds-preview` with a $1 limit.
+- **No Claude key.** The app has no AI features at launch (Javaris, 2026-11-27; S33 removes them), so
+  there's no `ANTHROPIC_API_KEY` and no Claude Console account to set up.
 - **Push, optional, can wait:** `npx web-push generate-vapid-keys` prints a public and a private key.
   Paste the private one straight into `VAPID_PRIVATE_KEY` and the public one into
   `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. Set `VAPID_SUBJECT` to `mailto:` plus Vienne's address. Then close that
@@ -206,8 +203,6 @@ with a file that lists only the new place. Names already there are skipped, neve
    - Set a monthly amount, for example $50 on top of Pro.
    - Turn on **Pause production deployment** and the email or SMS alerts.
 2. **Neon → Billing.** Free can't overspend. On a paid plan, set its usage limit.
-3. **Claude Console → Settings → Limits** for the `mentoring-minds` workspace: a monthly limit, for example
-   $5. The app also caps AI drafts per day (`AI_DAILY_LIMIT`, `docs/COSTS.md`).
 
 ## Part 9. Tell Atlas, then check it together
 
