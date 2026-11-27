@@ -1390,6 +1390,7 @@
         "README.md",
         "docs/CONTRACT.md",
         "docs/WIRING.md",
+        "docs/DEPLOY.md",
         ".env.example",
         "plan/reports/S33.md"
       ],
@@ -1399,12 +1400,12 @@
         "Schema (Zero reviews): the AiDraft model and its DraftKind and DraftStatus enums are dropped, along with every column or enum value that only the AI used: NoteSource VOICE and KeySource PHOTO, and any aiDraftId. completeSession and saveAnswerKey no longer read aiDraftId, or a source other than TYPED. If a read the screens use returns `source`, it stays and is always TYPED (the contract shapes don't change). It's one new migration that only drops, the earlier migrations are untouched, and CI's drift check passes. Production is empty and not migrated yet, so the drop loses nothing.",
         "Everything that read AI drafts stops cleanly: the file cleanup (src/lib/files.ts), the daily job, the S23b deletes and the demo seed. tests/integration/s17-file-cleanup.test.ts, s23-delete-on-request.test.ts and s23b-delete-by-id.test.ts still pass, with only their AI-draft rows taken out.",
         "Tests: delete the AI-only integration tests (s20-ai-cap.test.ts, s22-answer-key-photo.test.ts, and jobs-ai.test.ts if all of it is AI), and remove only the AI cases from the others under tests/ (w7-reports-ai, permissions, p-sec, wc-contract-writes, scheduling, s9, live-adapter, s24, contract). tests/contract/mock/ stays frozen: the contract test just stops comparing the ai area. The lead has already removed the AI cases from tests/holdout/ and tests/e2e/w7-reports-dashboard-ai.spec.ts, and deleted tests/e2e/s22-answer-key-photo.spec.ts. Don't edit tests/holdout/ or the w*.spec files. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass.",
-        "Docs that describe the code: AGENTS.md (the lib list's `ai/`, and rule 9 becomes 'No AI features: they were removed for launch (S33). Adding one back is a new ticket Javaris approves.', keeping the rule numbers), README.md, docs/CONTRACT.md, docs/WIRING.md's W7 row, and .env.example loses ANTHROPIC_API_KEY. Leave history alone: CHANGES.md, plan/reports/, docs/ADDITIONS.md, docs/BACKEND_PLAN.md, docs/BUILD_PLAN.md and docs/PORTING.md."
+        "Docs that describe the code: AGENTS.md (the lib list's `ai/`, and rule 9 becomes 'No AI features: they were removed for launch (S33). Adding one back is a new ticket Javaris approves.', keeping the rule numbers), README.md, docs/CONTRACT.md, docs/WIRING.md's W7 row, the AI_DAILY_LIMIT row in docs/DEPLOY.md → Limits (it goes with the p-sec.test.ts case that reads it), and .env.example loses ANTHROPIC_API_KEY. Leave history alone: CHANGES.md, plan/reports/, docs/ADDITIONS.md, docs/BACKEND_PLAN.md, docs/BUILD_PLAN.md and docs/PORTING.md."
       ],
       "hints": [
         "Javaris decided 2026-11-27 (via OSA): remove the AI features, don't hide them. It must merge before his first `prisma migrate deploy` in production.",
         "Held for Zero: src/server, src/lib, prisma, package.json and AGENTS.md. One PR, so main never has screens calling a server function that's gone.",
-        "The setup and cost docs (PRODUCTION_SETUP Part 5 and Part 8, DEPLOY, COSTS) were updated in the plan PR. Don't touch them.",
+        "The setup and cost docs (PRODUCTION_SETUP Part 5 and Part 8, DEPLOY, COSTS) were updated in the plan PR. Leave them alone, except DEPLOY's AI_DAILY_LIMIT Limits row (check 6).",
         "next.config.ts keeps serverActions.bodySizeLimit '4mb'. Say in the report whether anything besides the photo read still sends a body that big."
       ],
       "held": "zero"

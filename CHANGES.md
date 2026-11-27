@@ -21,7 +21,8 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
     and `ai` from its `requires`).
   S33's new tests check that the controls are gone and typing still works.
 - **Docs:** PRODUCTION_SETUP no longer asks for a Claude key (Part 5) or a Claude Console limit (Part 8).
-  DEPLOY and COSTS drop the Claude rows, and Before launch tracks S33.
+  DEPLOY and COSTS drop the Claude rows, and Before launch tracks S33. DEPLOY's `AI_DAILY_LIMIT` row under Limits
+  stays until S33, because `p-sec.test.ts` reads it while the constant exists.
 
 ## 2026-11-26: S23 closed, delete runbook by id
 
