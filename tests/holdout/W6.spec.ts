@@ -31,7 +31,10 @@ test('the same phone shows an already booked session at its Miami time', async (
   await as('grace');
   await page.goto('/parent/sessions');
   const day = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', day: 'numeric' }).format(s.startsAt);
-  await page.getByRole('main').getByRole('button', { name: new RegExp(`^${day} `) }).first().click();
+  // Its own row, by day and Miami time: a request the first test just made can sit on the same day, and
+  // "Waiting on Vienne" lists it above the confirmed sessions (a lead fix, 2026-11-27).
+  const at = clock('America/New_York').replace(/ /g, '\\s');
+  await page.getByRole('main').getByRole('button', { name: new RegExp(`^${day}\\s[A-Za-z]+\\s*${at}`) }).first().click();
   const detail = page.getByRole('dialog');
   await expect(detail).toContainText(clock('America/New_York'));
   await expect(detail).not.toContainText(clock('America/Los_Angeles'));
