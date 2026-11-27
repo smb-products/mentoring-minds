@@ -9,6 +9,11 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   assignment, shows "We couldn’t find that …" with a link back, instead of loading forever. Why: Rigg's
   holdout batch (#144) found `/parent/learning/<unknown id>` stuck on the skeleton. Nothing leaked. Approved:
   Axis (lead).
+- **L2 amends (#145, Fantem; accepted by Zero):**
+  - Check 6: REQUEST_KEEP_DAYS is mirrored in src/lib/jobs.ts, because the daily job can't import from a
+    'use server' file, and a test keeps the two equal. DEPLOY → Limits says so.
+  - Touches add src/server/notifications.ts (the feed omits inviteRequestId), s21's ALLOWED list and the s33
+    migration test.
 - **docs/DESIGN.md:** a band with tabs may be about 150px. The ~120px figure is for bands without tabs. Why:
   R3's band measured 149px with tabs, and Rigg's holdout caps only bands without tabs (#144).
 - **Docs only:**
