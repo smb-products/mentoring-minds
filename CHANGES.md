@@ -3,6 +3,18 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: /privacy accuracy updates; R1 check 4 says text-field
+
+- **/privacy (accuracy, not new policy):**
+  - The invite-request item also names the child's grade, and the hashed internet address used only to stop
+    spam. Both are deleted after 90 days (L2 stores both).
+  - "Who else handles it" adds the phone's notification service (Apple or Google), which delivers alerts when
+    notifications are on, since push is being turned on.
+  - Why: Zero's review of #148. These are accuracy updates under Javaris's approval of the wording
+    (2026-11-27, via OSA).
+- **R1 check 4:** the scale's token list says `text-field`, not `text-input`, to match check 2's rename. This
+  is Fantem's amend on #147, accepted by Zero.
+
 ## 2026-11-27: /privacy wording approved
 
 - **L1's /privacy page:** Javaris approved the wording with two edits.
