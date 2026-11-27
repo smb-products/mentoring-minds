@@ -3,6 +3,21 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S30, the joined alert stops naming children
+
+- **S30 (new, held for Zero):** an alert linked only to a family never names a child. The joined alert says
+  "Invite code used. 2 children added." Why: Rigg (#112) found that deleting one child left the family's joined
+  alert naming that child. Removing it by name would break S23b's ids-only rule, so the alert stops naming
+  children. Approved: Zero (decision), Axis.
+  MESSAGE_RECEIVED is family-only too. Its body, the family's own words, is exempt, and its title names only
+  the parent (Zero's review).
+- **Accepted, no ticket:** what a family wrote themselves, such as a message that mentions a child, stays after
+  that child alone is deleted. It goes when the family is deleted, as S23b intends. Approved: Zero, Axis.
+- **S31 (new, not held):** any `?error=` code on /sign-in gets a plain message. An inherited name such as
+  `constructor` or `__proto__` returned a 500. From Rigg's #119 note. Approved: Axis, Zero.
+- **S32 (new, held for Zero):** the locations file refuses control characters before anything is saved. A NUL
+  passed validation, then the database refused it after the day-one data was already written. From Rigg's #119
+  note. Approved: Axis, Zero.
 ## 2026-11-26: S28 reopened, two cases
 
 - **S28 check 1:** a path whose folder or file name starts with two dots (`..places/…`) inside the checkout
