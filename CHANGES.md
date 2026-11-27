@@ -9,6 +9,15 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   check now also allows `src/components/auth/AuthScreen.tsx`, and its no-hex-colors check covers that file too.
   Why: A1's check 1 (and docs/DESIGN.md → Auth screens) puts the landing tokens on the auth panel, and the plan
   missed this locked test. By Axis; A1 is approved by Javaris.
+## 2026-11-27: D5, auto-promote with a migration guard
+
+- **D5 changed:** a merge to main goes live by itself once its production build is ready ("Auto-assign Custom
+  Production Domains" back on). Before, each merge built a Staged deployment that waited for a Promote. Why:
+  Javaris wants merges live without a manual promote. Approved: Javaris (via OSA).
+- **The guard:** a production build now **fails** when `prisma migrate status` shows a migration production
+  lacks, or can't reach the database (`scripts/vercel-build.mjs`). That build never goes live, and the site
+  stays on the last good deployment. Javaris still runs every production migration, then redeploys. Production
+  builds still never migrate. Approved: Javaris (via OSA).
 ## 2026-11-27: P2 split into P2a (parent) and P2b (admin)
 
 - **P2** is superseded by **P2a** (the parent screens and their drawers, plus the shared SessionParts, Thread and
