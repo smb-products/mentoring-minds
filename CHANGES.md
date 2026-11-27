@@ -24,6 +24,14 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   line 62, `s14-signup-password.test.ts` line 70, holdout `W2.spec.ts`). The landing specs and holdouts swap in the new words
   (steps, Get started, the form's name and button). A1's spec swaps the Request an invite link for "Questions?
   Message Vienne". A lead makes the holdout edits on the ticket's PR.
+## 2026-11-27: P2b gets OSA's five P1 review nits
+
+- **P2b, new check 2:** stat sublines wrap to 2 lines (no ellipsis), Families' stat cards get their own icons,
+  Today's selected day uses the accent rather than navy, the Up next card's left border goes, and avatars become
+  soft blue tints. Its test check covers each one. `src/ui/components/ui/Display.jsx` (Figures, Avatar) joins
+  P2b's touches, so P2a stays clear of it. Why: OSA's screenshot review of P1 (#178) against the approved
+  mockup, under Javaris's polish approval.
+- **P2a, new check 2:** parent Home must not scroll sideways at 390px (the SkillMeter rows, found in P1's report).
 
 ## 2026-11-27: L4 spec allows A1's auth panel to use the landing tokens
 
