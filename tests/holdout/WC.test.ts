@@ -1,7 +1,6 @@
 /** WC holdouts: the writes the contract check now covers refuse the wrong person and wrong input, and change nothing. */
 import { describe, expect, it } from 'vitest';
 import { as, db, fails, freshDemo, ok } from '../integration/helpers';
-import * as ai from '@/server/ai';
 import * as books from '@/server/books';
 import * as content from '@/server/content';
 import * as families from '@/server/families';
@@ -27,15 +26,10 @@ const snapshot = async () => ({
   sessions: await db.session.findMany(by),
   reports: await db.progressReport.findMany({ ...by, include: { ratings: true } }),
   fast: await db.fastResult.findMany(by),
-  drafts: await db.aiDraft.findMany(by),
 });
-
-const privateDraft = () =>
-  db.aiDraft.create({ data: { kind: 'SESSION_NOTE', model: 'demo', effort: 'high', refId: 'ses_15', input: { transcript: 'HOLDOUT-TRANSCRIPT' }, output: { note: 'HOLDOUT-DRAFT' } } });
 
 describe('WC holdouts', () => {
   it('Ana, a preview parent and signed out are refused every admin write, get nothing back and change nothing', async () => {
-    const draft = await privateDraft();
     const startsAt = new Date(Date.now() + 55 * 86400000).toISOString();
     const writes: [string, () => Promise<{ ok: boolean; code?: string }>][] = [
       ['archiveSkill', () => taxonomy.archiveSkill({ skillId: 'sk_counting' })],
@@ -48,7 +42,6 @@ describe('WC holdouts', () => {
       ['createSessionAsAdmin', () => scheduling.createSessionAsAdmin({ studentId: 's_mateo', mode: 'VIDEO', startsAt, durationMin: 45 })],
       ['createDraft', () => reports.createDraft({ studentId: 's_noah' })],
       ['setRatings', () => reports.setRatings({ reportId: 'rep_eli_1', ratings: [] })],
-      ['discardDraft', () => ai.discardDraft({ draftId: draft.id })],
     ];
     const before = await snapshot();
     for (const [who, code] of [['u_ana', 'FORBIDDEN'], ['u_tom', 'FORBIDDEN'], [null, 'UNAUTHENTICATED']] as const) {
@@ -92,7 +85,6 @@ describe('WC holdouts', () => {
     fails(await reports.createDraft({ studentId: 's_missing' }), 'NOT_FOUND');
     fails(await taxonomy.archiveSkill({ skillId: 'sk_missing' }), 'NOT_FOUND');
     fails(await books.saveAnswerKey({ bookId: 'book_g5', test: 'T1', rows: [] }), 'INVALID');
-    fails(await ai.discardDraft({ draftId: '' }), 'INVALID');
     expect(await snapshot()).toEqual(before);
   });
 });

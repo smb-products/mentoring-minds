@@ -1,17 +1,14 @@
 /**
  * W7 holdout: a report reaches only its own family, without Vienne's private notes
- * or the answer key; the AI helpers are hers alone and save nothing when they fail.
+ * or the answer key. (The AI helper cases went with the helpers in S33.)
  */
 import { describe, expect, it } from 'vitest';
-import { as, db, fails, freshDemo, ok, upcomingSession, valuesOf } from '../integration/helpers';
+import { as, db, fails, freshDemo, ok, valuesOf } from '../integration/helpers';
 import * as reports from '@/server/reports';
-import * as ai from '@/server/ai';
 
 freshDemo();
 
 const PRIVATE = 'W7-PRIVATE-NOTE only Vienne reads this';
-const RECAP = 'W7 recap: Mateo compared fractions with a number line and did well today.';
-const AI_DOWN = /^The AI helper isn’t available right now\. Type it in instead, or try again in a minute\.$/;
 
 describe('W7: reports', () => {
   it('a published report reaches only its own family, with no private notes, answer key or video link', async () => {
@@ -65,32 +62,5 @@ describe('W7: reports', () => {
     ok(await reports.publishReport({ reportId: r.id }));
     ok(await reports.publishReport({ reportId: r.id }));
     expect(await told()).toBe(before + 1);
-  });
-});
-
-describe('W7: AI helpers', () => {
-  const image = { mediaType: 'image/png' as const, base64: 'A'.repeat(200) };
-  const saved = async () => [await db.aiDraft.count(), await db.sessionNote.count(), await db.bookItem.count()];
-
-  it('no family, preview or signed-out caller can use them, and a failed or keyless try saves nothing', async () => {
-    const session = await upcomingSession({ studentId: 's_mateo' });
-    const book = await db.book.findFirstOrThrow({ where: { grade: 3 } });
-    const test = (book.tests as { key: string }[])[0].key;
-    const draft = await db.aiDraft.create({ data: { kind: 'SESSION_NOTE', model: 'm', effort: 'high', refId: session.id, input: {}, output: {} } });
-    const before = await saved();
-
-    for (const [who, code] of [['u_ana', 'FORBIDDEN'], ['u_grace', 'FORBIDDEN'], ['u_tom', 'FORBIDDEN'], [null, 'UNAUTHENTICATED']] as const) {
-      as(who);
-      fails(await ai.draftSessionNote({ sessionId: session.id, transcript: RECAP }), code);
-      fails(await ai.readAnswerKeyPage({ bookId: book.id, test, image }), code);
-      fails(await ai.discardDraft({ draftId: draft.id }), code);
-    }
-    expect((await db.aiDraft.findUniqueOrThrow({ where: { id: draft.id } })).status).toBe('DRAFT');
-
-    as('u_admin');
-    expect((await ai.draftSessionNote({ sessionId: session.id, transcript: '        ' })).ok).toBe(false);
-    fails(await ai.draftSessionNote({ sessionId: session.id, transcript: RECAP }), 'AI_FAILED', AI_DOWN);
-    fails(await ai.readAnswerKeyPage({ bookId: book.id, test, image }), 'AI_FAILED', AI_DOWN);
-    expect(await saved()).toEqual(before);
   });
 });

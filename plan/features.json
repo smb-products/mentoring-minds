@@ -278,7 +278,8 @@
         "npm run test:e2e -- w7 passes on a production build; w0–w6 and auth still pass; npm run test:contract is green."
       ],
       "hints": [
-        "Lanes have no ANTHROPIC_API_KEY: the no-key path is what the lane proves. Never add a key to any file."
+        "Lanes have no ANTHROPIC_API_KEY: the no-key path is what the lane proves. Never add a key to any file.",
+        "Checks 4–6 (the AI helpers) retired 2026-11-27: S33 removes the AI features (Javaris). The lead removed their browser and holdout cases in the S33 plan PR."
       ],
       "held": "zero"
     },
@@ -864,7 +865,8 @@
       ],
       "hints": [
         "From the P-review (plan/reports/P-review.md), finding 8. Today only saved drafts are counted.",
-        "Held for Zero (src/server, prisma)."
+        "Held for Zero (src/server, prisma).",
+        "Retired 2026-11-27: S33 removes the AI features (Javaris). Its holdouts and browser test were removed in the S33 plan PR; S33 removes its integration test."
       ],
       "held": "zero"
     },
@@ -912,7 +914,8 @@
       ],
       "hints": [
         "From the P-review (plan/reports/P-review.md), finding 9. SUSPECT: not confirmed yet.",
-        "Held for Zero (src/server/ai.ts). After S20, which also edits ai.ts. Don't change the page's look."
+        "Held for Zero (src/server/ai.ts). After S20, which also edits ai.ts. Don't change the page's look.",
+        "Retired 2026-11-27: S33 removes the AI features (Javaris). Its holdouts and browser test were removed in the S33 plan PR; S33 removes its integration test."
       ],
       "held": "zero"
     },
@@ -1263,7 +1266,8 @@
       ],
       "hints": [
         "Run by its owner, not a lane (role audit). The owner works on f/P-sec in .wt/ and runs kit/plan.py set P-sec doing when it starts. The audit writes tests, docs and its report. A finding that needs app code becomes an S ticket for the lanes, listed in the report; it isn't fixed in the audit PR.",
-        "Held for Axis (docs/DEPLOY.md): Axis merges Zero's audit PR."
+        "Held for Axis (docs/DEPLOY.md): Axis merges Zero's audit PR.",
+        "Check 4: AI_DAILY_LIMIT goes with the AI features in S33 (2026-11-27). The other limits stand."
       ],
       "held": "axis"
     },
@@ -1318,7 +1322,7 @@
         "Cron: /api/cron/daily refuses a request without CRON_SECRET, and the job runs once a day in production. vercel.json still uses legacy `crons`: the report decides whether to move it to Vercel Schedules (`schedules`), with the reason. If it moves, the route's secret check still holds.",
         "Blob: the store is private. A stored file's raw Blob URL doesn't open without a token, and files reach people only through /api/files.",
         "Neon: the point-in-time restore window is on, and one restore into a new branch (never over main) is rehearsed and timed in docs/DEPLOY.md.",
-        "Spend caps: a Vercel spend limit, the Neon plan's limit and a Claude Console limit are set, and AI_DAILY_LIMIT (src/lib/ai/prompts.ts) is noted in docs/COSTS.md beside them.",
+        "Spend caps: a Vercel spend limit and the Neon plan's limit are set, as docs/COSTS.md lists them. No ANTHROPIC_API_KEY is set in any Vercel environment (no AI since S33, so no Claude Console limit).",
         "Rollback: an instant rollback to the previous deployment is rehearsed on a preview, not production, and the steps are in docs/DEPLOY.md.",
         "Migrations (D5, manual): a production build runs no `prisma migrate deploy`, only a read-only status check that warns when production is behind; previews still migrate their own database. Production domains aren't auto-assigned, so a merge builds a Staged deployment, and docs/DEPLOY.md → Releasing says Javaris migrates production, then promotes. tests/vercel-build.test.ts covers production, preview and no database."
       ],
@@ -1351,6 +1355,61 @@
       "hints": [
         "OSA sets the review's scope. This ticket only puts it on the board, after the three audits."
       ]
+    },
+    {
+      "id": "S33",
+      "title": "No AI for launch: the voice note draft and the answer-key photo read are removed",
+      "spec": "tests/e2e/s33-no-ai.spec.ts and tests/s33-no-ai.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/ui/components/sessions/AdminSessionDrawer.jsx",
+        "src/ui/pages/admin/AnswerKeyPage.jsx",
+        "src/ui/components/ai/",
+        "src/ui/api/live.js",
+        "src/ui/api/index.js",
+        "next.config.ts",
+        "src/server/ai.ts",
+        "src/server/books.ts",
+        "src/server/scheduling.ts",
+        "src/server/families.ts",
+        "src/lib/ai/",
+        "src/lib/files.ts",
+        "src/lib/dto.ts",
+        "src/lib/jobs.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "prisma/demo/seed.js",
+        "package.json",
+        "package-lock.json",
+        "tests/integration/",
+        "tests/contract/contract.test.ts",
+        "tests/live-adapter.test.ts",
+        "tests/s24-sign-out.test.ts",
+        "tests/s33-no-ai.test.ts",
+        "tests/e2e/s33-no-ai.spec.ts",
+        "AGENTS.md",
+        "README.md",
+        "docs/CONTRACT.md",
+        "docs/WIRING.md",
+        "docs/DEPLOY.md",
+        ".env.example",
+        "plan/reports/S33.md"
+      ],
+      "checks": [
+        "Complete session has only the typed form: no 'Talk about it' section, microphone, 'What you said' or 'Write my note', and no 'Or type it' heading (there's nothing to be 'or' to). The answer-key page has no 'Set up from photos'. Typing a session note and typing answer-key rows save exactly as today, and nothing else on either screen moves. next.config.ts's Permissions-Policy denies the microphone (microphone=(), since nothing else uses it) and its comment drops \"Talk about it\". camera=(self) stays, for photos of homework. tests/e2e/s33-no-ai.spec.ts checks both as Vienne on a production build, with the fixture's no-console-errors rule: neither control is there, a typed note completes a session, and typed rows save an answer key.",
+        "The AI code is gone: src/server/ai.ts, src/lib/ai/ and src/ui/components/ai/ are deleted, the adapter has no ai area (live.js, its READS), and @anthropic-ai/sdk is out of package.json and package-lock.json. tests/s33-no-ai.test.ts fails if anything under src/, prisma/ or tests/ imports it, names ANTHROPIC_API_KEY, or package.json lists it. src/ui/lib/shrinkPhoto.js stays: AnswerSheet uses it for homework photos.",
+        "Schema (Zero reviews): the AiDraft model and its DraftKind and DraftStatus enums are dropped, along with every column or enum value that only the AI used: NoteSource VOICE and KeySource PHOTO, and any aiDraftId. completeSession and saveAnswerKey no longer read aiDraftId, or a source other than TYPED. It's one new migration that only removes: AiDraft and its two enums are dropped, and NoteSource and KeySource are recreated without VOICE and PHOTO (Postgres can't drop an enum value, so prisma migrate dev writes CREATE TYPE …_new, ALTER COLUMN … USING, DROP TYPE). The source columns stay, always TYPED, because sessionDTO spreads the note row into session reads and the contract shapes don't change. The earlier migrations are untouched, and CI's drift check passes. Production is empty and not migrated yet, so the drop loses nothing.",
+        "Everything that read AI drafts stops cleanly: the file cleanup (src/lib/files.ts), the daily job, the S23b deletes and the demo seed. tests/integration/s17-file-cleanup.test.ts, s23-delete-on-request.test.ts and s23b-delete-by-id.test.ts still pass, with only their AI-draft rows taken out.",
+        "Tests: delete the AI-only integration tests (s20-ai-cap.test.ts, s22-answer-key-photo.test.ts, and jobs-ai.test.ts if all of it is AI), and remove only the AI cases from the others under tests/ (w7-reports-ai, permissions, p-sec, wc-contract-writes, scheduling, s9, live-adapter, s24, contract). tests/contract/mock/ stays frozen: the contract test just stops comparing the ai area. The lead has already removed the AI cases from tests/holdout/ and tests/e2e/w7-reports-dashboard-ai.spec.ts, and deleted tests/e2e/s22-answer-key-photo.spec.ts. Don't edit tests/holdout/ or the w*.spec files. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass.",
+        "Docs that describe the code: AGENTS.md (the lib list's `ai/`, and rule 9 becomes 'No AI features: they were removed for launch (S33). Adding one back is a new ticket Javaris approves.', keeping the rule numbers), README.md, docs/CONTRACT.md, docs/WIRING.md's W7 row, the AI_DAILY_LIMIT row in docs/DEPLOY.md → Limits (it goes with the p-sec.test.ts case that reads it), and .env.example loses ANTHROPIC_API_KEY. Leave history alone: CHANGES.md, plan/reports/, docs/ADDITIONS.md, docs/BACKEND_PLAN.md, docs/BUILD_PLAN.md and docs/PORTING.md."
+      ],
+      "hints": [
+        "Javaris decided 2026-11-27 (via OSA): remove the AI features, don't hide them. It must merge before his first `prisma migrate deploy` in production.",
+        "Held for Zero: src/server, src/lib, prisma, package.json and AGENTS.md. Check 3's migration wording and the microphone line in check 1 are Zero's (#126 review). One PR, so main never has screens calling a server function that's gone.",
+        "The setup and cost docs (PRODUCTION_SETUP Part 5 and Part 8, DEPLOY, COSTS) were updated in the plan PR. Leave them alone, except DEPLOY's AI_DAILY_LIMIT Limits row (check 6).",
+        "next.config.ts keeps serverActions.bodySizeLimit '4mb'. Say in the report whether anything besides the photo read still sends a body that big."
+      ],
+      "held": "zero"
     }
   ]
 }
