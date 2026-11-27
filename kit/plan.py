@@ -17,6 +17,9 @@ different worktrees never conflict on a tracked file.
   plan.py lint [file]                               ids, deps, cycles and `held` in plan/features.json (CI runs it)
                                                     (a feature whose touches hit PROTECT_MERGE names its lead)
 
+A lead's small fix (RULES.md, Ownership) ships with its own entry, "status": "review", on branch f/<id> in the
+same PR: no lane claims it, and refresh marks it merged when that PR merges, so the checker takes it as usual.
+
 Status: ready → doing → review (PR open, auto-merge on) → merged → checking (holdout PR open) → checked
         `set <id> checking` records the checker's branch (AVEL_BRANCH); refresh marks it checked
         once that PR merges, and tells OSA once if its CI fails.
@@ -249,6 +252,14 @@ def held_touches(touches):
             and (glob_hit(t, globs) or (t.endswith("/") and any(g.startswith(t) for g in globs)))]
 
 
+PLAN_STATUSES = ("ready", "review", "superseded")  # what an entry may say; lane progress lives in state.json
+FEATURE_CODE = ("src/ui/", "src/components/", "src/app/")  # screens and pages: lane tickets, never a lead's fix
+
+
+def feature_code(touch):
+    return touch.startswith(FEATURE_CODE) and not touch.startswith("src/app/api/")
+
+
 def lint(path):
     """Problems in a features file: what CI checks on a plan change, before a lane trips on it."""
     try:
@@ -275,6 +286,15 @@ def lint(path):
             probs.append(f"{fid}: touches {', '.join(held[:3])} (PROTECT_MERGE), so it needs \"held\": one of {', '.join(leads)}")
         elif not held and f.get("held"):
             probs.append(f"{fid}: \"held\" is set but no touch is in PROTECT_MERGE")
+        status = f.get("status", "ready")
+        if status not in PLAN_STATUSES:
+            probs.append(f"{fid}: status \"{status}\" isn't one of {', '.join(PLAN_STATUSES)}")
+        elif status == "review":  # a lead's small fix, in the same PR as its entry
+            touches = f.get("touches") if isinstance(f.get("touches"), list) else []
+            if not f.get("checks"):
+                probs.append(f"{fid}: a review entry needs real checks: the checker writes its holdouts from them")
+            if code := [t for t in touches if feature_code(t)]:
+                probs.append(f"{fid}: touches {', '.join(code[:3])}, which is feature code: make it a ready entry for a lane")
     deps = {}
     for f in fs:
         if isinstance(f, dict) and isinstance(f.get("id"), str) and isinstance(f.get("deps", []), list):

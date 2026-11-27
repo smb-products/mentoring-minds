@@ -51,6 +51,12 @@ Javaris clicked it through as Vienne and as a parent.
   mustn't merge yet (it needs a lead's fix first) ends the run `status: blocked` and tells `leads` why.
 - A feature whose `touches` hit `PROTECT_MERGE` names the lead who merges it (`"held"` in the plan), so that lead
   expects it. `kit/plan.py lint` fails a plan that leaves it out.
+- **A lead's small fix** skips the separate plan PR. It's on `f/<id>`, in the lead's own paths, and the same PR
+  adds its plan entry with `"status": "review"`, real `checks` and `held` naming the other lead, plus
+  `plan/reports/<id>.md`. It opens `--draft` like any lead PR, and a spec change still gets its `CHANGES.md`
+  line. No lane claims it, and the checker takes it once it merges. Screens and pages (`src/ui`,
+  `src/components`, `src/app` outside `api`) are feature code, so they stay a ready entry for a lane.
+  `kit/plan.py lint` checks the entry.
 - An audit ticket (`"role": "audit"`, the production phase after W8) is run by the seat in its `"owner"`, not a
   lane, and gets no holdouts. It writes tests, docs and its report. A finding that needs app code becomes an S
   ticket for the lanes.
