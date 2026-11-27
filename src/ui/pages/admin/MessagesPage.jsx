@@ -3,7 +3,7 @@
 import { MessagesSquare } from 'lucide-react';
 import { api, useQuery } from '../../api';
 import { Thread } from '../../components/messages/Thread';
-import { Avatar, Empty, PageHeader } from '../../components/ui/Display';
+import { Avatar, Empty, PageHeader, Section } from '../../components/ui/Display';
 import { useShell } from '../../components/shell/ShellContext';
 import { cn } from '../../lib/cn';
 import { fmtAgo } from '../../lib/format';
@@ -16,10 +16,14 @@ import { Link } from '../../lib/router';
  */
 export default function AdminMessagesPage({ params = {} }) {
   const { mode } = useShell();
-  const { data: threads = [] } = useQuery(() => api.messages.listThreads(), []);
+  const { data: threads = [], loading } = useQuery(() => api.messages.listThreads(), []);
   const activeId = params.conversationId;
   const active = threads.find((t) => t.id === activeId);
   const phone = mode === 'phone';
+  // An address for a conversation that isn't in the inbox, once the inbox is back.
+  const gone = activeId && !loading && !active && (
+    <Empty title="We couldn’t find that conversation. It may have been removed." action={<Link href="/admin/messages" className="text-small hit-area font-medium text-brand hover:underline">Back to Messages</Link>} />
+  );
 
   const inbox = (
     <ul className="divide-y divide-border">
@@ -66,6 +70,11 @@ export default function AdminMessagesPage({ params = {} }) {
           <Thread conversationId={active.id} className="h-full" />
         </div>
       </>
+    ) : gone ? (
+      <>
+        <PageHeader title="Messages" subtitle="One conversation per family." />
+        <Section>{gone}</Section>
+      </>
     ) : (
       <>
         <PageHeader title="Messages" subtitle="One conversation per family." />
@@ -83,7 +92,7 @@ export default function AdminMessagesPage({ params = {} }) {
           <Thread key={active.id} conversationId={active.id} header={threadHeader} className="h-full" />
         ) : (
           <div className="grid place-items-center">
-            <Empty icon={MessagesSquare} title="Choose a conversation">Messages from each family stay in one thread.</Empty>
+            {gone || <Empty icon={MessagesSquare} title="Choose a conversation">Messages from each family stay in one thread.</Empty>}
           </div>
         )}
       </div>
