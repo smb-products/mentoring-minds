@@ -20,7 +20,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
         <li>Homework, and the photos of it you send.</li>
         <li>Messages between you and Vienne.</li>
         <li>FAST scores.</li>
-        <li>Invite requests: your name, email, phone and message when you ask for an invite.</li>
+        <li>Invite requests: your name, email, phone, your child’s grade and your message when you ask for an invite, plus a scrambled (hashed) form of your internet address, used only to stop spam. Both are deleted after 90 days.</li>
       </ul>
     ),
   },
@@ -30,7 +30,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
   },
   {
     title: 'Who else handles it',
-    body: <p>We never sell or share your information. Only the services that run the app handle it: Vercel (hosting), Neon (the database) and Google (if you sign in with Google).</p>,
+    body: <p>We never sell or share your information. Only the services that run the app handle it: Vercel (hosting), Neon (the database), Google (if you sign in with Google) and, if you turn on notifications, your phone’s notification service (Apple or Google), which delivers them.</p>,
   },
   {
     title: 'Where it lives',
