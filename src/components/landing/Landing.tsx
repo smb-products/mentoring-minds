@@ -1,9 +1,15 @@
+import Image, { type StaticImageData } from 'next/image';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
-import { BadgeDollarSign, BookOpen, ClipboardCheck, GraduationCap, Home, Laptop, User, Users, type LucideIcon } from 'lucide-react';
+import { BadgeDollarSign, BookOpen, ClipboardCheck, GraduationCap, type LucideIcon } from 'lucide-react';
 import { LogoMark } from '@/ui/components/brand/Logo';
 import { SITE_NAME, STEP_UP_URL } from './site';
 import { RequestInvite } from './RequestInvite';
+// Static imports: served from /_next/static and /_next/image, which src/proxy.ts lets through signed out (L5).
+import oneOnOne from '../../../public/landing/services/one-on-one.jpg';
+import smallGroups from '../../../public/landing/services/small-groups.jpg';
+import inHome from '../../../public/landing/services/in-home.jpg';
+import online from '../../../public/landing/services/online.jpg';
 
 /**
  * The public landing page at / for signed-out visitors: Landing C, "Bright and clear" (docs/design/landing-c.html,
@@ -26,12 +32,15 @@ const TRUST: { label: string; icon: LucideIcon; tone: Tone }[] = [
   { label: 'Step Up For Students accepted', icon: BadgeDollarSign, tone: 'purple' },
 ];
 
-const SERVICES: { name: string; line: string; icon: LucideIcon; tone: Tone }[] = [
-  { name: '1-on-1 Tutoring', line: 'Individual support for students who need extra help in a subject.', icon: User, tone: 'blue' },
-  { name: 'Small Groups', line: 'Students practice and learn alongside their peers.', icon: Users, tone: 'yellow' },
-  { name: 'In-Home Tutoring', line: 'For special circumstances.', icon: Home, tone: 'green' },
-  { name: 'Online Tutoring', line: 'For special circumstances.', icon: Laptop, tone: 'purple' },
+/** Each card's photo is an illustrative scene from Vienne's flyer, not her students or families (L5). */
+const SERVICES: { name: string; line: string; photo: StaticImageData; alt: string; tone: Tone }[] = [
+  { name: '1-on-1 Tutoring', line: 'Individual support for students who need extra help in a subject.', photo: oneOnOne, alt: 'A tutor helping a student with a worksheet', tone: 'blue' },
+  { name: 'Small Groups', line: 'Students practice and learn alongside their peers.', photo: smallGroups, alt: 'A tutor working with a small group of students', tone: 'yellow' },
+  { name: 'In-Home Tutoring', line: 'For special circumstances.', photo: inHome, alt: 'A tutor and a student working at a kitchen table', tone: 'green' },
+  { name: 'Online Tutoring', line: 'For special circumstances.', photo: online, alt: 'A student in an online session with a tutor on a laptop', tone: 'purple' },
 ];
+/** Matches the services grid: 4 across from lg, 2 across from sm, 1 across below. */
+const SERVICE_PHOTO_SIZES = '(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw';
 
 /** What the parent app does today: each line is true of the screens (L4 report). */
 const APP_LINES: [string, string][] = [
@@ -185,11 +194,13 @@ export function Landing() {
             <p className="mx-auto mt-2.5 max-w-[520px] text-landing-muted">Pick what fits your child. Every option includes the parent app.</p>
           </div>
           <ul className="mt-11 grid list-none grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {SERVICES.map(({ name, line, icon: Icon, tone }) => (
-              <li key={name} className={`rounded-[24px] p-[30px] ${TONE[tone].tile}`}>
-                <Icon data-icon size={20} strokeWidth={1.75} aria-hidden className={`mb-4 ${TONE[tone].ink}`} />
-                <h3 className="mb-2 text-[19px] font-bold leading-[1.3] tracking-[-0.01em]">{name}</h3>
-                <p className="text-[15px] text-landing-text">{line}</p>
+            {SERVICES.map(({ name, line, photo, alt, tone }) => (
+              <li key={name} className={`overflow-hidden rounded-[24px] ${TONE[tone].tile}`}>
+                <Image src={photo} alt={alt} sizes={SERVICE_PHOTO_SIZES} className="block aspect-[2/1] h-auto w-full object-cover" />
+                <div className="p-[30px]">
+                  <h3 className="mb-2 text-[19px] font-bold leading-[1.3] tracking-[-0.01em]">{name}</h3>
+                  <p className="text-[15px] text-landing-text">{line}</p>
+                </div>
               </li>
             ))}
           </ul>
