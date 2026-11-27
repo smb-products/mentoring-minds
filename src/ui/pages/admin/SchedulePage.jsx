@@ -47,28 +47,28 @@ export default function SchedulePage() {
         title="Schedule"
         subtitle={`${booked.length} sessions this week, ${hours % 1 ? hours.toFixed(1) : hours} hours of teaching.`}
         actions={<Button variant="primary" icon={CalendarPlus} onClick={() => setAdding(true)}>Add session</Button>}
-      >
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <div className="glass flex items-center rounded-[10px]">
-            <IconButton icon={ChevronLeft} label="Previous week" onClick={() => setWeekStart(addDays(weekStart, -7))} className="text-ink-muted hover:bg-ink-foreground/10 hover:text-ink-foreground" />
-            <button type="button" onClick={() => setWeekStart(startOfWeek())} className="h-9 px-3 text-[14px] font-bold text-ink-foreground hover:bg-ink-foreground/10 @max-3xl/app:h-10">This week</button>
-            <IconButton icon={ChevronRight} label="Next week" onClick={() => setWeekStart(addDays(weekStart, 7))} className="text-ink-muted hover:bg-ink-foreground/10 hover:text-ink-foreground" />
-          </div>
-          <p className="text-[16px] font-extrabold text-ink-foreground">{fmtDate(weekStart)} – {fmtDateYear(addDays(weekStart, 6))}</p>
-          <div className="ml-auto flex items-center gap-4 text-[12.5px] font-bold text-ink-muted">
-            <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-4 rounded-[3px] bg-ink-foreground/25" />Open hours</span>
-            <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-1 rounded-full bg-chart-1" />In person</span>
-            <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-1 rounded-full bg-chart-2" />Video call</span>
-            <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-4 rounded-[3px] border-[1.5px] border-dashed border-reward" />Requested</span>
-            <button type="button" role="switch" aria-checked={showCancelled} onClick={() => setShowCancelled(!showCancelled)} className="glass flex h-9 items-center gap-2 rounded-[10px] px-3 text-ink-foreground @max-3xl/app:h-10">
-              <span className={cn('relative h-4 w-7 rounded-full transition-colors', showCancelled ? 'bg-reward' : 'bg-ink-foreground/25')}>
-                <span className={cn('absolute top-0.5 size-3 rounded-full bg-ink-foreground transition-[left]', showCancelled ? 'left-3.5' : 'left-0.5')} />
-              </span>
-              Show cancelled
-            </button>
-          </div>
+      />
+
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="flex items-center rounded-md border border-border bg-card">
+          <IconButton icon={ChevronLeft} label="Previous week" onClick={() => setWeekStart(addDays(weekStart, -7))} />
+          <button type="button" onClick={() => setWeekStart(startOfWeek())} className="h-9 px-3 text-body font-medium text-foreground transition-colors hover:bg-muted @max-3xl/app:h-10">This week</button>
+          <IconButton icon={ChevronRight} label="Next week" onClick={() => setWeekStart(addDays(weekStart, 7))} />
         </div>
-      </PageHeader>
+        <p className="tabular text-heading text-foreground">{fmtDate(weekStart)} – {fmtDateYear(addDays(weekStart, 6))}</p>
+        <div className="ml-auto flex items-center gap-4 text-caption text-muted-foreground">
+          <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-4 rounded-xs bg-[color-mix(in_oklch,var(--primary)_16%,transparent)]" />Open hours</span>
+          <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-1 rounded-xs bg-chart-1" />In person</span>
+          <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-1 rounded-xs bg-chart-2" />Video call</span>
+          <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-4 rounded-xs border-[1.5px] border-dashed border-warning" />Requested</span>
+          <button type="button" role="switch" aria-checked={showCancelled} onClick={() => setShowCancelled(!showCancelled)} className="flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3 text-small font-medium text-foreground transition-colors hover:bg-accent @max-3xl/app:h-10">
+            <span className={cn('relative h-4 w-7 rounded-sm transition-colors', showCancelled ? 'bg-primary' : 'bg-input')}>
+              <span className={cn('absolute top-0.5 size-3 rounded-xs bg-card transition-[left]', showCancelled ? 'left-3.5' : 'left-0.5')} />
+            </span>
+            Show cancelled
+          </button>
+        </div>
+      </div>
 
       {tab === 'week' && (
         <>
@@ -116,7 +116,7 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
   const top = (h) => (h - START_H) * HOUR_PX;
 
   return (
-    <div className="surface overflow-hidden rounded-[14px]">
+    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-card">
       <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] border-b border-border/80">
         <div />
         {days.map((d) => {
@@ -125,10 +125,10 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
           return (
             <div key={d.toISOString()} className={cn('border-l border-border/80 px-3 py-2.5', today && 'bg-brand-soft')}>
               <div className="flex items-baseline gap-1.5">
-                <span className={cn('text-[12.5px] font-bold', today ? 'text-brand-soft-foreground' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
-                <span className={cn('tabular text-[18px] font-extrabold', today && 'text-brand-soft-foreground')}>{dayOfMonth(d)}</span>
+                <span className={cn('text-caption', today ? 'text-brand-soft-foreground' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
+                <span className={cn('tabular text-heading', today && 'text-brand-soft-foreground')}>{dayOfMonth(d)}</span>
               </div>
-              <p className="text-[12px] font-semibold text-subtle-foreground">{count ? `${count} session${count > 1 ? 's' : ''}` : '—'}</p>
+              <p className="text-caption font-normal text-subtle-foreground">{count ? `${count} session${count > 1 ? 's' : ''}` : '—'}</p>
             </div>
           );
         })}
@@ -137,7 +137,7 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
         <div className="relative grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))]" style={{ height: hours.length * HOUR_PX }}>
           <div className="relative">
             {hours.map((h) => (
-              <span key={h} className="tabular absolute right-2 -translate-y-1/2 text-[11.5px] font-bold text-subtle-foreground" style={{ top: top(h) }}>
+              <span key={h} className="tabular absolute right-2 -translate-y-1/2 text-caption text-subtle-foreground" style={{ top: top(h) }}>
                 {h === START_H ? '' : `${h % 12 || 12}${h < 12 ? 'a' : 'p'}`}
               </span>
             ))}
@@ -148,7 +148,7 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
             const list = sessions.filter((s) => sameDay(s.startsAt, d));
             const today = isToday(d);
             return (
-              <div key={d.toISOString()} className={cn('relative border-l border-border/80', off && 'bg-[repeating-linear-gradient(-45deg,transparent_0_7px,var(--border)_7px_8px)]')}>
+              <div key={d.toISOString()} className={cn('relative border-l border-border/80', off && 'bg-muted')}>
                 {hours.map((h) => <div key={h} className="absolute inset-x-0 border-t border-border/50" style={{ top: top(h) }} />)}
                 {!off &&
                   windows.map((w) => (
@@ -162,7 +162,7 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
                     />
                   ))}
                 {off && (
-                  <span className="absolute inset-x-2 top-3 rounded-md bg-card px-2 py-1 text-center text-[12px] font-bold text-muted-foreground shadow-raised">{off.reason || 'Time off'}</span>
+                  <span className="absolute inset-x-2 top-3 rounded-md border border-border bg-card px-2 py-1 text-center text-caption text-muted-foreground">{off.reason || 'Time off'}</span>
                 )}
                 {list.map((s) => {
                   const muted = ['CANCELLED', 'DECLINED'].includes(s.status);
@@ -174,15 +174,15 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
                       type="button"
                       onClick={() => onSelect(s)}
                       className={cn(
-                        'absolute inset-x-1.5 z-10 overflow-hidden rounded-lg py-1 pl-2.5 pr-1.5 text-left shadow-raised transition-[filter] hover:brightness-[0.97]',
+                        'absolute inset-x-1.5 z-10 overflow-hidden rounded-md py-1 pl-2.5 pr-1.5 text-left transition-[filter] hover:brightness-[0.97]',
                         requested && 'border-[1.5px] border-dashed border-warning',
                         muted && 'opacity-55',
                       )}
                       style={{ top: top(hourOf(s.startsAt)) + 1.5, height: h, background: muted ? 'var(--muted)' : requested ? 'var(--warning-soft)' : `color-mix(in oklch, var(--${sessionColor(s)}) var(--tint), var(--card))` }}
                     >
                       {!requested && <span className={cn('absolute inset-y-0 left-0 w-[3px]', muted ? 'bg-border' : sessionBg(s))} aria-hidden />}
-                      <p className={cn('truncate text-[13px] font-extrabold leading-tight', muted && 'line-through')}>{s.student.firstName} {s.student.lastName[0]}.</p>
-                      {h > 34 && <p className="tabular truncate text-[11.5px] font-bold text-muted-foreground">{fmtTime(s.startsAt)}{requested ? ', requested' : s.mode === 'VIDEO' ? ', video' : ''}</p>}
+                      <p className={cn('truncate text-small font-medium leading-tight', muted && 'line-through')}>{s.student.firstName} {s.student.lastName[0]}.</p>
+                      {h > 34 && <p className="tabular truncate text-caption font-normal text-muted-foreground">{fmtTime(s.startsAt)}{requested ? ', requested' : s.mode === 'VIDEO' ? ', video' : ''}</p>}
                     </button>
                   );
                 })}
@@ -214,10 +214,10 @@ function DayAgenda({ days, sessions, timeOff, availability, onSelect }) {
           const sel = sameDay(d, day);
           const n = sessions.filter((s) => sameDay(s.startsAt, d) && !['CANCELLED', 'DECLINED'].includes(s.status)).length;
           return (
-            <button key={d.toISOString()} type="button" role="tab" aria-selected={sel} onClick={() => setDay(d)} className={cn('flex w-14 shrink-0 flex-col items-center rounded-xl py-2', sel ? 'bg-ink text-ink-foreground shadow-raised' : 'surface text-foreground')}>
-              <span className={cn('text-[12px] font-bold', sel ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
-              <span className="tabular text-[19px] font-extrabold leading-tight">{dayOfMonth(d)}</span>
-              <span className={cn('mt-0.5 h-1.5 w-1.5 rounded-full', n ? (sel ? 'bg-reward' : 'bg-primary') : 'bg-transparent')} />
+            <button key={d.toISOString()} type="button" role="tab" aria-selected={sel} onClick={() => setDay(d)} className={cn('flex w-14 shrink-0 flex-col items-center rounded-md py-2', sel ? 'bg-ink text-ink-foreground' : 'border border-border bg-card text-foreground')}>
+              <span className={cn('text-caption', sel ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
+              <span className="tabular text-title">{dayOfMonth(d)}</span>
+              <span className={cn('mt-0.5 h-1.5 w-1.5 rounded-full', n ? (sel ? 'bg-ink-foreground' : 'bg-primary') : 'bg-transparent')} />
             </button>
           );
         })}
@@ -245,10 +245,10 @@ function TimeOff({ timeOff }) {
         ) : (
           upcoming.map((o) => (
             <Row key={o.id}>
-              <CalendarOff size={18} className="shrink-0 text-muted-foreground" aria-hidden />
+              <CalendarOff size={18} strokeWidth={1.75} className="shrink-0 text-muted-foreground" aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="text-[14.5px] font-bold">{fmtDate(o.startsAt)} – {fmtDateYear(o.endsAt)}</p>
-                {o.reason && <p className="text-[13px] text-muted-foreground">{o.reason}</p>}
+                <p className="text-body font-medium">{fmtDate(o.startsAt)} – {fmtDateYear(o.endsAt)}</p>
+                {o.reason && <p className="text-small text-muted-foreground">{o.reason}</p>}
               </div>
               <Button size="sm" variant="ghost" icon={Trash2} onClick={async () => undoable(await remove({ timeOffId: o.id }), 'Time off removed', () => add({ startsAt: o.startsAt, endsAt: o.endsAt, reason: o.reason }))}>Remove</Button>
             </Row>

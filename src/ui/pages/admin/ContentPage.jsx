@@ -44,18 +44,17 @@ export default function ContentPage() {
         title="Content"
         subtitle="The test-prep book’s answer keys, your library, and the skills you teach."
         actions={tab === 'library' && <Button variant="primary" icon={Plus} onClick={() => navigate('/admin/content/new')}>Add resource</Button>}
-      >
-        <Figures
-          variant="band"
-          className="mt-6"
-          items={[
-            { label: 'Answer keys ready', value: `${keyed} of ${tests}`, note: 'Tests you can assign', onClick: () => setTab('book') },
-            { label: 'Have the book', value: books.reduce((n, b) => n + b.studentsWithBook, 0), note: `of ${books.reduce((n, b) => n + b.studentsInGrade, 0)} students in grades 3–6` },
-            { label: 'Library', value: resources.length, note: (() => { const n = resources.filter((r) => r.status === 'DRAFT').length; return `${n} draft${n === 1 ? '' : 's'}`; })(), onClick: () => setTab('library') },
-            { label: 'Skills', value: skills.length, note: 'Linked to Florida standards', onClick: () => setTab('skills') },
-          ]}
-        />
-      </PageHeader>
+      />
+
+      <Figures
+        className="mb-5"
+        items={[
+          { label: 'Answer keys ready', value: `${keyed} of ${tests}`, note: 'Tests you can assign', onClick: () => setTab('book') },
+          { label: 'Have the book', value: books.reduce((n, b) => n + b.studentsWithBook, 0), note: `of ${books.reduce((n, b) => n + b.studentsInGrade, 0)} students in grades 3–6` },
+          { label: 'Library', value: resources.length, note: (() => { const n = resources.filter((r) => r.status === 'DRAFT').length; return `${n} draft${n === 1 ? '' : 's'}`; })(), onClick: () => setTab('library') },
+          { label: 'Skills', value: skills.length, note: 'Linked to Florida standards', onClick: () => setTab('skills') },
+        ]}
+      />
 
       {tab === 'book' && <Books books={books} />}
       {tab === 'library' && <Library resources={resources} />}
@@ -70,7 +69,7 @@ function Books({ books }) {
   if (!books.length) return <Section><Empty icon={BookOpen} title="No books set up">Add the test-prep book for a grade to start assigning from it.</Empty></Section>;
   return (
     <>
-      <p className="mb-4 max-w-prose text-[15px] leading-relaxed text-muted-foreground">
+      <p className="mb-4 max-w-prose text-body leading-relaxed text-muted-foreground">
         The app keeps only the question numbers, what each one tests, and your answers. Students work in their own copy of the book.
       </p>
       <div className="grid gap-5 @4xl/page:grid-cols-2">
@@ -83,22 +82,22 @@ function Books({ books }) {
                   <li key={t.key}>
                     <Row onClick={() => navigate(`/admin/content/book/${b.id}/${t.key}`)}>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[15px] font-extrabold">{t.name}</p>
-                        <p className="text-[13.5px] text-muted-foreground">{t.count} questions</p>
+                        <p className="text-body font-medium">{t.name}</p>
+                        <p className="text-small text-muted-foreground">{t.count} questions</p>
                       </div>
                       <div className="w-36 shrink-0">
                         {done ? (
                           <StatusBadge status="GRADED" label="Answer key ready" />
                         ) : t.keyed ? (
                           <>
-                            <p className="tabular text-[13px] font-bold text-muted-foreground">{t.keyed} of {t.count} entered</p>
+                            <p className="tabular text-small font-medium text-muted-foreground">{t.keyed} of {t.count} entered</p>
                             <Progress value={t.keyed} max={t.count} className="mt-1" />
                           </>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-brand"><Camera size={15} aria-hidden />Set up</span>
+                          <span className="inline-flex items-center gap-1.5 text-small font-medium text-brand"><Camera size={15} strokeWidth={1.75} aria-hidden />Set up</span>
                         )}
                       </div>
-                      <ChevronRight size={18} className="shrink-0 text-subtle-foreground" aria-hidden />
+                      <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-subtle-foreground" aria-hidden />
                     </Row>
                   </li>
                 );
@@ -135,19 +134,19 @@ function Library({ resources }) {
               return (
                 <li key={r.id}>
                   <Row onClick={() => navigate(`/admin/content/${r.id}`)} className="items-start @3xl/page:items-center">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-[10px] bg-muted text-muted-foreground">
-                      <Kind.icon size={19} strokeWidth={2} aria-hidden />
+                    <span className="grid size-10 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
+                      <Kind.icon size={18} strokeWidth={1.75} aria-hidden />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="line-clamp-2 text-[15px] font-extrabold leading-snug @3xl/page:truncate">{r.title}</p>
-                      <p className="line-clamp-2 text-[13.5px] text-muted-foreground @3xl/page:truncate">{r.description}</p>
-                      <p className="mt-1.5 text-[13px] font-semibold text-muted-foreground @3xl/page:hidden">{gradeRange(r.gradeMin, r.gradeMax)}, {visibilityLabel(r)}</p>
+                      <p className="line-clamp-2 text-body font-medium leading-snug @3xl/page:truncate">{r.title}</p>
+                      <p className="line-clamp-2 text-small text-muted-foreground @3xl/page:truncate">{r.description}</p>
+                      <p className="mt-1.5 text-small text-muted-foreground @3xl/page:hidden">{gradeRange(r.gradeMin, r.gradeMax)}, {visibilityLabel(r)}</p>
                     </div>
-                    <div className="hidden w-28 shrink-0 text-[13.5px] font-semibold text-muted-foreground @3xl/page:block">{Kind.label}</div>
-                    <div className="hidden w-32 shrink-0 text-[13.5px] font-semibold text-muted-foreground @3xl/page:block">{gradeRange(r.gradeMin, r.gradeMax)}</div>
-                    <div className="hidden w-28 shrink-0 text-[13.5px] font-semibold text-muted-foreground @4xl/page:block">{visibilityLabel(r)}</div>
+                    <div className="hidden w-28 shrink-0 text-small text-muted-foreground @3xl/page:block">{Kind.label}</div>
+                    <div className="hidden w-32 shrink-0 text-small text-muted-foreground @3xl/page:block">{gradeRange(r.gradeMin, r.gradeMax)}</div>
+                    <div className="hidden w-28 shrink-0 text-small text-muted-foreground @4xl/page:block">{visibilityLabel(r)}</div>
                     <div className="flex w-24 shrink-0 items-center justify-end gap-2">
-                      {r.showInPreview && <Eye size={15} className="text-subtle-foreground" aria-label="Shown in preview" />}
+                      {r.showInPreview && <Eye size={15} strokeWidth={1.75} className="text-subtle-foreground" aria-label="Shown in preview" />}
                       <StatusBadge status={r.status} />
                     </div>
                   </Row>
@@ -175,8 +174,8 @@ function Skills({ skills }) {
         {skills.map((k) => (
           <div key={k.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 @3xl/page:px-5">
             <div className="min-w-0 flex-1">
-              <p className="text-[15px] font-bold">{k.name}</p>
-              <p className="text-[13px] text-muted-foreground">{strandName(k.strand)}, {gradeRange(k.gradeMin, k.gradeMax)}{k.benchmarkCodes.length ? `, ${k.benchmarkCodes.length} standards` : ''}</p>
+              <p className="text-body font-medium">{k.name}</p>
+              <p className="text-small text-muted-foreground">{strandName(k.strand)}, {gradeRange(k.gradeMin, k.gradeMax)}{k.benchmarkCodes.length ? `, ${k.benchmarkCodes.length} standards` : ''}</p>
             </div>
             <Button size="xs" variant="ghost" icon={Archive} aria-label={`Archive ${k.name}`} onClick={async () => undoable(await archive({ skillId: k.id }), `${k.name} archived`, () => archive({ skillId: k.id, archived: false }), 'Old notes and reports keep it.')}>Archive</Button>
           </div>
@@ -204,18 +203,18 @@ function Skills({ skills }) {
       <Section title="FAST areas" description="How the state reports math in each grade, from the FLDOE test design.">
         {[3, 4, 5, 6].map((g) => (
           <div key={g} className="px-4 py-3 @3xl/page:px-5">
-            <p className="text-[14.5px] font-extrabold">{gradeLabel(g)}</p>
+            <p className="text-body font-semibold">{gradeLabel(g)}</p>
             <ul className="mt-1.5 space-y-1">
               {categoriesFor(g).map((c) => (
-                <li key={c.id} className="flex items-baseline justify-between gap-3 text-[13.5px]">
-                  <span className="font-semibold" title={c.name}>{AREA_LABEL[c.short]}</span>
+                <li key={c.id} className="flex items-baseline justify-between gap-3 text-small">
+                  <span className="font-medium" title={c.name}>{AREA_LABEL[c.short]}</span>
                   <span className="tabular shrink-0 text-muted-foreground">{c.percent} of the test</span>
                 </li>
               ))}
             </ul>
           </div>
         ))}
-        <p className="px-4 pb-4 text-[13px] text-muted-foreground @3xl/page:px-5">K–2 use Star Math, so their work is grouped by strand instead.</p>
+        <p className="px-4 pb-4 text-small text-muted-foreground @3xl/page:px-5">K–2 use Star Math, so their work is grouped by strand instead.</p>
       </Section>
     </div>
   );

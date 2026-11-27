@@ -91,14 +91,14 @@ export default function ReportPage({ params }) {
           {groups.map(({ area, skills }) => (
             <Section
               key={area.id}
-              title={<span className="inline-flex items-center gap-2"><span className={cn('size-2.5 rounded-[3px]', subjectBg(areaColor(area)))} aria-hidden />{area.name}</span>}
+              title={<span className="inline-flex items-center gap-2"><span className={cn('size-2.5 rounded-xs', subjectBg(areaColor(area)))} aria-hidden />{area.name}</span>}
               description={area.fullName !== area.name ? area.fullName : 'Rate the skills you worked on. Skip the rest.'}
             >
               {skills.map((k) => (
                 <div key={k.id} className="flex flex-col gap-2 px-4 py-3 @3xl/page:flex-row @3xl/page:items-center @3xl/page:justify-between @3xl/page:px-5">
-                  <p className="text-[14.5px] font-bold">{k.name}</p>
+                  <p className="text-body font-medium">{k.name}</p>
                   {published ? (
-                    ratings[k.id] ? <SkillMeter rating={ratings[k.id]} /> : <span className="text-[13px] text-subtle-foreground">Not rated</span>
+                    ratings[k.id] ? <SkillMeter rating={ratings[k.id]} /> : <span className="text-small text-subtle-foreground">Not rated</span>
                   ) : (
                     <Segmented
                       label={`${k.name} rating`}
@@ -117,9 +117,9 @@ export default function ReportPage({ params }) {
         <div className="space-y-5">
         <Section title="Book work this period">
           <div className="space-y-4 p-4 @3xl/page:p-5">
-            <p className="text-[15px]">
+            <p className="text-body">
               {report.bookWork.assigned ? (
-                <><span className="font-extrabold">{report.bookWork.done} of {report.bookWork.assigned}</span> book assignments done.</>
+                <><span className="font-semibold">{report.bookWork.done} of {report.bookWork.assigned}</span> book assignments done.</>
               ) : (
                 'No book work in these dates.'
               )}
@@ -134,12 +134,12 @@ export default function ReportPage({ params }) {
           <div className="flex items-center gap-3 px-4 py-4 @3xl/page:px-5">
             <Avatar name={fullName(student)} tone={student.avatarColor} size="md" />
             <div>
-              <p className="text-[15px] font-extrabold">{fullName(student)}</p>
-              <p className="text-[13.5px] text-muted-foreground">{gradeLabel(student.grade)}</p>
+              <p className="text-body font-medium">{fullName(student)}</p>
+              <p className="text-small text-muted-foreground">{gradeLabel(student.grade)}</p>
             </div>
           </div>
-          <div className="space-y-2 px-4 py-4 text-[14px] leading-relaxed text-muted-foreground @3xl/page:px-5">
-            <p><span className="font-bold text-foreground">{rated}</span> skill{rated === 1 ? '' : 's'} rated.</p>
+          <div className="space-y-2 px-4 py-4 text-body leading-relaxed text-muted-foreground @3xl/page:px-5">
+            <p><span className="font-medium text-foreground">{rated}</span> skill{rated === 1 ? '' : 's'} rated.</p>
             <p>Publishing sends {parent.name.split(' ')[0]} one notification. Once published, the report can’t be edited.</p>
           </div>
         </Section>

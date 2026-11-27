@@ -66,7 +66,7 @@ export default function AnswerKeyPage({ params }) {
 
       <Section flush title="Questions" description="Students only ever see the numbers. Answers stay on the server.">
         <div className="@container/key">
-          <div className="hidden grid-cols-[3rem_10rem_9rem_minmax(0,1fr)] gap-3 border-b border-border px-4 py-2.5 text-[13px] font-bold text-muted-foreground @2xl/key:grid @3xl/page:px-5" aria-hidden>
+          <div className="hidden grid-cols-[3rem_10rem_9rem_minmax(0,1fr)] gap-3 border-b border-border px-4 py-2.5 text-caption text-muted-foreground @2xl/key:grid @3xl/page:px-5" aria-hidden>
             <span>#</span><span>Type</span><span>Answer</span><span>Standard</span>
           </div>
           <ul className="divide-y divide-border">
@@ -84,21 +84,21 @@ function KeyRow({ r, grade, codes, onChange }) {
   const area = r.benchmarkCode ? areaFor(grade, { code: r.benchmarkCode }) : null;
   return (
     <li className={cn('grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-2.5 @2xl/key:grid-cols-[3rem_10rem_9rem_minmax(0,1fr)] @3xl/page:px-5', r.dirty && 'bg-brand-soft/30')}>
-      <span className="tabular row-span-2 flex items-center gap-1.5 self-start pt-2 text-[16px] font-extrabold @2xl/key:row-span-1 @2xl/key:self-center @2xl/key:pt-0">
+      <span className="tabular row-span-2 flex items-center gap-1.5 self-start pt-2 text-heading @2xl/key:row-span-1 @2xl/key:self-center @2xl/key:pt-0">
         {r.number}
       </span>
       <Select aria-label={`Type for #${r.number}`} value={r.format} onChange={(e) => onChange({ format: e.target.value, answer: e.target.value === 'OPEN' ? '' : r.answer })}>
         {FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
       </Select>
       {r.format === 'OPEN' ? (
-        <span className="text-[14px] font-semibold text-muted-foreground">You check it</span>
+        <span className="text-body text-muted-foreground">You check it</span>
       ) : (
         <Input
           aria-label={`Answer for #${r.number}`}
           value={r.answer}
           onChange={(e) => onChange({ answer: e.target.value.toUpperCase() })}
           placeholder={r.format === 'MC' ? 'A' : r.format === 'MULTI' ? 'A, C' : '3/4'}
-          className="tabular font-extrabold"
+          className="tabular font-semibold"
         />
       )}
       <div className="col-span-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 @2xl/key:col-span-1">

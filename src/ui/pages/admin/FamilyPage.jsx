@@ -39,7 +39,6 @@ export default function FamilyPage({ params }) {
   return (
     <>
       <PageHeader
-        overlap
         back={{ href: '/admin/families', label: 'Families' }}
         title={p.name}
         subtitle={`${kids.length ? `Parent of ${kids.join(' and ')}. ` : ''}Joined ${fmtDateYear(p.createdAt)}.`}
@@ -55,18 +54,20 @@ export default function FamilyPage({ params }) {
             <Button variant="glass" icon={Trash2} onClick={() => setDeleting({ kind: 'family' })}>Delete family</Button>
           </>
         }
-      >
-        <div className="mt-5 flex flex-wrap gap-2">
-          <a href={`mailto:${p.email}`} className="glass inline-flex h-9 @max-3xl/app:h-10 items-center gap-2 rounded-[10px] px-3 text-[13.5px] font-bold text-ink-foreground hover:bg-ink-foreground/15"><Mail size={15} aria-hidden />{p.email}</a>
-          {p.phone && <span className="glass inline-flex h-9 @max-3xl/app:h-10 items-center gap-2 rounded-[10px] px-3 text-[13.5px] font-bold text-ink-foreground"><Phone size={15} aria-hidden />{p.phone}</span>}
-          <StatusBadge status={p.status} className="h-9 rounded-[10px] px-3" />
+      />
+
+      <div className="mb-5">
+        <div className="flex flex-wrap gap-2">
+          <a href={`mailto:${p.email}`} className="inline-flex h-9 @max-3xl/app:h-10 items-center gap-2 rounded-md border border-border bg-card px-3 text-small font-medium text-foreground transition-colors hover:bg-accent"><Mail size={15} strokeWidth={1.75} aria-hidden />{p.email}</a>
+          {p.phone && <span className="inline-flex h-9 @max-3xl/app:h-10 items-center gap-2 rounded-md border border-border bg-card px-3 text-small font-medium text-foreground"><Phone size={15} strokeWidth={1.75} aria-hidden />{p.phone}</span>}
+          <StatusBadge status={p.status} className="h-9 px-3" />
         </div>
         {tempPw && (
-          <p className="mt-3 text-[14px] text-ink-muted">
-            Temporary password <span className="tabular select-all rounded-md bg-ink-foreground px-1.5 py-0.5 font-extrabold text-ink">{tempPw}</span>. Pass it on to {p.name.split(' ')[0]}; they choose a new one when they sign in.
+          <p className="mt-3 text-body text-muted-foreground">
+            Temporary password <span className="tabular select-all rounded-md bg-ink px-1.5 py-0.5 font-semibold text-ink-foreground">{tempPw}</span>. Pass it on to {p.name.split(' ')[0]}; they choose a new one when they sign in.
           </p>
         )}
-      </PageHeader>
+      </div>
 
       {data.students.length === 0 ? (
         <Section className="mb-5"><Empty title="No children on this account yet">They’re added when the parent enters their invite code.</Empty></Section>
@@ -94,14 +95,14 @@ export default function FamilyPage({ params }) {
           ) : (
             notes.map((s) => (
               <Row key={s.id} onClick={() => setSelected(s)} className="items-start">
-                <span className={cn('mt-1 h-10 w-[3px] shrink-0 rounded-full', sessionBg(s))} aria-hidden />
+                <span className={cn('mt-1 h-10 w-[3px] shrink-0 rounded-xs', sessionBg(s))} aria-hidden />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
-                    <p className="text-[14.5px] font-extrabold">{s.student.firstName}</p>
-                    <span className="text-[13px] font-semibold text-muted-foreground">{fmtDate(s.startsAt)}</span>
-                    {!s.note.sharedWithParent && <span className="rounded-md bg-muted px-1.5 text-[12px] font-bold text-muted-foreground">Private</span>}
+                    <p className="text-body font-medium">{s.student.firstName}</p>
+                    <span className="text-small text-muted-foreground">{fmtDate(s.startsAt)}</span>
+                    {!s.note.sharedWithParent && <span className="rounded-md bg-badge px-1.5 text-caption text-badge-foreground">Private</span>}
                   </div>
-                  <p className="mt-1 line-clamp-2 text-[14px] leading-relaxed text-muted-foreground">{s.note.summary}</p>
+                  <p className="mt-1 line-clamp-2 text-body leading-relaxed text-muted-foreground">{s.note.summary}</p>
                 </div>
               </Row>
             ))
@@ -116,11 +117,11 @@ export default function FamilyPage({ params }) {
             upcoming.map((s) => (
               <Row key={s.id} onClick={() => setSelected(s)}>
                 <div className="tabular w-[6rem] shrink-0">
-                  <p className="text-[13px] font-bold text-muted-foreground">{fmtRelativeDay(s.startsAt)}</p>
-                  <p className="text-[14px] font-extrabold">{fmtTime(s.startsAt)}</p>
+                  <p className="text-small font-medium text-muted-foreground">{fmtRelativeDay(s.startsAt)}</p>
+                  <p className="text-body font-medium">{fmtTime(s.startsAt)}</p>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[14.5px] font-bold">{s.student.firstName}</p>
+                  <p className="text-body font-medium">{s.student.firstName}</p>
                   <Place session={s} />
                 </div>
                 {s.status === 'REQUESTED' && <StatusBadge status="REQUESTED" />}
@@ -175,13 +176,13 @@ function DeleteDrawer({ parent, kids, student, onClose, onDeleted }) {
     <Drawer open onClose={onClose} title={student ? `Delete ${name}?` : `Delete the ${parent.name.split(' ').slice(-1)[0]} family?`} subtitle="This can’t be undone.">
       {step === 'explain' ? (
         <div className="space-y-5">
-          <p className="text-[14.5px] leading-relaxed text-muted-foreground">
+          <p className="text-body leading-relaxed text-muted-foreground">
             {student ? `This removes ${name} from ${parent.name.split(' ')[0]}’s account, with everything about them:` : `This removes ${who}, with everything about them:`}
           </p>
-          <ul className="list-disc space-y-1 pl-5 text-[14.5px] font-semibold">
+          <ul className="list-disc space-y-1 pl-5 text-body font-medium">
             {removed.map((r) => <li key={r}>{r}</li>)}
           </ul>
-          <p className="text-[14px] leading-relaxed text-muted-foreground">Library resources stay. They just stop being shared with {student ? student.firstName : 'this family'}.</p>
+          <p className="text-body leading-relaxed text-muted-foreground">Library resources stay. They just stop being shared with {student ? student.firstName : 'this family'}.</p>
           <div className="flex justify-end gap-2 border-t border-border pt-4">
             <Button variant="ghost" onClick={onClose}>Keep</Button>
             <Button variant="destructive" icon={Trash2} onClick={() => setStep('type')}>Continue</Button>
@@ -217,53 +218,53 @@ function StudentCard({ s, reports, onNewReport, onDelete }) {
   const dirty = notes !== (s.adminNotes ?? '');
 
   return (
-    <section className="surface flex flex-col overflow-hidden rounded-[14px]">
+    <section className="flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-card">
       <div className="flex items-center gap-4 px-5 pb-4 pt-5">
-        <Avatar name={fullName(s)} tone={s.avatarColor} size="lg" className="size-14 rounded-2xl text-[19px]" />
+        <Avatar name={fullName(s)} tone={s.avatarColor} size="lg" className="size-14 text-heading" />
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-[20px] font-extrabold tracking-[-0.01em]">{fullName(s)}</h2>
+          <h2 className="truncate text-title">{fullName(s)}</h2>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="text-[14px] font-semibold text-muted-foreground">{gradeLabel(s.grade)}{s.school ? `, ${s.school}` : ''}</span>
+            <span className="text-body text-muted-foreground">{gradeLabel(s.grade)}{s.school ? `, ${s.school}` : ''}</span>
           </div>
         </div>
         <Button size="xs" variant="ghost" icon={Trash2} onClick={onDelete} aria-label={`Delete ${fullName(s)}`} className="self-start">Delete</Button>
       </div>
 
-      <dl className="mx-5 grid grid-cols-3 overflow-hidden rounded-xl bg-muted/70">
+      <dl className="mx-5 grid grid-cols-3 overflow-hidden rounded-md bg-muted/70">
         {[
           ['Sessions', s.stats.completedSessions],
           ['To redo', s.stats.redoCount],
           ['Next', s.stats.nextSessionAt ? fmtDate(s.stats.nextSessionAt) : '—'],
         ].map(([label, value], i) => (
           <div key={label} className={cn('px-3 py-2.5', i > 0 && 'border-l border-card')}>
-            <dt className="text-[12px] font-bold text-muted-foreground">{label}</dt>
-            <dd className="tabular mt-0.5 truncate text-[17px] font-extrabold">{value}</dd>
+            <dt className="text-caption text-muted-foreground">{label}</dt>
+            <dd className="tabular mt-0.5 truncate text-heading">{value}</dd>
           </div>
         ))}
       </dl>
 
       <div className="space-y-5 px-5 py-4">
         {s.hasBook !== null && (
-          <div className={cn('flex items-center gap-3 rounded-xl px-3 py-2.5', s.hasBook ? 'bg-good-soft/60' : 'bg-warning-soft')}>
-            {s.hasBook ? <BookCheck size={18} className="shrink-0 text-good-soft-foreground" aria-hidden /> : <BookX size={18} className="shrink-0 text-warning-soft-foreground" aria-hidden />}
-            <p className="min-w-0 flex-1 text-[14px] font-bold">{s.hasBook ? 'Has the grade ' + s.grade + ' book' : 'Hasn’t said they have the book yet'}</p>
+          <div className={cn('flex items-center gap-3 rounded-md px-3 py-2.5', s.hasBook ? 'bg-good-soft/60' : 'bg-warning-soft')}>
+            {s.hasBook ? <BookCheck size={18} strokeWidth={1.75} className="shrink-0 text-good-soft-foreground" aria-hidden /> : <BookX size={18} strokeWidth={1.75} className="shrink-0 text-warning-soft-foreground" aria-hidden />}
+            <p className="min-w-0 flex-1 text-body font-medium">{s.hasBook ? 'Has the grade ' + s.grade + ' book' : 'Hasn’t said they have the book yet'}</p>
             {!s.hasBook && <Button size="xs" onClick={async () => show(await setHasBook({ studentId: s.id }), 'Marked as having the book')}>They have it</Button>}
           </div>
         )}
         <FastResults student={s} compact />
         <div>
-          <p className="text-[14px] font-extrabold">Book work by area</p>
+          <p className="text-heading">Book work by area</p>
           <AreaBars areas={s.bookAreas} className="mt-2.5" />
         </div>
         <div>
-          <p className="text-[13px] font-bold text-muted-foreground">Goals from the family</p>
-          <p className="mt-1 text-[14.5px] leading-relaxed">{s.goals || 'None shared yet.'}</p>
+          <p className="text-small font-medium text-muted-foreground">Goals from the family</p>
+          <p className="mt-1 text-body leading-relaxed">{s.goals || 'None shared yet.'}</p>
         </div>
         <div>
-          <label htmlFor={`notes-${s.id}`} className="flex items-center justify-between text-[13px] font-bold text-muted-foreground">
-            Private notes <span className="font-semibold text-subtle-foreground">Only you see these</span>
+          <label htmlFor={`notes-${s.id}`} className="flex items-center justify-between text-small font-medium text-muted-foreground">
+            Private notes <span className="font-normal text-subtle-foreground">Only you see these</span>
           </label>
-          <Textarea id={`notes-${s.id}`} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1.5 bg-reward-soft/40" />
+          <Textarea id={`notes-${s.id}`} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1.5 bg-muted/40" />
           {dirty && (
             <Button size="sm" variant="primary" className="mt-2" disabled={saving} onClick={async () => show(await updateStudent({ studentId: s.id, adminNotes: notes }), 'Notes saved')}>
               Save notes
@@ -274,18 +275,18 @@ function StudentCard({ s, reports, onNewReport, onDelete }) {
 
       <div className="mt-auto border-t border-border/80 px-3 pb-3 pt-2.5">
         <div className="flex items-center justify-between px-2">
-          <p className="text-[14px] font-extrabold">Progress reports</p>
+          <p className="text-heading">Progress reports</p>
           <Button size="xs" variant="ghost" icon={Plus} onClick={onNewReport}>New report</Button>
         </div>
         {reports.length === 0 ? (
-          <p className="px-2 pb-1 pt-1 text-[13.5px] text-subtle-foreground">No reports yet.</p>
+          <p className="px-2 pb-1 pt-1 text-small text-subtle-foreground">No reports yet.</p>
         ) : (
           <ul className="mt-1">
             {reports.map((r) => (
               <li key={r.id}>
-                <Link href={`/admin/reports/${r.id}`} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted">
-                  <FileBarChart size={17} className="shrink-0 text-muted-foreground" aria-hidden />
-                  <span className="tabular flex-1 text-[14px] font-bold">{fmtDate(r.periodStart)} – {fmtDateYear(r.periodEnd)}</span>
+                <Link href={`/admin/reports/${r.id}`} className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-muted">
+                  <FileBarChart size={17} strokeWidth={1.75} className="shrink-0 text-muted-foreground" aria-hidden />
+                  <span className="tabular flex-1 text-body font-medium">{fmtDate(r.periodStart)} – {fmtDateYear(r.periodEnd)}</span>
                   <StatusBadge status={r.status} />
                 </Link>
               </li>
@@ -315,7 +316,7 @@ function Activity({ data }) {
       tone: 'bg-brand-soft text-brand-soft-foreground',
       text: `${w.student.firstName} ${w.status === 'GRADED' ? `finished “${w.assignment.title}”${w.maxScore ? `, ${w.score}/${w.maxScore}` : ''}` : `sent “${w.assignment.title}”`}`,
     })),
-    ...data.reports.filter((r) => r.publishedAt).map((r) => ({ at: r.publishedAt, icon: FileBarChart, tone: 'bg-reward-soft text-reward-soft-foreground', text: 'Progress report published' })),
+    ...data.reports.filter((r) => r.publishedAt).map((r) => ({ at: r.publishedAt, icon: FileBarChart, tone: 'bg-badge text-badge-foreground', text: 'Progress report published' })),
   ]
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, 8);
@@ -329,12 +330,12 @@ function Activity({ data }) {
           <span className="absolute bottom-6 left-[2.05rem] top-6 w-px bg-border @3xl/page:left-[2.3rem]" aria-hidden />
           {items.map((it, i) => (
             <li key={i} className="relative flex items-start gap-3 py-2">
-              <span className={cn('z-10 grid size-7 shrink-0 place-items-center rounded-full ring-4 ring-card', it.tone)}>
-                <it.icon size={14} strokeWidth={2.4} aria-hidden />
+              <span className={cn('z-10 grid size-7 shrink-0 place-items-center rounded-md ring-4 ring-card', it.tone)}>
+                <it.icon size={14} strokeWidth={1.75} aria-hidden />
               </span>
               <div className="min-w-0 pt-0.5">
-                <p className="text-[13.5px] font-bold leading-snug">{it.text}</p>
-                <p className="text-[12.5px] font-semibold text-subtle-foreground">{fmtAgo(it.at)}</p>
+                <p className="text-small font-medium leading-snug">{it.text}</p>
+                <p className="text-caption font-normal text-subtle-foreground">{fmtAgo(it.at)}</p>
               </div>
             </li>
           ))}

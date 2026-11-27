@@ -93,9 +93,9 @@ export default function NewAssignmentPage() {
                   </div>
                 )}
                 {test && !ready && (
-                  <div className="flex items-start gap-3 rounded-xl bg-warning-soft px-4 py-3 text-warning-soft-foreground">
+                  <div className="flex items-start gap-3 rounded-md bg-warning-soft px-4 py-3 text-warning-soft-foreground">
                     <BookX size={18} className="mt-0.5 shrink-0" aria-hidden />
-                    <div className="text-[14.5px] font-semibold">
+                    <div className="text-body font-medium">
                       Add the answer key for {test.name} first so answers can be checked.
                       <Button size="sm" className="mt-2 block" onClick={() => navigate(`/admin/content/book/${book.id}/${test.key}`)}>Set up the answer key</Button>
                     </div>

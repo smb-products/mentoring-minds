@@ -47,7 +47,7 @@ function Details({ s, past, setView, onClose }) {
           <Detail label="Where">
             {placeLabel(s)}
             {(s.address || s.location?.address) && (
-              <a href={mapsUrl(s.address || s.location.address)} target="_blank" rel="noreferrer" className="mt-1 flex items-center gap-1 text-[13px] hit-area font-bold text-brand hover:underline">
+              <a href={mapsUrl(s.address || s.location.address)} target="_blank" rel="noreferrer" className="mt-1 flex items-center gap-1 text-small hit-area font-medium text-brand hover:underline">
                 Open in Maps <ExternalLink size={13} aria-hidden />
               </a>
             )}
@@ -66,14 +66,14 @@ function Details({ s, past, setView, onClose }) {
       </dl>
 
       {s.note && (
-        <div className="mt-5 rounded-xl border border-border p-4">
+        <div className="mt-5 rounded-lg border border-border p-4">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[14px] font-extrabold">Session note</p>
-            <span className="text-[12.5px] font-bold text-muted-foreground">{s.note.sharedWithParent ? 'Shared with parent' : 'Private'}</span>
+            <p className="text-heading">Session note</p>
+            <span className="text-caption text-muted-foreground">{s.note.sharedWithParent ? 'Shared with parent' : 'Private'}</span>
           </div>
-          <p className="mt-2 text-[14px] leading-relaxed">{s.note.summary}</p>
-          {s.note.homework && <p className="mt-2 text-[14px] text-muted-foreground"><span className="font-bold text-foreground">Homework: </span>{s.note.homework}</p>}
-          {s.note.skills.length > 0 && <p className="mt-2 text-[13px] font-semibold text-muted-foreground">Skills: {s.note.skills.map((k) => k.name).join(', ')}</p>}
+          <p className="mt-2 text-body leading-relaxed">{s.note.summary}</p>
+          {s.note.homework && <p className="mt-2 text-body text-muted-foreground"><span className="font-medium text-foreground">Homework: </span>{s.note.homework}</p>}
+          {s.note.skills.length > 0 && <p className="mt-2 text-small text-muted-foreground">Skills: {s.note.skills.map((k) => k.name).join(', ')}</p>}
         </div>
       )}
 
@@ -109,9 +109,9 @@ function VideoPanel({ s }) {
   const open = joinOpen(s, settings?.joinOpensMin);
   const link = s.meetingUrl || settings?.defaultMeetingUrl;
   return (
-    <div className="mb-4 rounded-xl border border-border bg-muted/50 p-4">
-      <p className="flex items-center gap-2 text-[15px] font-extrabold"><Video size={18} className="text-brand" aria-hidden />Video call</p>
-      <p className="mt-1 break-all text-[14px] text-muted-foreground">{s.status === 'REQUESTED' ? 'Your video link is sent when you confirm.' : link}</p>
+    <div className="mb-4 rounded-lg border border-border bg-muted/50 p-4">
+      <p className="flex items-center gap-2 text-heading"><Video size={18} strokeWidth={1.75} className="text-brand" aria-hidden />Video call</p>
+      <p className="mt-1 break-all text-body text-muted-foreground">{s.status === 'REQUESTED' ? 'Your video link is sent when you confirm.' : link}</p>
       {s.status === 'CONFIRMED' && (
         <div className="mt-3 flex flex-wrap gap-2">
           <Button
@@ -190,7 +190,7 @@ function CompleteForm({ s, onDone, onBack }) {
         </Field>
         {redo.length > 0 && (
           <Field label="Book questions they got right today" hint="Ticked questions come off the redo list.">
-            <div className="divide-y divide-border rounded-xl border border-border">
+            <div className="divide-y divide-border rounded-lg border border-border">
               {redo.map((r) => (
                 <CheckRow key={r.id} checked={form.clearRedoIds.includes(r.id)} onChange={(on) => set({ clearRedoIds: on ? [...form.clearRedoIds, r.id] : form.clearRedoIds.filter((x) => x !== r.id) })} meta={r.item.area.name}>
                   {r.testName} #{r.item.number}
@@ -223,7 +223,7 @@ function ReasonForm({ s, kind, onDone, onBack }) {
         if (show(await run({ sessionId: s.id, reason }), kind === 'decline' ? 'Request declined' : 'Session cancelled', 'The parent has been notified.')) onDone();
       }}
     >
-      <p className="text-[14.5px] leading-relaxed text-muted-foreground">
+      <p className="text-body leading-relaxed text-muted-foreground">
         {kind === 'decline' ? 'The family will see your reason, so suggest another time if you can.' : 'The family is notified straight away.'}
       </p>
       <Field label="Reason (optional)">{(id) => <Textarea id={id} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={kind === 'decline' ? 'I’m booked then. Could Thursday at 4 work?' : ''} />}</Field>
