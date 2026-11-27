@@ -7,7 +7,8 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 
 - **S33 (new, held for Zero):** the voice session-note draft ("Talk about it") and the answer-key photo read
   ("Set up from photos") are removed, not hidden. That covers the UI, src/server/ai.ts, src/lib/ai/, the Claude
-  SDK, the AiDraft table and the AI-only columns and enum values, and AGENTS.md rule 9. Typing is the only way to
+  SDK, the AiDraft table and its enums, the VOICE and PHOTO values (NoteSource and KeySource are recreated without
+  them; the source columns stay, always TYPED), AGENTS.md rule 9 and the microphone permission in next.config.ts. Typing is the only way to
   write a note or an answer key. Why: Javaris doesn't want AI at launch. Production is empty and not migrated
   yet, so the drop migration loses nothing. Approved: Javaris (2026-11-27, via OSA).
 - **Retired:** W7 checks 4–6, S20 and S22 (the AI helpers, the AI daily cap and the photo size limit), and
