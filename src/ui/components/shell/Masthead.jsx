@@ -27,7 +27,7 @@ export function PageHeader({ title, subtitle, actions, back, overlap = false, ta
   return createPortal(
     <header className="pt-4 @3xl/page:pt-6">
       {back && (
-        <Link href={back.href} className="-ml-1.5 mb-1 inline-flex min-h-10 items-center gap-1 rounded-md px-1.5 text-small font-medium text-ink-muted hover:text-ink-foreground @3xl/page:mb-1.5 @3xl/page:min-h-8">
+        <Link href={back.href} className="-ml-1.5 mb-1 inline-flex min-h-10 items-center gap-1 rounded-md px-1.5 text-small font-medium text-ink-muted hover:text-ink-foreground @3xl/page:mb-0.5 @3xl/page:min-h-8">
           <ChevronLeft size={16} strokeWidth={1.75} aria-hidden />
           {back.label}
         </Link>

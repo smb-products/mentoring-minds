@@ -3,7 +3,7 @@ import { gradeShort } from '../../lib/format';
 import { Avatar } from '../ui/Display';
 import { useShell } from './ShellContext';
 
-/** Parents with more than one child pick whose learning they're looking at. */
+/** Parents with more than one child pick whose learning they're looking at. Sits on the gray page, below the band. */
 export function ChildSwitcher({ className }) {
   const { students, activeStudent, setActiveStudentId } = useShell();
   if (students.length < 2) return null;
@@ -19,13 +19,13 @@ export function ChildSwitcher({ className }) {
             aria-selected={selected}
             onClick={() => setActiveStudentId(s.id)}
             className={cn(
-              'flex h-10 shrink-0 items-center gap-2 rounded-md pl-1.5 pr-3 text-body font-medium transition-colors',
-              selected ? 'bg-ink-foreground text-ink' : 'bg-ink-foreground/[0.08] text-ink-muted hover:text-ink-foreground',
+              'flex h-10 shrink-0 items-center gap-2 rounded-md border pl-1.5 pr-3 text-body font-medium transition-colors',
+              selected ? 'border-primary bg-brand-soft text-brand-soft-foreground' : 'border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground',
             )}
           >
             <Avatar name={`${s.firstName} ${s.lastName}`} tone={s.avatarColor} size="xs" />
             {s.firstName}
-            <span className={cn('font-normal', selected ? 'text-ink/70' : 'text-ink-muted')}>{s.grade === 0 ? 'K' : `Gr ${gradeShort(s.grade)}`}</span>
+            <span className="font-normal text-muted-foreground">{s.grade === 0 ? 'K' : `Gr ${gradeShort(s.grade)}`}</span>
           </button>
         );
       })}

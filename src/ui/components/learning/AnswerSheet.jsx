@@ -93,13 +93,13 @@ export function AnswerSheet({ submission, onClose }) {
             <span
               key={s.number}
               className={cn(
-                'h-2 min-w-0 flex-1 rounded-full transition-colors',
+                'h-1.5 min-w-0 flex-1 rounded-xs transition-colors',
                 result ? (result.answers.find((x) => x.number === s.number)?.correct === true ? 'bg-good' : result.answers.find((x) => x.number === s.number)?.correct === false ? 'bg-critical' : 'bg-warning') : filled(s) ? 'bg-primary' : i === index && !review ? 'bg-brand-soft-foreground/30' : 'bg-muted',
               )}
             />
           ))}
         </div>
-        <span className="tabular w-16 text-right text-[14px] font-bold text-muted-foreground">{result ? 'Done' : review ? 'Check' : `${index + 1} of ${slots.length}`}</span>
+        <span className="tabular w-16 text-right text-body font-medium text-muted-foreground">{result ? 'Done' : review ? 'Check' : `${index + 1} of ${slots.length}`}</span>
       </div>
 
       {result ? (
@@ -108,8 +108,8 @@ export function AnswerSheet({ submission, onClose }) {
         <>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto w-full max-w-2xl px-5 pb-6 pt-6 @3xl/app:pt-10">
-              <h2 ref={headingRef} tabIndex={-1} className="font-display text-[28px] font-semibold leading-tight outline-none">{left.length ? `${left.length} still empty` : 'All done! Check your answers'}</h2>
-              <p className="mt-1 text-[16px] text-muted-foreground">Tap any number to change it.</p>
+              <h2 ref={headingRef} tabIndex={-1} className="text-page outline-none">{left.length ? `${left.length} still empty` : 'All done! Check your answers'}</h2>
+              <p className="mt-1 text-body text-muted-foreground">Tap any number to change it.</p>
               <ol className="mt-6 grid grid-cols-4 gap-2.5 @xl/app:grid-cols-5">
                 {slots.map((s, i) => (
                   <li key={s.number}>
@@ -119,10 +119,10 @@ export function AnswerSheet({ submission, onClose }) {
                         setIndex(i);
                         setReview(false);
                       }}
-                      className={cn('flex h-[4.5rem] w-full flex-col items-center justify-center rounded-2xl border-2 text-center', filled(s) ? 'border-border bg-card' : 'border-dashed border-warning bg-warning-soft')}
+                      className={cn('flex h-[4.5rem] w-full flex-col items-center justify-center rounded-lg border text-center transition-colors', filled(s) ? 'border-border bg-card hover:bg-accent' : 'border-dashed border-warning bg-warning-soft')}
                     >
-                      <span className="tabular text-[13px] font-bold text-muted-foreground">#{s.number}</span>
-                      <span className="tabular max-w-full truncate px-1 font-display text-[20px] font-semibold">{s.format === 'OPEN' ? (photos[s.number] ? 'Photo' : '—') : answers[s.number] || '—'}</span>
+                      <span className="tabular text-small font-medium text-muted-foreground">#{s.number}</span>
+                      <span className="tabular max-w-full truncate px-1 text-title">{s.format === 'OPEN' ? (photos[s.number] ? 'Photo' : '—') : answers[s.number] || '—'}</span>
                     </button>
                   </li>
                 ))}
@@ -140,9 +140,9 @@ export function AnswerSheet({ submission, onClose }) {
         <>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto flex w-full max-w-xl flex-col px-5 pb-6 pt-5 @3xl/app:pt-10">
-              <p className="text-[15px] font-bold text-muted-foreground">{testName} in your book</p>
-              <h2 ref={headingRef} tabIndex={-1} className="mt-1 font-display text-[40px] font-semibold leading-none text-foreground outline-none">Question {slot.number}</h2>
-              <p className="mt-2 text-[16px] text-muted-foreground">
+              <p className="text-body font-medium text-muted-foreground">{testName} in your book</p>
+              <h2 ref={headingRef} tabIndex={-1} className="mt-1 text-page text-foreground outline-none">Question {slot.number}</h2>
+              <p className="mt-2 text-body text-muted-foreground">
                 {slot.format === 'MC' && 'Pick one letter.'}
                 {slot.format === 'MULTI' && 'Pick every letter that is right.'}
                 {slot.format === 'NUMERIC' && 'Type your answer. For a fraction, use the / key.'}
@@ -169,7 +169,7 @@ export function AnswerSheet({ submission, onClose }) {
 
               {slot.format === 'NUMERIC' && (
                 <div className="mt-6">
-                  <output aria-live="polite" aria-label={`Your answer for question ${slot.number}`} className="tabular flex h-20 items-center justify-center rounded-2xl border-2 border-primary bg-card px-4 font-display text-[40px] font-semibold">
+                  <output aria-live="polite" aria-label={`Your answer for question ${slot.number}`} className="tabular flex h-20 items-center justify-center rounded-lg border-2 border-primary bg-card px-4 text-figure">
                     {answers[slot.number] ? answers[slot.number].replace(/ /g, '  ') : <span className="text-subtle-foreground">?</span>}
                   </output>
                   <div className="mt-4 grid grid-cols-4 gap-2.5">
@@ -180,11 +180,11 @@ export function AnswerSheet({ submission, onClose }) {
                         aria-label={PAD_LABEL[k] ?? k}
                         onClick={() => press(k)}
                         className={cn(
-                          'grid h-16 place-items-center rounded-2xl border-2 font-display text-[26px] font-semibold transition-transform active:translate-y-[2px]',
-                          /\d/.test(k) ? 'border-border bg-card shadow-[0_3px_0_var(--border)]' : 'border-transparent bg-muted text-muted-foreground',
+                          'grid h-16 place-items-center rounded-md border text-figure transition-colors',
+                          /\d/.test(k) ? 'border-border bg-card hover:bg-accent' : 'border-transparent bg-muted text-muted-foreground hover:bg-accent',
                         )}
                       >
-                        {k === 'del' ? <Delete size={26} aria-hidden /> : k === ' ' ? <span className="text-[15px] font-bold">space</span> : k === 'clear' ? <span className="text-[15px] font-bold">clear</span> : k === '-' ? '−' : k}
+                        {k === 'del' ? <Delete size={24} strokeWidth={1.75} aria-hidden /> : k === ' ' ? <span className="text-body font-medium">space</span> : k === 'clear' ? <span className="text-body font-medium">clear</span> : k === '-' ? '−' : k}
                       </button>
                     ))}
                   </div>
@@ -194,16 +194,16 @@ export function AnswerSheet({ submission, onClose }) {
               {slot.format === 'OPEN' && (
                 <div className="mt-6">
                   {photos[slot.number] ? (
-                    <div className="flex items-center gap-3 rounded-2xl border-2 border-good bg-good-soft/50 p-4">
-                      <Check size={24} className="text-good" aria-hidden />
-                      <p className="min-w-0 flex-1 truncate text-[16px] font-bold">{photos[slot.number].filename}</p>
+                    <div className="flex items-center gap-3 rounded-lg border border-good bg-good-soft p-4 text-good-soft-foreground">
+                      <Check size={22} strokeWidth={1.75} aria-hidden />
+                      <p className="min-w-0 flex-1 truncate text-body font-medium">{photos[slot.number].filename}</p>
                       <Button onClick={() => setPhotos((p) => ({ ...p, [slot.number]: undefined }))}>Retake</Button>
                     </div>
                   ) : (
-                    <label className={cn('flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-input bg-card text-center', uploading && 'opacity-60')}>
-                      <Camera size={34} className="text-brand" aria-hidden />
-                      <span className="text-[18px] font-extrabold">{uploading ? 'Sending…' : 'Take a photo'}</span>
-                      <span className="text-[14px] text-muted-foreground">Vienne will check this one herself.</span>
+                    <label className={cn('flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input bg-card text-center hover:bg-accent', uploading && 'opacity-60')}>
+                      <Camera size={30} strokeWidth={1.75} className="text-brand" aria-hidden />
+                      <span className="text-title">{uploading ? 'Sending…' : 'Take a photo'}</span>
+                      <span className="text-small text-muted-foreground">Vienne will check this one herself.</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -247,8 +247,8 @@ function Letter({ letter, selected, onClick, role }) {
       aria-checked={selected}
       onClick={onClick}
       className={cn(
-        'grid h-24 place-items-center rounded-2xl border-2 font-display text-[40px] font-semibold transition-[transform,box-shadow,border-color,background-color] duration-100 active:translate-y-[2px]',
-        selected ? 'border-primary bg-brand-soft text-foreground shadow-[0_3px_0_var(--primary)]' : 'border-border bg-card text-foreground shadow-[0_3px_0_var(--border)] hover:border-input/60',
+        'grid h-24 place-items-center rounded-lg border-2 text-figure transition-colors',
+        selected ? 'border-primary bg-brand-soft text-brand-soft-foreground' : 'border-border bg-card text-foreground hover:bg-accent',
       )}
     >
       {letter}
@@ -274,22 +274,22 @@ function Results({ result, slots, onClose }) {
               </svg>
             ))}
           </div>
-          <h2 tabIndex={-1} ref={(el) => el?.focus({ preventScroll: true })} className="mt-5 font-display text-[34px] font-semibold outline-none">{lines[stars]}</h2>
-          <p className="mt-1 text-[18px] font-bold text-muted-foreground">{right} of {auto.length} right</p>
-          {waiting && <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-warning-soft px-3 py-1 text-[14.5px] font-bold text-warning-soft-foreground"><Clock size={15} aria-hidden />Vienne will check your written {slots.filter((s) => s.format === 'OPEN').length === 1 ? 'answer' : 'answers'}</p>}
+          <h2 tabIndex={-1} ref={(el) => el?.focus({ preventScroll: true })} className="mt-5 text-page outline-none">{lines[stars]}</h2>
+          <p className="tabular mt-1 text-title text-muted-foreground">{right} of {auto.length} right</p>
+          {waiting && <p className="mt-2 inline-flex items-center gap-2 rounded-md bg-warning-soft px-3 py-1 text-body font-medium text-warning-soft-foreground"><Clock size={15} strokeWidth={1.75} aria-hidden />Vienne will check your written {slots.filter((s) => s.format === 'OPEN').length === 1 ? 'answer' : 'answers'}</p>}
           <ol className="mt-8 grid grid-cols-5 gap-2 @xl/app:grid-cols-8" aria-label="Your answers">
             {result.answers.map((x) => (
-              <li key={x.number} className={cn('tabular grid h-12 place-items-center rounded-xl text-[16px] font-extrabold', x.correct === true ? 'bg-good-soft text-good-soft-foreground' : x.correct === false ? 'bg-critical-soft text-critical-soft-foreground' : 'bg-warning-soft text-warning-soft-foreground')}>
+              <li key={x.number} className={cn('tabular grid h-12 place-items-center rounded-md text-body font-semibold', x.correct === true ? 'bg-good-soft text-good-soft-foreground' : x.correct === false ? 'bg-critical-soft text-critical-soft-foreground' : 'bg-warning-soft text-warning-soft-foreground')}>
                 <span>{x.number}<span className="sr-only">{x.correct === true ? ', right' : x.correct === false ? ', try again' : ', Vienne will check'}</span></span>
               </li>
             ))}
           </ol>
           {missed.length > 0 && (
-            <p className="mx-auto mt-6 max-w-md text-[16px] leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-6 max-w-md text-body text-muted-foreground">
               {missed.length <= 6 ? (
-                <>Try <span className="font-bold text-foreground">#{missed.join(', #')}</span> again in your book.</>
+                <>Try <span className="font-semibold text-foreground">#{missed.join(', #')}</span> again in your book.</>
               ) : (
-                <>Try the <span className="font-bold text-foreground">red ones</span> again in your book.</>
+                <>Try the <span className="font-semibold text-foreground">red ones</span> again in your book.</>
               )}{' '}
               They’re on your redo list, and Vienne will go over them with you.
             </p>

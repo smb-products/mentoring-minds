@@ -39,15 +39,14 @@ function AssignmentItem({ params }) {
 
   return (
     <>
-      <PageHeader back={{ href: '/parent/learning', label: 'Learning' }} title={a.title} subtitle={`For ${kid.firstName}. ${fmtDue(a.dueAt)}.`}>
-        <div className="mt-3"><StatusBadge status={w.status} /></div>
-      </PageHeader>
+      <PageHeader back={{ href: '/parent/learning', label: 'Learning' }} title={a.title} subtitle={`For ${kid.firstName}. ${fmtDue(a.dueAt)}.`} />
+      <div className="mb-5"><StatusBadge status={w.status} /></div>
 
       <div className="grid items-start gap-6 @4xl/page:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <div className="space-y-6">
           {w.status === 'RETURNED' && w.feedback && (
-            <div className="rounded-[14px] border border-serious/40 bg-serious-soft px-4 py-3 text-[15px] text-serious-soft-foreground">
-              <span className="font-extrabold">Vienne asked for a redo: </span>{w.feedback}
+            <div className="rounded-lg border border-serious/40 bg-serious-soft px-4 py-3 text-body text-serious-soft-foreground">
+              <span className="font-semibold">Vienne asked for a redo: </span>{w.feedback}
             </div>
           )}
 
@@ -61,17 +60,17 @@ function AssignmentItem({ params }) {
                     ['Then type each answer here. It checks them straight away.', Check],
                   ].map(([text, Icon], i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <span className="tabular grid size-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[15px] font-extrabold text-brand-soft-foreground">{i + 1}</span>
-                      <span className="pt-1 text-[16px] leading-relaxed">{text}</span>
+                      <span className="tabular grid size-7 shrink-0 place-items-center rounded-md bg-brand-soft text-small font-semibold text-brand-soft-foreground">{i + 1}</span>
+                      <span className="pt-1 text-body">{text}</span>
                     </li>
                   ))}
                 </ol>
                 {open && (
                   <div className="flex flex-wrap items-center gap-4 pt-1">
-                    <Button size="lg" variant="primary" className="h-14 px-7 text-[17px]" onClick={() => setPlaying(true)}>
+                    <Button size="lg" variant="primary" className="px-7" onClick={() => setPlaying(true)}>
                       {started ? `Keep going (${started} of ${a.slots.length} done)` : 'Fill in answers'}
                     </Button>
-                    <p className="text-[14.5px] text-muted-foreground">{a.slots.length} questions. Answers save as you go.</p>
+                    <p className="text-small text-muted-foreground">{a.slots.length} questions. Answers save as you go.</p>
                   </div>
                 )}
               </div>
@@ -79,10 +78,10 @@ function AssignmentItem({ params }) {
           ) : (
             <Section title="What to do">
               <div className="space-y-4 p-4 @3xl/page:p-5">
-                <p className="text-[16px] leading-relaxed">{a.instructions}</p>
+                <p className="text-body">{a.instructions}</p>
                 {a.resource?.url && (
-                  <a href={a.resource.url} target="_blank" rel="noreferrer" className="chrome-secondary inline-flex h-12 items-center gap-2 rounded-xl px-5 text-base font-bold text-foreground">
-                    Open {a.resource.title} <ExternalLink size={16} aria-hidden />
+                  <a href={a.resource.url} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-md border border-border bg-card px-5 text-body font-medium text-foreground hover:bg-accent">
+                    Open {a.resource.title} <ExternalLink size={16} strokeWidth={1.75} aria-hidden />
                   </a>
                 )}
                 {open && (
@@ -103,12 +102,12 @@ function AssignmentItem({ params }) {
                   const slot = a.slots.find((s) => s.number === ans.number);
                   return (
                     <li key={ans.number} className="flex items-center gap-3 px-4 py-2.5 @3xl/page:px-5">
-                      <span className={cn('grid size-7 shrink-0 place-items-center rounded-full', ans.correct === true ? 'bg-good-soft text-good-soft-foreground' : ans.correct === false ? 'bg-critical-soft text-critical-soft-foreground' : 'bg-warning-soft text-warning-soft-foreground')}>
+                      <span className={cn('grid size-7 shrink-0 place-items-center rounded-md', ans.correct === true ? 'bg-good-soft text-good-soft-foreground' : ans.correct === false ? 'bg-critical-soft text-critical-soft-foreground' : 'bg-warning-soft text-warning-soft-foreground')}>
                         {ans.correct === true ? <Check size={15} strokeWidth={3} aria-label="Right" /> : ans.correct === false ? <RotateCcw size={14} strokeWidth={2.6} aria-label="Try again" /> : <Clock size={14} strokeWidth={2.6} aria-label="Vienne will check" />}
                       </span>
-                      <span className="tabular w-10 text-[15.5px] font-extrabold">#{ans.number}</span>
-                      <span className="min-w-0 flex-1 text-[15px] text-muted-foreground">
-                        {slot?.format === 'OPEN' ? (ans.correct == null ? 'Written answer, Vienne will check' : 'Written answer') : <>Answered <span className="tabular font-bold text-foreground">{ans.value}</span></>}
+                      <span className="tabular w-10 text-body font-semibold">#{ans.number}</span>
+                      <span className="min-w-0 flex-1 text-body text-muted-foreground">
+                        {slot?.format === 'OPEN' ? (ans.correct == null ? 'Written answer, Vienne will check' : 'Written answer') : <>Answered <span className="tabular font-medium text-foreground">{ans.value}</span></>}
                       </span>
                       <AreaTag area={slot?.area} className="hidden @xl/page:inline-flex" />
                     </li>
@@ -125,17 +124,17 @@ function AssignmentItem({ params }) {
               {w.status === 'GRADED' ? (
                 <>
                   <Stars count={w.stars} size={26} />
-                  {w.maxScore != null && <p className="tabular text-[22px] font-extrabold">{w.score} of {w.maxScore}</p>}
+                  {w.maxScore != null && <p className="tabular text-figure">{w.score} of {w.maxScore}</p>}
                   {w.feedback && (
                     <div>
-                      <p className="text-[13px] font-bold text-muted-foreground">Vienne’s note</p>
-                      <p className="mt-0.5 text-[15px] leading-relaxed">{w.feedback}</p>
+                      <p className="text-small font-medium text-muted-foreground">Vienne’s note</p>
+                      <p className="mt-0.5 text-body">{w.feedback}</p>
                     </div>
                   )}
-                  <p className="text-[13px] text-muted-foreground">Finished {fmtDate(w.submittedAt)}</p>
+                  <p className="text-small text-muted-foreground">Finished {fmtDate(w.submittedAt)}</p>
                 </>
               ) : (
-                <p className="text-[15px] leading-relaxed text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   Handed in {fmtDate(w.submittedAt)}. {w.autoScore} of {w.answers.filter((x) => x.correct !== null).length} checked right so far. Vienne will look at the written answers.
                 </p>
               )}
