@@ -149,28 +149,28 @@ enum Channel {
  */
 
 model User {
-  id                String     @id @default(cuid())
-  email             String     @unique
-  emailVerified     DateTime?
-  name              String
-  phone             String?
-  image             String?
-  passwordHash      String? // null for Google-only users
-  role              Role       @default(PARENT)
-  status            UserStatus @default(PREVIEW)
-  textSize          TextSize   @default(NORMAL)
+  id                 String     @id @default(cuid())
+  email              String     @unique
+  emailVerified      DateTime?
+  name               String
+  phone              String?
+  image              String?
+  passwordHash       String? // null for Google-only users
+  role               Role       @default(PARENT)
+  status             UserStatus @default(PREVIEW)
+  textSize           TextSize   @default(NORMAL)
   /// Password sign-in lockout: 5 wrong passwords lock the account for 15 minutes.
-  failedLogins      Int        @default(0)
-  lockedUntil       DateTime?
+  failedLogins       Int        @default(0)
+  lockedUntil        DateTime?
   /// Set when Vienne resets the password: the screens ask for a new one (families.changePassword).
-  mustChangePassword Boolean   @default(false)
+  mustChangePassword Boolean    @default(false)
   /// Bumped when the password changes or is reset: every session issued before then is signed out.
-  sessionVersion    Int       @default(0)
+  sessionVersion     Int        @default(0)
   /// Invite-code guessing limit: 10 wrong codes lock code entry for an hour.
-  redeemFailures    Int        @default(0)
-  redeemLockedUntil DateTime?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  redeemFailures     Int        @default(0)
+  redeemLockedUntil  DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
   accounts      Account[]
   students      Student[]          @relation("ParentStudents")
@@ -653,26 +653,26 @@ model Message {
 }
 
 model Notification {
-  id        String    @id @default(cuid())
-  userId    String
-  audience  Audience
-  type      String
-  title     String
-  body      String?
-  href      String?
-  channel   Channel   @default(IN_APP)
-  readAt    DateTime?
-  sentAt    DateTime?
-  createdAt DateTime  @default(now())
+  id              String    @id @default(cuid())
+  userId          String
+  audience        Audience
+  type            String
+  title           String
+  body            String?
+  href            String?
+  channel         Channel   @default(IN_APP)
+  readAt          DateTime?
+  sentAt          DateTime?
+  createdAt       DateTime  @default(now())
   /// S23b: the child or family the alert is about, set by the code that creates it. Deleting a child or a
   /// family removes alerts only through these ids, never by the names in the text. No foreign key: an
   /// alert is never refused because its child was just deleted.
-  studentId String?
-  parentId  String?
+  studentId       String?
+  parentId        String?
   /// L2: the invite request this alert is about. The daily job deletes the alert with its request, by this
   /// id. No foreign key, like studentId and parentId.
   inviteRequestId String?
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt])
   @@index([studentId])
@@ -682,7 +682,7 @@ model Notification {
 
 /// L2: a signed-out family asked for an invite. No account. Kept REQUEST_KEEP_DAYS, then the daily job deletes it.
 model InviteRequest {
-  id         String   @id @default(cuid())
+  id         String          @id @default(cuid())
   parentName String
   email      String
   phone      String?
@@ -690,11 +690,29 @@ model InviteRequest {
   message    String
   /// sha256(ip + ':' + INVITE_PEPPER), for the per-IP limit. Never the IP itself.
   ipHash     String
-  createdAt  DateTime @default(now())
+  createdAt  DateTime        @default(now())
+  repeats    InviteAttempt[]
 
   @@index([createdAt])
   @@index([email, createdAt])
   @@index([ipHash, createdAt])
+}
+
+/// L2: a request that was answered but not stored, because its email asked within DUPLICATE_EMAIL_HOURS.
+/// It counts toward REQUESTS_PER_IP_PER_HOUR and REQUESTS_PER_HOUR next to the stored requests, so a repeat
+/// uses up a slot like a new one. No name, email or message. The daily job deletes it after a day.
+model InviteAttempt {
+  id        String        @id @default(cuid())
+  /// sha256(ip + ':' + INVITE_PEPPER), as on InviteRequest.
+  ipHash    String
+  /// The earlier request this one repeated. Deleted with it.
+  requestId String
+  createdAt DateTime      @default(now())
+  request   InviteRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([ipHash, createdAt])
+  @@index([requestId])
 }
 
 /// PWA push (phase 2). One row per device that allowed notifications.

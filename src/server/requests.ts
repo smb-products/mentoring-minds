@@ -16,11 +16,11 @@ import { adminAlertsInTx, notifyAdmins } from '@/lib/notify';
 import { action, ApiError } from '@/lib/result';
 import { parse } from '@/lib/validate';
 
-/** Requests from one visitor's IP (stored only as a hash) in an hour. */
+/** Requests from one visitor's IP (stored only as a hash) in an hour. Repeats of an earlier email count too. */
 const REQUESTS_PER_IP_PER_HOUR = 3;
-/** Requests from everyone in an hour. Past it, requests pause for the hour and Vienne gets one alert. */
+/** Requests from everyone in an hour, counted the same way. At it, requests pause for the hour and Vienne gets one alert. */
 const REQUESTS_PER_HOUR = 20;
-/** A second request from the same email within this time is answered the same way, but nothing is stored. */
+/** A second request from the same email within this time is answered the same way, but only counted (InviteAttempt), not stored. */
 const DUPLICATE_EMAIL_HOURS = 24;
 /** The daily job deletes requests, and their alerts, after this many days. lib/jobs.ts keeps the same value
  *  (a 'use server' file exports only functions); tests/integration/l2-request-invite.test.ts checks they match. */
@@ -79,7 +79,10 @@ export const requestInvite = action(async (input: { parentName: string; email: s
   const hourAgo = new Date(now.getTime() - HOUR_MS);
   const outcome = await db.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(${REQUESTS_LOCK})`;
-    if ((await tx.inviteRequest.count({ where: { createdAt: { gt: hourAgo } } })) >= REQUESTS_PER_HOUR) {
+    // Every answered request counts: a stored one, or a repeat of an earlier email (an InviteAttempt).
+    const recent = { createdAt: { gt: hourAgo } };
+    const everyone = (await tx.inviteRequest.count({ where: recent })) + (await tx.inviteAttempt.count({ where: recent }));
+    if (everyone >= REQUESTS_PER_HOUR) {
       // The first refusal in an hour tells Vienne. The alert is written under the lock, so it's sent once.
       const told = await tx.notification.count({ where: { type: PAUSE_ALERT, createdAt: { gt: hourAgo } } });
       const push = told
@@ -87,14 +90,21 @@ export const requestInvite = action(async (input: { parentName: string; email: s
         : await adminAlertsInTx(tx, {
             type: PAUSE_ALERT,
             title: 'Invite requests are paused for an hour',
-            body: `More than ${REQUESTS_PER_HOUR} invite requests came in the last hour, so the form on the landing page is paused until it drops. Nothing for you to do; families can try again later.`,
+            body: `${REQUESTS_PER_HOUR} invite requests came in the last hour, so the form on the landing page is paused until it drops. Nothing for you to do; families can try again later.`,
             href: '/admin/families',
           });
       return { limited: true as const, push };
     }
-    if ((await tx.inviteRequest.count({ where: { ipHash, createdAt: { gt: hourAgo } } })) >= REQUESTS_PER_IP_PER_HOUR) return { limited: true as const, push: null };
+    const fromIp = { ipHash, ...recent };
+    const visitor = (await tx.inviteRequest.count({ where: fromIp })) + (await tx.inviteAttempt.count({ where: fromIp }));
+    if (visitor >= REQUESTS_PER_IP_PER_HOUR) return { limited: true as const, push: null };
     const since = new Date(now.getTime() - DUPLICATE_EMAIL_HOURS * HOUR_MS);
-    if (await tx.inviteRequest.count({ where: { email: v.email, createdAt: { gt: since } } })) return { limited: false as const, row: null };
+    const earlier = await tx.inviteRequest.findFirst({ where: { email: v.email, createdAt: { gt: since } }, orderBy: { createdAt: 'desc' }, select: { id: true } });
+    if (earlier) {
+      // Same answer, nothing stored and nobody told, but it still uses up a slot.
+      await tx.inviteAttempt.create({ data: { ipHash, requestId: earlier.id, createdAt: now } });
+      return { limited: false as const, row: null };
+    }
     const row = await tx.inviteRequest.create({ data: { parentName: v.parentName, email: v.email, phone: v.phone, grade: v.grade, message: v.message, ipHash, createdAt: now } });
     return { limited: false as const, row };
   });

@@ -265,6 +265,64 @@ describe('limits', () => {
     expect(await db.inviteRequest.count()).toBe(PER_IP);
   });
 
+  it('a repeat email uses up one IP’s slot exactly like a new one, and its InviteAttempt keeps only a hash and a time', async () => {
+    const email = 'slot.repeat@example.com';
+    ok(await send(valid({ email })));
+    expect(await send(valid({ email }))).toEqual({ ok: true, data: { received: true } });
+    ok(await send(valid()));
+    fails(await send(valid()), 'LIMIT');
+    expect(await db.inviteRequest.count()).toBe(PER_IP - 1);
+    const attempts = await db.inviteAttempt.findMany();
+    expect(attempts).toHaveLength(1);
+    expect(Object.keys(attempts[0]).sort()).toEqual(['createdAt', 'id', 'ipHash', 'requestId']);
+    expect(attempts[0].ipHash).toBe(hashOf(ip.current));
+  });
+
+  it('the same answers whether or not the email asked before (from another IP), and the 4th is LIMIT', async () => {
+    const answers = async (askedBefore: boolean) => {
+      await db.inviteRequest.deleteMany(); // repeats go with the request they repeated
+      if (askedBefore) {
+        ip.current = nextIp();
+        ok(await send(valid({ email: 'family@example.com' })));
+      }
+      ip.current = nextIp();
+      const out: string[] = [];
+      for (const email of ['own.1@example.com', 'own.2@example.com', 'family@example.com', 'own.3@example.com']) {
+        const r = await send(valid({ email }));
+        out.push(r.ok ? JSON.stringify(r.data) : String(r.code));
+      }
+      return out;
+    };
+    const asked = await answers(true);
+    expect(asked).toEqual(await answers(false));
+    expect(asked[3]).toBe('LIMIT');
+  });
+
+  it(`repeats count toward REQUESTS_PER_HOUR too, and a refused request records nothing`, async () => {
+    const email = 'global.repeat@example.com';
+    ok(await send(valid({ email })));
+    await fill(PER_HOUR - 2);
+    ip.current = nextIp();
+    ok(await send(valid({ email }))); // the last slot, taken by a repeat
+    const before = { requests: await db.inviteRequest.count(), attempts: await db.inviteAttempt.count() };
+    expect(before).toEqual({ requests: PER_HOUR - 1, attempts: 1 });
+    ip.current = nextIp();
+    fails(await send(valid()), 'LIMIT');
+    fails(await send(valid({ email })), 'LIMIT');
+    expect({ requests: await db.inviteRequest.count(), attempts: await db.inviteAttempt.count() }).toEqual(before);
+    const [paused] = await alerts('INVITE_REQUESTS_PAUSED');
+    expect(paused.body).toContain(`${PER_HOUR} invite requests came in the last hour`);
+    expect(paused.body).not.toMatch(/More than/);
+  });
+
+  it('a refused request from one IP records nothing either', async () => {
+    for (let i = 0; i < PER_IP; i++) ok(await send(valid()));
+    const email = (await db.inviteRequest.findFirstOrThrow()).email;
+    fails(await send(valid({ email })), 'LIMIT');
+    expect(await db.inviteAttempt.count()).toBe(0);
+    expect(await db.inviteRequest.count()).toBe(PER_IP);
+  });
+
   it('counting and inserting run in one transaction under pg_advisory_xact_lock, one query at a time', () => {
     const body = SRC.slice(SRC.indexOf('export const requestInvite'));
     expect(body).toMatch(/db\.\$transaction\(async \(tx\) => \{\s+await tx\.\$executeRaw`SELECT pg_advisory_xact_lock\(\$\{REQUESTS_LOCK\}\)`/);
@@ -311,6 +369,16 @@ describe(`the daily job keeps requests REQUEST_KEEP_DAYS (${KEEP_DAYS})`, () => 
     expect(await db.notification.findUnique({ where: { id: lookalike.id } })).not.toBeNull();
     expect(await db.notification.count({ where: { inviteRequestId: null } })).toBe(others);
     await cleanUp(); // safe to run twice
+    expect(await db.inviteRequest.count()).toBe(1);
+  });
+
+  it('deletes InviteAttempt rows older than a day, keeps newer ones, and leaves their request', async () => {
+    const request = await db.inviteRequest.create({ data: { parentName: 'Recent', email: 'recent@example.com', grade: 1, message: '', ipHash: 'x' } });
+    const attempt = (hours: number) => db.inviteAttempt.create({ data: { ipHash: 'x', requestId: request.id, createdAt: new Date(Date.now() - hours * HOUR) } });
+    const kept = await attempt(23);
+    await attempt(25);
+    await cleanUp();
+    expect((await db.inviteAttempt.findMany()).map((a) => a.id)).toEqual([kept.id]);
     expect(await db.inviteRequest.count()).toBe(1);
   });
 });
