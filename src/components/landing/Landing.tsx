@@ -75,9 +75,9 @@ function SectionTitle({ id, children, className = '', onDark = false }: { id: st
 
 function LandingHeader() {
   return (
-    {/* Under 480px only the logo, the name and Sign in: the name shrinks with an ellipsis, and the hero carries the
-        call to action (lead amend, approved by Javaris 2026-11-27; holdout L3's 320px check). */}
     <header className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-4 px-6 py-5 max-[480px]:flex-nowrap">
+      {/* Under 480px only the logo, the name and Sign in: the name shrinks with an ellipsis, and the hero carries the
+          call to action (lead amend, approved by Javaris 2026-11-27; holdout L3's 320px check). */}
       <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-md font-bold tracking-[-0.01em] text-landing-ink">
         <LogoMark size={32} className="shrink-0" />
         <span className="min-w-0 truncate text-[18px]">{SITE_NAME}</span>
