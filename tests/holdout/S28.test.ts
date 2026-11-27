@@ -1,7 +1,9 @@
 /** S28 holdouts: wrong input to the production seed. Made-up places only. */
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../../tests/integration/helpers';
 import { seedReference, truncateAll } from '../../prisma/data';
@@ -50,4 +52,25 @@ describe('S28 holdouts', () => {
     expect(result.text).not.toContain('Example Library');
     await nothingSaved();
   });
+
+  it('a linked folder leading to a two-dot folder in the repo is refused, and the command’s whole output names no place', async () => {
+    const folder = await mkdtemp(path.join(process.cwd(), '..holdout-'));
+    made.push(folder);
+    await writeFile(path.join(folder, 'locations.json'), JSON.stringify(PLACES));
+    const link = path.join(outside, 'linked-folder');
+    await symlink(folder, link);
+
+    const failed = await promisify(execFile)(path.resolve('node_modules/.bin/tsx'), ['prisma/seed.ts'], {
+      env: { ...process.env, SEED_LOCATIONS_FILE: path.join(link, 'locations.json') },
+    }).then(
+      () => null,
+      (e: { code: number; stdout: string; stderr: string }) => e,
+    );
+    expect(failed?.code, 'a link back into the repo was accepted').toBe(1);
+    const output = failed!.stdout + failed!.stderr;
+    expect(output).toContain('Nothing was saved');
+    expect(output).not.toContain('Example Library');
+    expect(output).not.toContain('1 Example St');
+    await nothingSaved();
+  }, 60_000);
 });
