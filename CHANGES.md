@@ -10,6 +10,15 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   - It types two requests key by key, then signs in three more sessions, so on a busy runner it can hit the
     limit mid-click ("locator.click: Test ended" on #154). It passed on rerun, which makes it a flake.
   - Why: RULES gives a flake that passes on rerun a lead ticket, and this is it. Approved: Axis (lead).
+## 2026-11-27: S35 reopened, not found only when final; a refused id is not found
+
+- **S35 (needs_checks, new check 3):**
+  - The "couldn't find" message waits until every read the page depends on has come back, so a slow connection
+    never shows it for a real assignment.
+  - An id the server refuses as INVALID (garbled or too long) gets the same message and link as NOT_FOUND, with
+    no console error.
+  - S35 may change src/ui/api/live-hooks.js only to stop logging INVALID and NOT_FOUND reads.
+  - Why: Rigg's S35 holdout (`plan/holdouts/S35.spec.ts`). Approved: Axis (lead).
 
 ## 2026-11-27: /privacy accuracy updates; L3 amend; L4 landing copy; R1 check 4 says text-field
 
