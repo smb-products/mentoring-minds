@@ -85,7 +85,7 @@ If a test breaks, the change is wrong, not the test.
 - **Stars leave the stats:** the "Stars earned" figure goes from parent Home and from Progress. Stars stay
   only beside the child's homework (the stars on each graded assignment). The server still returns
   `starsTotal`; no contract shape changes.
-- No photos and no bio anywhere for now.
+- No bio anywhere for now. The only photos are the four on the landing page's service cards (L5).
 
 ## Landing page (L1)
 
@@ -154,13 +154,25 @@ in these ways, and the app keeps its rules:
 On top of the mockup:
 - **Header:** the brain logo mark at 32px next to "Mentoring Minds Academy".
 - **Icons:** the four trust tiles get 20px line icons (graduation cap, book, clipboard-check, badge-dollar)
-  instead of letter badges. Each service card gets a 20px line icon.
+  instead of letter badges. Each service card gets a photo instead of an icon (L5, below).
 - **Kept as in the mockup:** the graph-paper hero with the highlight, the pastel service tiles, and the dark
   progress card labelled "Sample screen with demo data". Also the pricing card with Step Up For Students
   linked to `https://www.stepupforstudents.org`, the three steps, and the dark "Ready to get started?" panel,
   which holds the real L2 form restyled, with its fields, labels and messages unchanged.
 - **Phone:** hero padding 48px, trust tiles 2 per row, services 1 per row, and buttons full width.
 - **"About Vienne":** stays out until Javaris sends the content.
+
+### Service photos (L5)
+
+Javaris, for Vienne, on 2026-11-27: "people, not symbols". Each of the four service cards shows a photo instead of
+its line icon. They're illustrative scenes cropped from her Tutoring Services flyer, not her students or families,
+in `public/landing/services/`.
+- The photo spans the card's top at 2:1, `object-fit: cover`, clipped to the card's 24px top corners. The title and
+  line follow on the pastel body, unchanged.
+- `next/image`, statically imported (so it's served from `/_next/static`, which the proxy lets through signed
+  out), with `sizes` for the 4/2/1-across grid, lazy-loaded.
+- Alt text describes the scene, never a name or a place.
+- These are the only photos in the app or on the page. Anything else stays photo-free.
 
 ## Privacy page (L1)
 

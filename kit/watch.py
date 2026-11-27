@@ -187,7 +187,7 @@ def held(memo):
                     "--json", "number,headRefName,headRefOid,statusCheckRollup,autoMergeRequest,isDraft,labels,mergeable"])
     if code:
         return
-    in_queue = queued()
+    in_queue, drops = queued(), plan.queue_drops()
     default = ENV.get("HELD_OWNER", "zero")
     leads, ops = words(ENV.get("LEADS", "")), words(ENV.get("OPS", ""))
     held_by = {f"f/{f['id']}": f.get("held") for f in plan.features() if f.get("held")}
@@ -213,6 +213,9 @@ def held(memo):
             continue
         if time.time() - green < minutes("WATCH_HELD_MIN", 10):
             continue
+        when = (drops.get(p["number"]) or ("",))[0]
+        if when and calendar.timegm(time.strptime(when[:19], "%Y-%m-%dT%H:%M:%S")) >= green:
+            continue  # the queue dropped it after these checks passed: refresh reports that, it isn't waiting on a lead
         mins = int((time.time() - green) // 60)
         line = f"PR #{p['number']} ({p['headRefName']}) is green and has waited {mins} min for you to merge it."
         once(memo, f"held:{p['number']}:{p['headRefOid']}", owner, line)  # wake() types it into the seat next pass

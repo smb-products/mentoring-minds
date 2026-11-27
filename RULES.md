@@ -20,6 +20,8 @@ One copy of each seat (tmux `mentoring-minds-<seat>`). Nobody starts a second on
 2. **A builder lane claims the next ready feature,** builds it on `f/<id>` (`f/<id>-r<n>` after a reopen) in its
    own worktree, writes `plan/reports/<id>.md`, opens a PR and queues it with `gh pr merge --auto`.
 3. **The merge queue tests each PR on the main it lands on.** Green merges, nobody waits for review.
+   A PR's own `check` is CI's fast part (typecheck, unit, contract); the queue runs the full suite, and a PR
+   it drops is reported to OSA and its lead by `kit/plan.py refresh`.
    `PROTECT_MERGE` paths are held for the lead who owns them.
 4. **The checker takes merged features in batches** (at least 3, or the oldest has waited 30 min) and writes
    1–3 holdouts each. A failing holdout reopens the feature.

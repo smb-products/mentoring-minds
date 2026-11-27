@@ -17,6 +17,12 @@ concurrency:
 jobs:
   # One job, always reported: `check` is the ruleset's required check, so it must finish (green) even when a
   # change runs only part of the suite. kit/ci_scope.py decides which part.
+  # Two speeds, one check name (Javaris, 2026-11-27):
+  #   pull_request: the fast part only: migrations, drift, typecheck, unit and contract (plus the kit tests and
+  #                 plan lint when those change), so `check` reports in a few minutes.
+  #   merge_group:  the full suite: integration, build:e2e and the browser tests, holdouts included. The queue
+  #                 is what protects main, and a PR it drops is reported by kit/plan.py refresh.
+  #   push to main: the full suite again, as the record of what landed.
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -60,6 +66,7 @@ jobs:
           else
             python3 kit/ci_scope.py --full < /dev/null > "$RUNNER_TEMP/scope.txt"
           fi
+          [ "$EVENT" = pull_request ] && echo "fast=true" >> "$RUNNER_TEMP/scope.txt"
           sed 's/^/scope: /' "$RUNNER_TEMP/scope.txt"
           cat "$RUNNER_TEMP/scope.txt" >> "$GITHUB_OUTPUT"
 
@@ -89,26 +96,29 @@ jobs:
         run: npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url postgresql://postgres:postgres@localhost:5432/mm_shadow --exit-code
       - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout == 'true'
         run: npm run typecheck
-      - if: steps.scope.outputs.app == 'true'
+      # Fast (a PR): unit and contract only. The queue runs everything, integration and holdouts included.
+      - if: steps.scope.outputs.app == 'true' && steps.scope.outputs.fast == 'true'
+        run: npx vitest run --project unit --project contract
+      - if: steps.scope.outputs.app == 'true' && steps.scope.outputs.fast != 'true'
         run: npm test
       # Holdout-only: just the holdouts that changed (vitest makes its own tables from prisma/migrations).
       # Paths go through env, never ${{ }} in a script: a fork PR picks its own file names.
-      - if: steps.scope.outputs.app != 'true' && steps.scope.outputs.holdout_tests != ''
+      - if: steps.scope.outputs.fast != 'true' && steps.scope.outputs.app != 'true' && steps.scope.outputs.holdout_tests != ''
         env:
           FILES: ${{ steps.scope.outputs.holdout_tests }}
         run: npx vitest run --project holdout $FILES
 
-      # A production build for the browser tests.
-      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != ''
+      # A production build for the browser tests. Never on a PR (fast): the queue runs them.
+      - if: steps.scope.outputs.fast != 'true' && (steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != '')
         run: npm run build:e2e
-      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != ''
+      - if: steps.scope.outputs.fast != 'true' && (steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != '')
         run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_e2e_test'
-      - if: steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != ''
+      - if: steps.scope.outputs.fast != 'true' && (steps.scope.outputs.app == 'true' || steps.scope.outputs.holdout_specs != '')
         run: npx playwright install --with-deps chromium
       # Browser tests (tests/e2e): sign-in always; each wiring area once it's listed in LIVE.
-      - if: steps.scope.outputs.app == 'true'
+      - if: steps.scope.outputs.fast != 'true' && steps.scope.outputs.app == 'true'
         run: npm run test:e2e
-      - if: steps.scope.outputs.app != 'true' && steps.scope.outputs.holdout_specs != ''
+      - if: steps.scope.outputs.fast != 'true' && steps.scope.outputs.app != 'true' && steps.scope.outputs.holdout_specs != ''
         env:
           FILES: ${{ steps.scope.outputs.holdout_specs }}
         run: npx playwright test --project=holdout $FILES
