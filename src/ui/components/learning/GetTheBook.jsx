@@ -12,15 +12,15 @@ export function GetTheBook({ student, book, className }) {
   const [confirm, saving] = useAction(api.books.setHasBook);
   if (!book) return null;
   return (
-    <section aria-label="Get the book" className={`surface overflow-hidden rounded-[14px] ${className ?? ''}`}>
-      <div className="flex flex-col gap-5 p-5 @3xl/page:flex-row @3xl/page:items-center @3xl/page:p-6">
-        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-reward-soft text-reward-soft-foreground">
-          <BookOpen size={30} strokeWidth={2} aria-hidden />
+    <section aria-label="Get the book" className={`overflow-hidden rounded-lg border border-border bg-card shadow-card ${className ?? ''}`}>
+      <div className="flex flex-col gap-4 p-4 @3xl/page:flex-row @3xl/page:items-center @3xl/page:gap-5 @3xl/page:p-5">
+        <span className="grid size-12 shrink-0 place-items-center rounded-md bg-brand-soft text-brand-soft-foreground">
+          <BookOpen size={22} strokeWidth={1.75} aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-extrabold text-muted-foreground">One thing to get</p>
-          <p className="mt-1 text-[19px] font-extrabold leading-snug">{book.title}, Grade {book.grade}</p>
-          <p className="mt-1 max-w-prose text-[15px] leading-relaxed text-muted-foreground">
+          <p className="text-small font-medium text-muted-foreground">One thing to get</p>
+          <p className="mt-1 text-title">{book.title}, Grade {book.grade}</p>
+          <p className="mt-1 max-w-prose text-body text-muted-foreground">
             Vienne assigns {student.firstName}’s homework from this book. {student.firstName} works in the book, then types the answers here.
           </p>
         </div>
@@ -28,8 +28,8 @@ export function GetTheBook({ student, book, className }) {
           <Button size="lg" variant="primary" disabled={saving} onClick={async () => show(await confirm({ studentId: student.id }), 'Thanks!', 'Vienne can see you have the book.')}>
             We have it
           </Button>
-          <a href={book.buyUrl} target="_blank" rel="noreferrer" className="chrome-secondary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-base font-bold text-foreground">
-            Where to buy <ExternalLink size={16} aria-hidden />
+          <a href={book.buyUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-border bg-card px-5 text-body font-medium text-foreground hover:bg-accent">
+            Where to buy <ExternalLink size={16} strokeWidth={1.75} aria-hidden />
           </a>
         </div>
       </div>

@@ -13,8 +13,8 @@ import { useResultToast } from '../ui/Toast';
 function Step({ n, title, done, children }) {
   return (
     <section className="relative pl-10">
-      <span className={cn('absolute left-0 top-0 grid size-7 place-items-center rounded-full text-[13px] font-extrabold', done ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground')}>{n}</span>
-      <h3 className="pt-0.5 text-[15px] font-extrabold">{title}</h3>
+      <span className={cn('tabular absolute left-0 top-0 grid size-7 place-items-center rounded-md text-small font-semibold', done ? 'bg-brand-soft text-brand-soft-foreground' : 'bg-muted text-muted-foreground')}>{n}</span>
+      <h3 className="pt-1 text-heading">{title}</h3>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -86,11 +86,11 @@ export function RequestSessionDrawer({ open, onClose, student }) {
             <div className="mr-auto min-w-0">
               {slot ? (
                 <>
-                  <p className="truncate text-[14.5px] font-extrabold">{fmtDay(slot.startsAt)} at {fmtTime(slot.startsAt)}</p>
-                  <p className="truncate text-[13px] text-muted-foreground">{form.durationMin} minutes, {form.mode === 'VIDEO' ? 'video call' : location?.kind === 'HOME' ? 'at your home' : location?.name}</p>
+                  <p className="truncate text-body font-medium">{fmtDay(slot.startsAt)} at {fmtTime(slot.startsAt)}</p>
+                  <p className="truncate text-small text-muted-foreground">{form.durationMin} minutes, {form.mode === 'VIDEO' ? 'video call' : location?.kind === 'HOME' ? 'at your home' : location?.name}</p>
                 </>
               ) : (
-                <p className="text-[13.5px] font-semibold text-muted-foreground">Choose a time to continue</p>
+                <p className="text-small font-medium text-muted-foreground">Choose a time to continue</p>
               )}
             </div>
             <Button
@@ -109,10 +109,10 @@ export function RequestSessionDrawer({ open, onClose, student }) {
     >
       {sent ? (
         <div className="space-y-3">
-          <p className="text-[15px] leading-relaxed">
-            You asked for <span className="font-extrabold">{fmtLongDay(sent.startsAt)} at {fmtTime(sent.startsAt)}</span>, {sent.durationMin} minutes{sent.mode === 'VIDEO' ? ' by video call' : ''} for {student.firstName}.
+          <p className="text-body">
+            You asked for <span className="font-semibold">{fmtLongDay(sent.startsAt)} at {fmtTime(sent.startsAt)}</span>, {sent.durationMin} minutes{sent.mode === 'VIDEO' ? ' by video call' : ''} for {student.firstName}.
           </p>
-          <p className="text-[14.5px] text-muted-foreground">The time is held for you until Vienne answers. You can see it under Sessions, in Waiting on Vienne.</p>
+          <p className="text-body text-muted-foreground">The time is held for you until Vienne answers. You can see it under Sessions, in Waiting on Vienne.</p>
         </div>
       ) : (
         <div className="space-y-7">
@@ -122,16 +122,16 @@ export function RequestSessionDrawer({ open, onClose, student }) {
           <Step n={2} title="How" done>
             <Segmented label="How" value={form.mode} onChange={(mode) => set({ mode })} className="w-full" options={[{ value: 'IN_PERSON', label: 'In person' }, { value: 'VIDEO', label: 'Video call' }]} />
             {form.mode === 'VIDEO' ? (
-              <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground">1-on-1 with Vienne. {student.firstName} joins on your phone or tablet, and a Join call button appears just before it starts.</p>
+              <p className="mt-3 text-body text-muted-foreground">1-on-1 with Vienne. {student.firstName} joins on your phone or tablet, and a Join call button appears just before it starts.</p>
             ) : (
             <>
             <div className="mt-3 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Where">
               {locations.map((l) => {
                 const sel = form.locationId === l.id;
                 return (
-                  <button key={l.id} type="button" role="radio" aria-checked={sel} onClick={() => set({ locationId: l.id })} className={cn('rounded-xl border-[1.5px] px-2.5 py-2.5 text-left transition-colors', sel ? 'border-primary bg-brand-soft' : 'border-border bg-card hover:border-input/60')}>
-                    <span className={cn('block text-[13.5px] font-extrabold leading-tight', sel && 'text-brand-soft-foreground')}>{l.kind === 'HOME' ? 'Our home' : l.kind === 'TUTOR' ? 'Vienne’s studio' : 'Library'}</span>
-                    <span className="mt-0.5 block truncate text-[12px] font-semibold text-muted-foreground">{l.kind === 'HOME' ? 'Vienne comes to you' : l.address}</span>
+                  <button key={l.id} type="button" role="radio" aria-checked={sel} onClick={() => set({ locationId: l.id })} className={cn('rounded-md border px-2.5 py-2.5 text-left transition-colors', sel ? 'border-primary bg-brand-soft ring-1 ring-primary' : 'border-border bg-card hover:bg-accent')}>
+                    <span className={cn('block text-small font-medium leading-tight', sel && 'text-brand-soft-foreground')}>{l.kind === 'HOME' ? 'Our home' : l.kind === 'TUTOR' ? 'Vienne’s studio' : 'Library'}</span>
+                    <span className="mt-0.5 block truncate text-caption font-normal text-muted-foreground">{l.kind === 'HOME' ? 'Vienne comes to you' : l.address}</span>
                   </button>
                 );
               })}
@@ -142,7 +142,7 @@ export function RequestSessionDrawer({ open, onClose, student }) {
           </Step>
           <Step n={3} title="Day" done={!!day}>
             {days.length === 0 ? (
-              <div className="rounded-xl border border-border"><Empty icon={CalendarSearch} title="No open times in the next four weeks">Try a shorter session or another place, or message Vienne.</Empty></div>
+              <div className="rounded-lg border border-border"><Empty icon={CalendarSearch} title="No open times in the next four weeks">Try a shorter session or another place, or message Vienne.</Empty></div>
             ) : (
               <div className="scrollbar-none -mr-5 flex gap-2 overflow-x-auto pb-1 pr-5" role="radiogroup" aria-label="Day">
                 {days.map(({ day: d, slots: list }) => {
@@ -157,11 +157,11 @@ export function RequestSessionDrawer({ open, onClose, student }) {
                         setDay(d);
                         setSlot(null);
                       }}
-                      className={cn('flex w-[4.25rem] shrink-0 flex-col items-center rounded-xl py-2 transition-colors', selected ? 'band shadow-raised' : 'border border-border bg-card hover:bg-muted')}
+                      className={cn('flex w-[4.25rem] shrink-0 flex-col items-center rounded-md border py-2 transition-colors', selected ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card hover:bg-accent')}
                     >
-                      <span className={cn('text-[12px] font-bold', selected ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
-                      <span className="tabular text-[21px] font-extrabold leading-tight">{dayOfMonth(d)}</span>
-                      <span className={cn('text-[11px] font-bold', selected ? 'text-ink-muted' : 'text-muted-foreground')}>{list.length} open</span>
+                      <span className={cn('text-caption', selected ? 'text-primary-foreground' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
+                      <span className="tabular text-title leading-tight">{dayOfMonth(d)}</span>
+                      <span className={cn('text-caption', selected ? 'text-primary-foreground' : 'text-muted-foreground')}>{list.length} open</span>
                     </button>
                   );
                 })}
@@ -172,7 +172,7 @@ export function RequestSessionDrawer({ open, onClose, student }) {
             <div className="space-y-3">
               {groups.map(([label, list]) => (
                 <div key={label}>
-                  <p className="mb-1.5 text-[12.5px] font-bold text-muted-foreground">{label}</p>
+                  <p className="mb-1.5 text-caption text-muted-foreground">{label}</p>
                   <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label={`${label} times`}>
                     {list.map((s) => {
                       const selected = slot?.startsAt === s.startsAt;
@@ -183,7 +183,7 @@ export function RequestSessionDrawer({ open, onClose, student }) {
                           role="radio"
                           aria-checked={selected}
                           onClick={() => setSlot(s)}
-                          className={cn('tabular h-10 rounded-[10px] text-[14px] font-bold transition-colors', selected ? 'bg-primary text-primary-foreground chrome-primary' : 'border border-border bg-card hover:border-input/60')}
+                          className={cn('tabular h-10 rounded-md border text-body font-medium transition-colors', selected ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card hover:bg-accent')}
                         >
                           {fmtTime(s.startsAt)}
                         </button>
