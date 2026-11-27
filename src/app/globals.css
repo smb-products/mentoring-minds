@@ -204,11 +204,20 @@
   --text-figure--line-height: 1.25;
   --text-figure--font-weight: 600;
   --text-figure--letter-spacing: -0.01em;
-  /* The landing hero's headline only (docs/DESIGN.md → Landing polish). */
-  --text-display: 30px;
-  --text-display--line-height: 1.15;
-  --text-display--font-weight: 600;
-  --text-display--letter-spacing: -0.02em;
+  /* The landing page only (docs/DESIGN.md → Landing C): weight 700 and the mockup's tight tracking.
+     display is the hero's headline, headline the section titles, price the "$50". */
+  --text-display: clamp(38px, 5.6vw, 64px);
+  --text-display--line-height: 1.06;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.035em;
+  --text-headline: clamp(30px, 3.6vw, 40px);
+  --text-headline--line-height: 1.15;
+  --text-headline--font-weight: 700;
+  --text-headline--letter-spacing: -0.03em;
+  --text-price: clamp(56px, 7vw, 80px);
+  --text-price--line-height: 1;
+  --text-price--font-weight: 700;
+  --text-price--letter-spacing: -0.045em;
 }
 @media (min-width: 768px) {
   :root {
@@ -216,7 +225,6 @@
     --text-field: 14px;
     --text-page: 24px;
     --text-figure: 24px;
-    --text-display: 40px;
   }
 }
 
@@ -305,6 +313,73 @@
   --color-chart-div-neg: var(--chart-div-neg);
   --color-chart-div-mid: var(--chart-div-mid);
   --color-chart-div-pos: var(--chart-div-pos);
+  /* The landing page's colors (docs/DESIGN.md → Landing C), set on .landing below. */
+  --color-landing-paper: var(--landing-paper);
+  --color-landing-ink: var(--landing-ink);
+  --color-landing-text: var(--landing-text);
+  --color-landing-muted: var(--landing-muted);
+  --color-landing-subtle: var(--landing-subtle);
+  --color-landing-line: var(--landing-line);
+  --color-landing-control-line: var(--landing-control-line);
+  --color-landing-accent: var(--landing-accent);
+  --color-landing-accent-hover: var(--landing-accent-hover);
+  --color-landing-hero: var(--landing-hero);
+  --color-landing-grid: var(--landing-grid);
+  --color-landing-pill-line: var(--landing-pill-line);
+  --color-landing-highlight: var(--landing-highlight);
+  --color-landing-chip: var(--landing-chip);
+  --color-landing-blue: var(--landing-blue);
+  --color-landing-blue-ink: var(--landing-blue-ink);
+  --color-landing-yellow: var(--landing-yellow);
+  --color-landing-yellow-ink: var(--landing-yellow-ink);
+  --color-landing-green: var(--landing-green);
+  --color-landing-green-ink: var(--landing-green-ink);
+  --color-landing-purple: var(--landing-purple);
+  --color-landing-purple-ink: var(--landing-purple-ink);
+  --color-landing-night: var(--landing-night);
+  --color-landing-night-raised: var(--landing-night-raised);
+  --color-landing-night-line: var(--landing-night-line);
+  --color-landing-night-text: var(--landing-night-text);
+  --color-landing-night-muted: var(--landing-night-muted);
+  --color-landing-night-faint: var(--landing-night-faint);
+  --color-landing-night-link: var(--landing-night-link);
+  --color-landing-night-error: var(--landing-night-error);
+}
+
+/* Landing C (docs/design/landing-c.html): the mockup's blue accent, pastel tiles and dark panels. Only the
+   landing page (src/components/landing) uses them, and it stays bright in dark mode, like the mockup. */
+.landing {
+  --landing-paper: #ffffff;
+  --landing-ink: #101828;
+  --landing-text: #344054;
+  --landing-muted: #475467;
+  --landing-subtle: #667085;
+  --landing-line: #eaecf0;
+  --landing-control-line: #d0d5dd;
+  --landing-accent: #1f5eff;
+  --landing-accent-hover: #1747c4;
+  --landing-hero: #f2f6ff;
+  --landing-grid: #e3ebff;
+  --landing-pill-line: #d9e3ff;
+  --landing-highlight: #ffd873;
+  --landing-chip: #f2f4f7;
+  --landing-blue: #eef3ff;
+  --landing-blue-ink: #1f5eff;
+  --landing-yellow: #fff6e0;
+  --landing-yellow-ink: #b26b00;
+  --landing-green: #eafbf3;
+  --landing-green-ink: #087443;
+  --landing-purple: #f4efff;
+  --landing-purple-ink: #6935d9;
+  --landing-night: #101828;
+  --landing-night-raised: #1d2939;
+  --landing-night-line: #344054;
+  --landing-night-text: #d0d5dd;
+  --landing-night-muted: #98a2b3;
+  --landing-night-faint: #667085;
+  --landing-night-link: #8ab1ff;
+  --landing-night-error: #fda29b;
+  --ring: var(--landing-accent);
 }
 
 @layer base {

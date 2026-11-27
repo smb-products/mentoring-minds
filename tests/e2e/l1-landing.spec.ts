@@ -7,14 +7,15 @@ import { expect, freshData, test } from './support/fixtures';
  */
 freshData();
 
-const HERO = 'Math tutoring for grades K–6 in Miami-Dade, with F.A.S.T. test prep';
+// Landing C (L4) replaced the hero, the section titles and the gray band; L4's report lists each change.
+const HERO = 'Math tutoring that builds real confidence';
 const SERVICES: [string, string][] = [
   ['1-on-1 Tutoring', 'Individual support for students who need extra help in a subject.'],
   ['Small Groups', 'Students practice and learn alongside their peers.'],
   ['In-Home Tutoring', 'For special circumstances.'],
   ['Online Tutoring', 'For special circumstances.'],
 ];
-const SECTIONS = ['Services', 'Rates', 'How it works', 'In person or online', 'Request an invite'];
+const SECTIONS = ['Ways to learn with Vienne', 'Know exactly how your child is doing', 'Simple pricing', 'Getting started takes three steps', 'Ready to get started?'];
 
 const noSidewaysScroll = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 
@@ -28,15 +29,16 @@ test.describe('signed out', () => {
     await expect(page.getByRole('img', { name: 'Mentoring Minds' }).first()).toBeVisible();
 
     const hero = page.locator('main section').first();
-    await expect(hero.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '#request-invite');
-    await expect(hero.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/sign-in');
+    const header = page.locator('header').first();
+    await expect(hero.getByRole('link', { name: 'Request an invite' })).toHaveAttribute('href', '#request-invite');
+    await expect(header.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/sign-in');
 
-    await hero.getByRole('link', { name: 'Get started' }).click();
+    await hero.getByRole('link', { name: 'Request an invite' }).click();
     await expect(page).toHaveURL(/#request-invite$/);
-    await expect(page.locator('#request-invite').getByRole('heading', { name: 'Request an invite' })).toBeInViewport();
+    await expect(page.locator('#request-invite').getByRole('heading', { name: 'Ready to get started?' })).toBeInViewport();
 
     await page.goto('/');
-    await hero.getByRole('link', { name: 'Sign in', exact: true }).click();
+    await header.getByRole('link', { name: 'Sign in', exact: true }).click();
     await expect(page).toHaveURL(/\/sign-in$/);
     await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
   });
@@ -45,24 +47,25 @@ test.describe('signed out', () => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 2 })).toHaveText(SECTIONS);
 
-    const services = page.getByRole('region', { name: 'Services' });
+    const services = page.getByRole('region', { name: 'Ways to learn with Vienne' });
     await expect(services.getByRole('heading', { level: 3 })).toHaveText(SERVICES.map(([name]) => name));
     for (const [name, line] of SERVICES) await expect(services.getByRole('listitem').filter({ hasText: name })).toContainText(line);
 
-    const rates = page.getByRole('region', { name: 'Rates' });
+    const rates = page.getByRole('region', { name: 'Simple pricing' });
     await expect(rates).toContainText('$50 per hour');
-    for (const way of ['cash', 'Zelle', 'Cash App', 'Apple Pay', 'Step Up For Students scholarship']) await expect(rates, way).toContainText(way);
+    for (const way of ['Cash', 'Zelle', 'Cash App', 'Apple Pay', 'Step Up For Students scholarship']) await expect(rates, way).toContainText(way);
     const stepUp = rates.getByRole('link', { name: /Step Up For Students/ });
     await expect(stepUp).toHaveAttribute('href', 'https://www.stepupforstudents.org');
     await expect(stepUp).toHaveAttribute('target', '_blank');
     await expect(stepUp).toHaveAttribute('rel', 'noopener noreferrer');
 
-    await expect(page.getByRole('region', { name: 'How it works' }).getByRole('listitem')).toHaveCount(3);
-    await expect(page.getByRole('region', { name: 'In person or online' })).toContainText(/in person or online/i);
+    await expect(page.getByRole('region', { name: 'Getting started takes three steps' }).getByRole('listitem')).toHaveCount(3);
+    await expect(page.locator('main section').first()).toContainText(/in person or online/i);
+    await expect(rates).toContainText(/in person or online/i);
 
     const invite = page.locator('section#request-invite');
-    await expect(invite).toContainText('Have an invite code from Vienne? Create your account on the sign-in page.');
-    await expect(invite.getByRole('link', { name: 'Create your account on the sign-in page.' })).toHaveAttribute('href', '/sign-in');
+    await expect(invite).toContainText('Have a code? Create your account');
+    await expect(invite.getByRole('link', { name: 'Create your account' })).toHaveAttribute('href', '/sign-in');
   });
 
   test('no photos, bio or contact details: the only image is the logo', async ({ page }) => {
