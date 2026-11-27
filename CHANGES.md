@@ -3,6 +3,15 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S30, the joined alert stops naming children
+
+- **S30 (new, held for Zero):** an alert linked only to a family never names a child. The joined alert says
+  "Invite code used. 2 children added." Why: Rigg (#112) found that deleting one child left the family's joined
+  alert naming that child. Removing it by name would break S23b's ids-only rule, so the alert stops naming
+  children. Approved: Zero (decision), Axis.
+- **Accepted, no ticket:** what a family wrote themselves, such as a message that mentions a child, stays after
+  that child alone is deleted. It goes when the family is deleted, as S23b intends. Approved: Zero, Axis.
+
 ## 2026-11-26: AGENTS.md keeps Next's agent-rules block; S29
 
 - **AGENTS.md:** commits the `nextjs-agent-rules` block that `next dev` 16.4 appends on every start. It tells

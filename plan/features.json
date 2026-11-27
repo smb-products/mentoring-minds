@@ -1062,6 +1062,28 @@
       ]
     },
     {
+      "id": "S30",
+      "title": "An alert linked only to a family never names a child",
+      "spec": "tests/integration/s30-joined-alert.test.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/server/invites.ts",
+        "prisma/demo/seed.js",
+        "tests/integration/s30-joined-alert.test.ts",
+        "plan/reports/S30.md"
+      ],
+      "checks": [
+        "The alert Vienne gets when a family joins (INVITE_REDEEMED) names the parent but no child. Its body counts the children: 'Invite code used. 2 children added.', and 'Invite code used. 1 child added.' for one. The title stays '<parent> joined'. The push carries the same words.",
+        "The rule holds for every alert linked only to a family (parentId set, studentId empty): its title and body name no child. Today INVITE_REDEEMED is the only one. The new test checks every type that notify gets with parentId and no studentId, so a later one is covered. The demo seed's joined alert uses the new wording.",
+        "tests/integration/s30-joined-alert.test.ts covers both checks. The S23b and S26 tests, the holdouts and npm test pass. There's no schema change, and no rewrite of existing alerts: production has no families yet."
+      ],
+      "hints": [
+        "From Rigg's #112 note and Zero's decision (2026-11-26): deleting a child leaves the family's joined alert, which named the child. Matching on the name to remove it would break S23b's ids-only rule, so the alert stops naming children instead. What the family wrote themselves (messages) stays until the family is deleted. That part is accepted and logged.",
+        "Held for Zero (src/server, prisma)."
+      ],
+      "held": "zero"
+    },
+    {
       "id": "S24",
       "title": "Signing out never shows or logs an error",
       "spec": "tests/s24-sign-out.test.ts or tests/e2e/s24-sign-out.spec.ts (new)",
