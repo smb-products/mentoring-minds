@@ -1633,17 +1633,20 @@
         "src/ui/pages/admin/AnswerKeyPage.jsx",
         "src/ui/pages/admin/ReportPage.jsx",
         "src/ui/pages/admin/MessagesPage.jsx",
+        "src/ui/api/live-hooks.js",
         "tests/e2e/s35-not-found.spec.ts",
         "plan/reports/S35.md"
       ],
       "checks": [
         "Each detail route, opened by its own role with an id that doesn't exist, shows a plain message with a link back to its list, never an endless loading skeleton. Also covered: a parent opening another family's assignment id. The routes are /parent/learning/<id>, /admin/families/<id>, /admin/assignments/<id>, /admin/content/<id>, /admin/content/book/<book>/<test>, /admin/reports/<id> and /admin/messages/<id>. The wording is 'We couldn’t find that <assignment | family | resource | answer key | report | conversation>. It may have been removed.', and the link is 'Back to <Learning | Families | Assignments | Content | Content | Reports | Messages>'. The skeleton still shows while data is loading, and the message appears only once the read has come back without the item (or with NOT_FOUND).",
         "Use the existing Empty component (src/ui/components/ui/Display.jsx) as it is. No shared component, server or shape changes. The other family's case shows the same message as a made-up id, so it reveals nothing about whether the item exists.",
+        "Reopened by plan/holdouts/S35.spec.ts, with two cases. (1) Not found only when every read is final: the message shows only after every read the page depends on has come back, including the list of the parent's children that the assignment read waits for. An empty list from a read that hasn't started yet, or is still pending, never counts. On a slow connection, Ana's own real /parent/learning/<id> shows the skeleton, then her assignment, and never the message. (2) A refused id is not found: an id the server refuses as INVALID (garbled, or over its length limit, e.g. more than 64 characters) gets the same 'We couldn’t find that …' message and link as NOT_FOUND, with no console error. That covers /admin/families, /admin/assignments and /admin/reports and every other route in check 1. The holdout passes.",
         "tests/e2e/s35-not-found.spec.ts visits each route with a made-up id (and Ana visits another family's submission), and expects the message and the link within 5 seconds, with the fixture's no-console-errors rule. A real id still opens its page. The whole browser suite passes."
       ],
       "hints": [
         "From Rigg's holdout batch (#144): /parent/learning/<unknown or another family's id> stays on the loading skeleton, with no data leak. Pages like AssignmentItemPage find the item in a list and show PageLoading while it's missing, so they never stop loading.",
-        "Not held. It shares no touches with R1's redo (shared components and sign-in) or with L2 and L3 (the landing page)."
+        "Not held. It shares no touches with R1's redo (shared components and sign-in) or with L2 and L3 (the landing page).",
+        "Reopen (2026-11-27): if the console error comes from the adapter logging a refused read, change only that in src/ui/api/live-hooks.js, so a read answering INVALID or NOT_FOUND doesn't log. Every other error still logs, and no shape or server changes."
       ]
     },
     {
