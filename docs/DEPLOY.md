@@ -156,6 +156,10 @@ never by name or email, so a delete can't touch another family's rows. It delete
 A mistaken delete can come back only from Neon's history, inside that window. Only Javaris restores
 (**Restoring the database**), and he copies back only that family's rows, never all of `main`.
 
+**An invite request** (L2) is a stranger's name, email, phone and message. The daily job deletes it, and its alert,
+after `REQUEST_KEEP_DAYS` (90). If someone asks sooner, Javaris deletes that one `InviteRequest` row and its
+alert (`Notification.inviteRequestId`) by id. That's an irreversible op, so it's his to run.
+
 ## Environment variables
 
 | Variable | Where | What |
@@ -203,6 +207,8 @@ the audit tickets (P-product, P-ops) check the result. Production setup starts a
 - [x] Real locations decided: entered at seed time from a file outside the repo, never in it (Javaris, 2026-11-26). S28 (#118) and S32 (#121) are merged and checked; the steps are `PRODUCTION_SETUP.md` Part 6 (#116).
 - [x] The library sends families no other family's children (S15, #76) and Vienne's email can't be squatted before the seed (S19, #82). Both merged and checked.
 - [x] Deleting a family or a child matches only by id (S23b, #107), merged and checked; the Delete buttons are back and the runbook is **Deleting a family or a child on request**. S23 is closed, superseded by S23b.
+- [ ] The restyle (R1–R3, `docs/DESIGN.md`) and the landing page with Request an invite (L1, L2) are merged and checked. **Lanes** (Javaris approved, 2026-11-27). Then Javaris clicks through as Vienne and as a parent on a phone.
+- [ ] Javaris reviews the wording on `/privacy` (L1). Google's consent screen links to it. **Javaris**.
 - [x] Firewall rate limit on sign-up and sign-in: **after launch** (Javaris, 2026-11-26). Accepted risk: throwaway accounts can pause invite codes for everyone for up to an hour (`GLOBAL_REDEEM_FAILURES_PER_HOUR`).
 
 ## Limits
@@ -215,6 +221,10 @@ What stops guessing and runaway costs. Each is a named constant, and `tests/inte
 | `MAX_FAILURES` (10) | `src/server/invites.ts` | Wrong invite codes lock code entry on that account for an hour. |
 | `GLOBAL_REDEEM_FAILURES_PER_HOUR` (30) | `src/server/invites.ts` | More wrong codes than this from everyone in an hour pause code entry for everyone, and Vienne is told. |
 | `MAX_BYTES` (25 MB) | `src/lib/storage.ts` | The largest upload. Blob enforces it again on the upload token. |
+| `REQUESTS_PER_IP_PER_HOUR` (3) | `src/server/requests.ts` | Invite requests from one visitor's IP (stored only as a hash) in an hour. Arrives with L2. |
+| `REQUESTS_PER_HOUR` (20) | `src/server/requests.ts` | Invite requests from everyone in an hour. Past it, requests pause for the hour, and Vienne gets one alert. Arrives with L2. |
+| `DUPLICATE_EMAIL_HOURS` (24) | `src/server/requests.ts` | A second request from the same email within this time is answered the same way, but nothing is stored and Vienne isn't told again. Arrives with L2. |
+| `REQUEST_KEEP_DAYS` (90) | `src/server/requests.ts` | The daily job deletes invite requests, and their alerts, after this many days. Arrives with L2. |
 
 No limit in the app yet, and what covers it:
 

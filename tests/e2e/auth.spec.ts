@@ -89,8 +89,9 @@ test.describe('sign-in', () => {
 });
 
 test.describe('who can open what', () => {
+  // '/' is the public landing page since L1 (tests/e2e/l1-landing.spec.ts checks it). Lead edit, CHANGES.md 2026-11-27.
   test('signed out, every screen goes to sign-in', async ({ page }) => {
-    for (const path of ['/', '/admin/today', '/admin/families', '/parent/home', '/parent/learning']) {
+    for (const path of ['/admin/today', '/admin/families', '/parent/home', '/parent/learning']) {
       await page.goto(path);
       await expect(page, path).toHaveURL(/\/sign-in$/);
     }
