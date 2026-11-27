@@ -3,6 +3,16 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: D5, auto-promote with a migration guard
+
+- **D5 changed:** a merge to main goes live by itself once its production build is ready ("Auto-assign Custom
+  Production Domains" back on). Before, each merge built a Staged deployment that waited for a Promote. Why:
+  Javaris wants merges live without a manual promote. Approved: Javaris (via OSA).
+- **The guard:** a production build now **fails** when `prisma migrate status` shows a migration production
+  lacks, or can't reach the database (`scripts/vercel-build.mjs`). That build never goes live, and the site
+  stays on the last good deployment. Javaris still runs every production migration, then redeploys. Production
+  builds still never migrate. Approved: Javaris (via OSA).
+
 ## 2026-11-27: A1, P1, P2, the polish pass (sign-in, the app shell, each screen)
 
 - **New tickets:** A1 (auth screens per `docs/design/sign-in.html`), P1 (the app shell per
