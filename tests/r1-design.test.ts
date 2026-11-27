@@ -55,15 +55,21 @@ describe('tokens (src/app/globals.css)', () => {
 
   it('defines the type scale in @theme with the phone sizes, and the desktop sizes from 768px', () => {
     const theme = block(/@theme \{/);
-    const phone = { caption: 12, small: 13, body: 15, input: 16, heading: 15, title: 18, page: 22, figure: 22 };
+    const phone = { caption: 12, small: 13, body: 15, field: 16, heading: 15, title: 18, page: 22, figure: 22 };
     for (const [name, px] of Object.entries(phone)) expect(theme, name).toMatch(new RegExp(`--text-${name}: ${px}px;`));
     const desktop = block(/@media \(min-width: 768px\)/);
-    for (const [name, px] of Object.entries({ body: 14, input: 14, page: 24, figure: 24 })) expect(desktop, name).toMatch(new RegExp(`--text-${name}: ${px}px;`));
+    for (const [name, px] of Object.entries({ body: 14, field: 14, page: 24, figure: 24 })) expect(desktop, name).toMatch(new RegExp(`--text-${name}: ${px}px;`));
     // caption, small, heading and title are the same on both.
     for (const name of ['caption', 'small', 'heading', 'title']) expect(desktop).not.toContain(`--text-${name}:`);
     expect(theme).toMatch(/--text-heading--font-weight: 600/);
     expect(theme).toMatch(/--text-heading--line-height: 1\.25/);
     expect(theme).toMatch(/--text-body--line-height: 1\.45/);
+  });
+
+  it('no --text-<name> shares <name> with a --color-<name> (Tailwind would read text-<name> as the color, with no size)', () => {
+    const names = (kind: string) => new Set([...css.matchAll(new RegExp(`--${kind}-([a-z0-9-]+?)(?:--[a-z-]+)?:`, 'g'))].map((m) => m[1]));
+    const colors = names('color');
+    expect([...names('text')].filter((n) => colors.has(n))).toEqual([]);
   });
 
   it('uses Inter only: no --font-display, no Fredoka or Nunito', () => {
@@ -197,11 +203,17 @@ describe('shared components follow docs/DESIGN.md', () => {
     expect(read('src/ui/components/ui/Display.jsx')).toMatch(/const CARD = 'rounded-lg border border-border bg-card shadow-card'/);
   });
 
-  it('inputs use text-input (16px on phones)', () => {
-    expect(read('src/ui/components/ui/Form.jsx')).toMatch(/const control =[^;]*text-input/);
-    expect(read('src/ui/components/messages/Thread.jsx')).toMatch(/<textarea[\s\S]*?text-input/);
-    expect(read('src/components/family/ChangePasswordForm.tsx')).toMatch(/const input = '[^']*text-input/);
-    expect(read('src/components/family/InviteCodeForm.tsx')).toMatch(/aria-label="Invite code"[^>]*text-input/);
+  it('inputs use text-field (16px on phones)', () => {
+    expect(read('src/ui/components/ui/Form.jsx')).toMatch(/const control =[^;]*text-field/);
+    expect(read('src/ui/components/messages/Thread.jsx')).toMatch(/<textarea[\s\S]*?text-field/);
+    expect(read('src/components/family/ChangePasswordForm.tsx')).toMatch(/const input = '[^']*text-field/);
+    expect(read('src/components/family/InviteCodeForm.tsx')).toMatch(/aria-label="Invite code"[^>]*text-field/);
+    expect(read('src/app/(auth)/sign-in/SignInForm.tsx')).toMatch(/const input = '[^']*text-field/);
+  });
+
+  it('nothing in src/ still says text-input (Tailwind reads it as the --color-input color, with no size)', () => {
+    const all = [...files('src'), 'src/app/globals.css'];
+    expect(all.filter((f) => /\btext-input\b/.test(read(f)))).toEqual([]);
   });
 
   it('buttons: primary solid blue, secondary white with a border, ghost text only, destructive solid red, no press movement', () => {

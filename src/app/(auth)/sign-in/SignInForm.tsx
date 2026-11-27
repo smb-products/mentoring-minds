@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react';
 import { createAccount, signInWithGoogle, signInWithPassword } from './actions';
 
-const input = 'h-11 w-full rounded-md border border-input bg-card px-3 text-input text-foreground placeholder:text-subtle-foreground';
+const input = 'h-11 w-full rounded-md border border-input bg-card px-3 text-field text-foreground placeholder:text-subtle-foreground';
 const button = 'flex h-11 w-full items-center justify-center rounded-md text-body font-medium';
 
 export function SignInForm({ google, problem }: { google: boolean; problem?: string }) {

@@ -2,9 +2,9 @@ import { forwardRef, useId } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
-// Inputs, selects and textareas: 6px corners, text-input (16px on phones, so iOS doesn't zoom on focus).
+// Inputs, selects and textareas: 6px corners, text-field (16px on phones, so iOS doesn't zoom on focus).
 const control =
-  'w-full rounded-md border border-input/70 bg-card px-3 text-input text-foreground placeholder:text-subtle-foreground transition-colors hover:border-input focus-visible:border-ring';
+  'w-full rounded-md border border-input/70 bg-card px-3 text-field text-foreground placeholder:text-subtle-foreground transition-colors hover:border-input focus-visible:border-ring';
 
 export function Field({ label, hint, error, children, className }) {
   const id = useId();

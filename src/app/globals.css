@@ -177,7 +177,7 @@
 }
 
 /* ── Type scale (docs/DESIGN.md → Type). Phone sizes here; desktop (≥ 768px) sizes in the media query below.
-   Screens use these names, never text-[Npx]. text-input stays 16px on phones: iOS zooms on focus below that. ── */
+   Screens use these names, never text-[Npx]. text-field stays 16px on phones: iOS zooms on focus below that. ── */
 @theme {
   --text-caption: 12px;
   --text-caption--line-height: 1.45;
@@ -186,8 +186,8 @@
   --text-small--line-height: 1.45;
   --text-body: 15px;
   --text-body--line-height: 1.45;
-  --text-input: 16px;
-  --text-input--line-height: 1.45;
+  --text-field: 16px;
+  --text-field--line-height: 1.45;
   --text-heading: 15px;
   --text-heading--line-height: 1.25;
   --text-heading--font-weight: 600;
@@ -208,7 +208,7 @@
 @media (min-width: 768px) {
   :root {
     --text-body: 14px;
-    --text-input: 14px;
+    --text-field: 14px;
     --text-page: 24px;
     --text-figure: 24px;
   }
