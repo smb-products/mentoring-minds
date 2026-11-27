@@ -3,6 +3,17 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L5, service photos on the landing page
+
+- **L5 (new):** the four service cards on `/` show a photo across the top instead of the line icon. The photos are
+  in `public/landing/services/`. They're illustrative scenes cropped from Vienne's Tutoring Services flyer, not
+  her students or families, so the "demo data only" rule holds. Why: Vienne wants people, not symbols. Approved
+  by Javaris (via OSA).
+- **Locked tests L5 may change, and only these lines:** the L4 spec's service-tile svg check, and the L1 and L3
+  specs' "only image is the logo" checks, which now allow the logo plus exactly those 4 photos.
+- **docs/DESIGN.md:** "No photos anywhere" becomes "the only photos are the four service photos". The Landing C
+  icon line now points to the new Service photos (L5) section.
+
 ## 2026-11-27: L2 check 6 as built; #158 never merged
 
 - **L2, check 6:** reworded to what #162 built and the holdout needs. Every answered request uses one slot: a
