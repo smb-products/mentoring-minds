@@ -68,10 +68,11 @@ test.describe('signed out', () => {
     await expect(invite.getByRole('link', { name: 'Create your account' })).toHaveAttribute('href', '/sign-in');
   });
 
-  test('no photos, bio or contact details: the only image is the logo', async ({ page }) => {
+  test('no bio or contact details: the only images are the logo and the 4 service photos (L5)', async ({ page }) => {
     await page.goto('/');
-    const srcs = await page.locator('img').evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute('src')));
-    expect(srcs.every((s) => /\/logo-\d+\.png$/.test(s ?? ''))).toBe(true);
+    const srcs = await page.locator('img').evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute('src') ?? ''));
+    const photos = srcs.filter((s) => !/\/logo-\d+\.png$/.test(s)).map((s) => s.match(/^\/_next\/image\?url=%2F_next%2Fstatic%2Fmedia%2F(one-on-one|small-groups|in-home|online)\.[\w-]+\.jpg&/)?.[1] ?? s);
+    expect(photos).toEqual(['one-on-one', 'small-groups', 'in-home', 'online']);
     const body = page.locator('body');
     await expect(body).not.toContainText(/@[a-z0-9-]+\.[a-z]|\(\d{3}\)|\d{3}[-. ]\d{3}[-. ]\d{4}/i);
     await expect(page.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0);

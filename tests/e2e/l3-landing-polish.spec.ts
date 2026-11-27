@@ -131,8 +131,10 @@ test.describe('signed out', () => {
       const heading = await box(page.getByRole('heading', { level: 2, name }));
       expect(heading.x, name).toBeGreaterThanOrEqual((vw - 1160) / 2 + 20);
     }
-    const srcs = await page.locator('img').evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute('src')));
-    expect(srcs.every((s) => /\/logo-\d+\.png$/.test(s ?? ''))).toBe(true);
+    // The logo plus exactly the 4 service photos (L5), nothing else.
+    const srcs = await page.locator('img').evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute('src') ?? ''));
+    const photos = srcs.filter((s) => !/\/logo-\d+\.png$/.test(s)).map((s) => s.match(/^\/_next\/image\?url=%2F_next%2Fstatic%2Fmedia%2F(one-on-one|small-groups|in-home|online)\.[\w-]+\.jpg&/)?.[1] ?? s);
+    expect(photos).toEqual(['one-on-one', 'small-groups', 'in-home', 'online']);
   });
 
   test('the Request an invite form and the footer are still there', async ({ page }) => {

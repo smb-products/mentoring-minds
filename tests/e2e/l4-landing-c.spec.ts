@@ -132,7 +132,7 @@ test.describe('signed out', () => {
     }
   });
 
-  test('Ways to learn with Vienne: the line and the four pastel service tiles, each with a 20px icon', async ({ page }) => {
+  test('Ways to learn with Vienne: the line and the four pastel service tiles', async ({ page }) => {
     await page.goto('/');
     const services = page.locator('section#services');
     await expect(services).toHaveAttribute('aria-labelledby', 'services-title');
@@ -144,8 +144,6 @@ test.describe('signed out', () => {
     for (let i = 0; i < 4; i++) {
       const [name, line] = SERVICES[i];
       await expect(tiles.nth(i)).toContainText(line);
-      const b = await box(tiles.nth(i).locator('svg'));
-      expect([Math.round(b.width), Math.round(b.height)], name).toEqual([20, 20]);
       colors.add(await css(tiles.nth(i), 'background-color'));
       expect(parseFloat(await css(tiles.nth(i), 'border-top-left-radius')), name).toBe(24);
     }
