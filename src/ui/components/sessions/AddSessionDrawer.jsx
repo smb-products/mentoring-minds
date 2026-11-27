@@ -79,7 +79,7 @@ export function AddSessionDrawer({ open, onClose, defaultDate }) {
             {location?.kind === 'HOME' && <Field label="Home address">{(id) => <Input id={id} value={form.address} onChange={(e) => set({ address: e.target.value })} placeholder="Street address" />}</Field>}
           </>
         ) : (
-          <p className="rounded-lg bg-muted px-3 py-2.5 text-[14px] text-muted-foreground">Uses your video link from Settings. You can change it for this session afterwards.</p>
+          <p className="rounded-md bg-muted px-3 py-2.5 text-body text-muted-foreground">Uses your video link from Settings. You can change it for this session afterwards.</p>
         )}
       </div>
     </Drawer>

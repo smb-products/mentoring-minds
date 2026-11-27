@@ -33,13 +33,13 @@ export default function AdminMessagesPage({ params = {} }) {
             <Avatar name={t.parent.name} size="md" />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
-                <p className={cn('truncate text-[14.5px]', t.unread ? 'font-extrabold' : 'font-bold')}>{t.parent.name}</p>
-                <span className="shrink-0 text-[12px] font-semibold text-subtle-foreground">{t.lastMessage && fmtAgo(t.lastMessage.createdAt)}</span>
+                <p className={cn('truncate text-body', t.unread ? 'font-semibold' : 'font-medium')}>{t.parent.name}</p>
+                <span className="shrink-0 text-caption font-normal text-subtle-foreground">{t.lastMessage && fmtAgo(t.lastMessage.createdAt)}</span>
               </div>
-              <p className="truncate text-[12.5px] font-semibold text-muted-foreground">{t.students.map((s) => s.firstName).join(', ')}</p>
-              <p className={cn('mt-0.5 truncate text-[13.5px]', t.unread ? 'font-semibold text-foreground' : 'text-muted-foreground')}>{t.lastMessage?.body ?? 'No messages yet'}</p>
+              <p className="truncate text-caption font-normal text-muted-foreground">{t.students.map((s) => s.firstName).join(', ')}</p>
+              <p className={cn('mt-0.5 truncate text-small', t.unread ? 'font-medium text-foreground' : 'text-muted-foreground')}>{t.lastMessage?.body ?? 'No messages yet'}</p>
             </div>
-            {t.unread > 0 && <span className="tabular mt-1 rounded-md bg-primary px-1.5 text-[12px] font-extrabold text-primary-foreground">{t.unread}</span>}
+            {t.unread > 0 && <span className="tabular mt-1 rounded-md bg-primary px-1.5 text-caption font-semibold text-primary-foreground">{t.unread}</span>}
           </Link>
         </li>
       ))}
@@ -50,8 +50,8 @@ export default function AdminMessagesPage({ params = {} }) {
     <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3 @3xl/page:px-6">
       <Avatar name={active.parent.name} size="md" />
       <div className="min-w-0">
-        <p className="truncate text-[15px] font-extrabold">{active.parent.name}</p>
-        <Link href={`/admin/families/${active.parent.id}`} className="text-[13px] hit-area font-bold text-brand hover:underline">
+        <p className="truncate text-heading">{active.parent.name}</p>
+        <Link href={`/admin/families/${active.parent.id}`} className="text-small hit-area font-medium text-brand hover:underline">
           Parent of {active.students.map((s) => s.firstName).join(' and ')}
         </Link>
       </div>
@@ -77,7 +77,7 @@ export default function AdminMessagesPage({ params = {} }) {
   return (
     <>
       <PageHeader title="Messages" subtitle="One conversation per family." />
-      <div className="grid h-[calc(100dvh-13rem)] min-h-[30rem] grid-cols-[18rem_minmax(0,1fr)] overflow-hidden rounded-[14px] border border-border bg-card @5xl/page:grid-cols-[21rem_minmax(0,1fr)]">
+      <div className="grid h-[calc(100dvh-13rem)] min-h-[30rem] grid-cols-[18rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-card shadow-card @5xl/page:grid-cols-[21rem_minmax(0,1fr)]">
         <div className="min-h-0 overflow-y-auto border-r border-border">{inbox}</div>
         {active ? (
           <Thread key={active.id} conversationId={active.id} header={threadHeader} className="h-full" />

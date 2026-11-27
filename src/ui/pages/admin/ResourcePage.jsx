@@ -87,16 +87,16 @@ export default function ResourcePage({ params }) {
 
               {needsFile && (
                 <Field label="File" hint="PDF, PNG, JPG or WebP, up to 25 MB.">
-                  <div className="flex items-center gap-3 rounded-[10px] border border-dashed border-input/70 p-3">
+                  <div className="flex items-center gap-3 rounded-md border border-dashed border-input/70 p-3">
                     <FileUp size={20} className="shrink-0 text-muted-foreground" aria-hidden />
                     <div className="min-w-0 flex-1">
                       {file ? (
                         <>
-                          <p className="truncate text-[14px] font-bold">{file.filename}</p>
-                          <p className="text-[13px] text-muted-foreground">{fmtBytes(file.sizeBytes)}</p>
+                          <p className="truncate text-body font-medium">{file.filename}</p>
+                          <p className="text-small text-muted-foreground">{fmtBytes(file.sizeBytes)}</p>
                         </>
                       ) : (
-                        <p className="text-[14px] text-muted-foreground">No file attached</p>
+                        <p className="text-body text-muted-foreground">No file attached</p>
                       )}
                     </div>
                     <input

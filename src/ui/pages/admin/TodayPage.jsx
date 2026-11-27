@@ -54,24 +54,22 @@ export default function TodayPage() {
   return (
     <>
       <PageHeader
-        overlap
         title={`${greeting()}, ${user.name.split(' ')[0]}`}
         subtitle={`${fmtLongDay(now)}. ${remaining.length ? `${remaining.length} session${remaining.length > 1 ? 's' : ''} still to go today.` : 'Nothing else on today.'}`}
         actions={<Button variant="glass" icon={CalendarPlus} onClick={() => setAdding(true)}>Add session</Button>}
-      >
-        <Figures
-          variant="band"
-          className="mt-6"
-          items={[
-            { label: 'Sessions today', value: data.sessionsToday.length, icon: CalendarClock, note: remaining.length ? `Next at ${fmtTime(remaining[0].startsAt)}` : 'All done for today' },
-            { label: 'Requests', value: data.pendingRequests.length, icon: MailQuestion, highlight: data.pendingRequests.length > 0, onClick: () => navigate('/admin/schedule'), note: oldest ? `Oldest asked ${fmtAgo(oldest.createdAt).toLowerCase()}` : 'Nothing waiting' },
-            { label: 'To check', value: data.gradingQueue.length, icon: ClipboardCheck, highlight: data.gradingQueue.length > 0, onClick: () => navigate('/admin/assignments'), note: data.gradingQueue.length ? data.gradingQueue.map((g) => g.student.firstName).join(', ') : 'All caught up' },
-            data.fastWindow
-              ? { label: `FAST ${data.fastWindow.window}`, value: data.fastWindow.inProgress ? 'Now' : `${data.fastWindow.daysUntil} days`, icon: Flag, note: `${data.fastStudents} students in grades 3–6` }
-              : { label: 'FAST', value: '—', icon: Flag, note: 'Add testing dates in Settings', onClick: () => navigate('/admin/settings') },
-          ]}
-        />
-      </PageHeader>
+      />
+
+      <Figures
+        className="mb-5"
+        items={[
+          { label: 'Sessions today', value: data.sessionsToday.length, icon: CalendarClock, note: remaining.length ? `Next at ${fmtTime(remaining[0].startsAt)}` : 'All done for today' },
+          { label: 'Requests', value: data.pendingRequests.length, icon: MailQuestion, highlight: data.pendingRequests.length > 0, onClick: () => navigate('/admin/schedule'), note: oldest ? `Oldest asked ${fmtAgo(oldest.createdAt).toLowerCase()}` : 'Nothing waiting' },
+          { label: 'To check', value: data.gradingQueue.length, icon: ClipboardCheck, highlight: data.gradingQueue.length > 0, onClick: () => navigate('/admin/assignments'), note: data.gradingQueue.length ? data.gradingQueue.map((g) => g.student.firstName).join(', ') : 'All caught up' },
+          data.fastWindow
+            ? { label: `FAST ${data.fastWindow.window}`, value: data.fastWindow.inProgress ? 'Now' : `${data.fastWindow.daysUntil} days`, icon: Flag, note: `${data.fastStudents} students in grades 3–6` }
+            : { label: 'FAST', value: '—', icon: Flag, note: 'Add testing dates in Settings', onClick: () => navigate('/admin/settings') },
+        ]}
+      />
 
       <div className="mb-5 grid gap-5 @4xl/page:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
         <UpNext session={next} later={remaining.filter((s) => s.id !== next?.id)} now={now} onOpen={() => next && setSelected(next)} onSelect={setSelected} onAdd={() => setAdding(true)} />
@@ -134,10 +132,10 @@ export default function TodayPage() {
                 <Row key={sub.id} onClick={() => navigate(`/admin/assignments/${sub.assignmentId}`)}>
                   <Avatar name={fullName(sub.student)} tone={sub.student.avatarColor} size="md" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14.5px] font-bold">{sub.assignment.title}</p>
-                    <p className="text-[13px] text-muted-foreground">{fullName(sub.student)}, sent {fmtAgo(sub.submittedAt)}</p>
+                    <p className="truncate text-body font-medium">{sub.assignment.title}</p>
+                    <p className="text-small text-muted-foreground">{fullName(sub.student)}, sent {fmtAgo(sub.submittedAt)}</p>
                   </div>
-                  <span className="text-[13px] font-bold text-brand">Check</span>
+                  <span className="text-small font-medium text-brand">Check</span>
                 </Row>
               ))
             )}
@@ -147,9 +145,9 @@ export default function TodayPage() {
             <Section title="Waiting on the book" description="These families haven’t said they have it yet.">
               {data.needBook.map((st) => (
                 <Row key={st.id} onClick={() => navigate(`/admin/families/${st.parentId}`)}>
-                  <BookOpen size={18} className="shrink-0 text-muted-foreground" aria-hidden />
-                  <p className="min-w-0 flex-1 truncate text-[14.5px] font-bold">{fullName(st)}</p>
-                  <span className="text-[13px] font-bold text-brand">Family</span>
+                  <BookOpen size={18} strokeWidth={1.75} className="shrink-0 text-muted-foreground" aria-hidden />
+                  <p className="min-w-0 flex-1 truncate text-body font-medium">{fullName(st)}</p>
+                  <span className="text-small font-medium text-brand">Family</span>
                 </Row>
               ))}
             </Section>
@@ -162,12 +160,12 @@ export default function TodayPage() {
               data.nextUp.map((s) => (
                 <Row key={s.id} onClick={() => setSelected({ ...s, _view: 'details' })}>
                   <div className="tabular w-[5.5rem] shrink-0">
-                    <p className="text-[13px] font-bold text-muted-foreground">{fmtRelativeDay(s.startsAt)}</p>
-                    <p className="text-[14px] font-extrabold">{fmtTime(s.startsAt)}</p>
+                    <p className="text-small font-medium text-muted-foreground">{fmtRelativeDay(s.startsAt)}</p>
+                    <p className="text-body font-medium">{fmtTime(s.startsAt)}</p>
                   </div>
-                  <span className={cn('h-8 w-[3px] shrink-0 rounded-full', sessionBg(s))} aria-hidden />
+                  <span className={cn('h-8 w-[3px] shrink-0 rounded-xs', sessionBg(s))} aria-hidden />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14.5px] font-bold">{fullName(s.student)}</p>
+                    <p className="truncate text-body font-medium">{fullName(s.student)}</p>
                     <Place session={s} />
                   </div>
                 </Row>
@@ -196,24 +194,24 @@ function UpNext({ session: s, later, now, onOpen, onSelect, onAdd }) {
   const canJoin = joinOpen(s);
   const live = new Date(s.startsAt) <= now && new Date(s.endsAt) > now;
   return (
-    <section className="surface relative flex flex-col overflow-hidden rounded-[14px]">
+    <section className="relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-card">
       <span className={cn('absolute inset-y-0 left-0 w-1', sessionBg(s))} aria-hidden />
       <div className="flex flex-1 flex-col gap-5 p-5 pl-6 @3xl/page:flex-row @3xl/page:items-center @3xl/page:p-6 @3xl/page:pl-7">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[13px] font-extrabold text-muted-foreground">Up next</span>
-            <span className={cn('rounded-md px-2 py-0.5 text-[12.5px] font-extrabold', live ? 'bg-good-soft text-good-soft-foreground' : 'bg-brand-soft text-brand-soft-foreground')}>{until(s.startsAt, now)}</span>
+            <span className="text-small font-medium text-muted-foreground">Up next</span>
+            <span className={cn('rounded-md px-2 py-0.5 text-caption', live ? 'bg-good-soft text-good-soft-foreground' : 'bg-brand-soft text-brand-soft-foreground')}>{until(s.startsAt, now)}</span>
           </div>
           <div className="mt-3 flex items-center gap-3.5">
             <Avatar name={fullName(s.student)} tone={s.student.avatarColor} size="lg" />
             <div className="min-w-0">
-              <p className="truncate text-[22px] font-extrabold leading-tight tracking-[-0.01em]">{fullName(s.student)}</p>
-              <p className="text-[14px] font-semibold text-muted-foreground">{gradeLabel(s.student.grade)}, booked by {s.requestedBy.name}</p>
+              <p className="truncate text-title">{fullName(s.student)}</p>
+              <p className="text-body text-muted-foreground">{gradeLabel(s.student.grade)}, booked by {s.requestedBy.name}</p>
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span className="tabular text-[16px] font-extrabold">{isToday(s.startsAt) ? 'Today' : fmtRelativeDay(s.startsAt)}, {fmtTimeRange(s.startsAt, s.endsAt)}</span>
-            <Place session={s} className="text-[14px]" />
+            <span className="tabular text-body font-medium">{isToday(s.startsAt) ? 'Today' : fmtRelativeDay(s.startsAt)}, {fmtTimeRange(s.startsAt, s.endsAt)}</span>
+            <Place session={s} className="text-body" />
           </div>
         </div>
         <div className="flex shrink-0 gap-2 @3xl/page:flex-col">
@@ -223,23 +221,23 @@ function UpNext({ session: s, later, now, onOpen, onSelect, onAdd }) {
             <Button variant="primary" onClick={onOpen}>Open session</Button>
           )}
           {addr && (
-            <a href={mapsUrl(addr)} target="_blank" rel="noreferrer" className="chrome-secondary inline-flex h-10 items-center justify-center gap-2 rounded-[10px] px-4 text-[14.5px] font-bold text-foreground">
-              Directions <ExternalLink size={15} aria-hidden />
+            <a href={mapsUrl(addr)} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-body font-medium text-foreground transition-colors hover:bg-accent">
+              Directions <ExternalLink size={15} strokeWidth={1.75} aria-hidden />
             </a>
           )}
         </div>
       </div>
       <div className="mt-auto border-t border-border/80 bg-muted/40 px-5 py-3 pl-6 @3xl/page:pl-7">
         {later.length === 0 ? (
-          <p className="text-[13.5px] font-semibold text-muted-foreground">{isToday(s.startsAt) ? 'Last session of the day.' : 'Nothing else booked before then.'}</p>
+          <p className="text-small text-muted-foreground">{isToday(s.startsAt) ? 'Last session of the day.' : 'Nothing else booked before then.'}</p>
         ) : (
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span className="text-[13px] font-extrabold text-muted-foreground">After this</span>
+            <span className="text-small font-medium text-muted-foreground">After this</span>
             {later.slice(0, 3).map((x) => (
-              <button key={x.id} type="button" onClick={() => onSelect(x)} className="flex items-center gap-2 rounded-lg text-left hover:underline">
-                <span className={cn('h-5 w-[3px] rounded-full', sessionBg(x))} aria-hidden />
-                <span className="tabular text-[13.5px] font-extrabold">{fmtTime(x.startsAt)}</span>
-                <span className="text-[13.5px] font-semibold text-muted-foreground">{x.student.firstName}{x.mode === 'VIDEO' ? ', video' : ''}</span>
+              <button key={x.id} type="button" onClick={() => onSelect(x)} className="flex items-center gap-2 rounded-md text-left hover:underline">
+                <span className={cn('h-5 w-[3px] rounded-xs', sessionBg(x))} aria-hidden />
+                <span className="tabular text-small font-medium">{fmtTime(x.startsAt)}</span>
+                <span className="text-small text-muted-foreground">{x.student.firstName}{x.mode === 'VIDEO' ? ', video' : ''}</span>
               </button>
             ))}
           </div>
@@ -254,23 +252,23 @@ function WeekGlance({ week, weekStart, now, onOpen }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const total = week.filter((s) => s.status !== 'REQUESTED').length;
   return (
-    <Section title="This week" description={`${total} session${total === 1 ? '' : 's'} booked`} action={<button type="button" onClick={onOpen} className="text-[13px] hit-area font-bold text-brand hover:underline">Open schedule</button>} flush>
+    <Section title="This week" description={`${total} session${total === 1 ? '' : 's'} booked`} action={<button type="button" onClick={onOpen} className="text-small hit-area font-medium text-brand hover:underline">Open schedule</button>} flush>
       <ul className="grid h-full grid-cols-7 gap-1 p-2.5">
         {days.map((d) => {
           const list = week.filter((s) => sameDay(s.startsAt, d));
           const today = sameDay(d, now);
           const past = d < startOfDay(now);
           return (
-            <li key={d.toISOString()} className={cn('flex min-w-0 flex-col items-center rounded-lg px-1 pb-2 pt-1.5', today && 'band shadow-raised')}>
-              <span className={cn('text-[12px] font-bold', today ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtDateWith(d, { weekday: 'narrow' })}</span>
-              <span className={cn('tabular text-[17px] font-extrabold leading-tight', today ? 'text-ink-foreground' : past ? 'text-subtle-foreground' : 'text-foreground')}>{dayOfMonth(d)}</span>
+            <li key={d.toISOString()} className={cn('flex min-w-0 flex-col items-center rounded-md px-1 pb-2 pt-1.5', today && 'bg-ink')}>
+              <span className={cn('text-caption', today ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtDateWith(d, { weekday: 'narrow' })}</span>
+              <span className={cn('tabular text-heading', today ? 'text-ink-foreground' : past ? 'text-subtle-foreground' : 'text-foreground')}>{dayOfMonth(d)}</span>
               <span className="mt-2 flex flex-col items-center gap-1" role="img" aria-label={`${list.length} sessions`}>
-                {list.length === 0 && <span className={cn('h-1 w-3 rounded-full', today ? 'bg-ink-foreground/30' : 'bg-border')} />}
+                {list.length === 0 && <span className={cn('h-1 w-3 rounded-xs', today ? 'bg-ink-foreground/30' : 'bg-border')} />}
                 {list.slice(0, 4).map((s) => (
                   <span
                     key={s.id}
                     title={`${fmtTime(s.startsAt)} ${s.student.firstName}${s.mode === 'VIDEO' ? ', video' : ''}`}
-                    className={cn('h-2.5 w-6 rounded-[4px]', s.status === 'REQUESTED' ? 'border-[1.5px] border-dashed border-warning' : sessionBg(s), past && 'opacity-45')}
+                    className={cn('h-2.5 w-6 rounded-sm', s.status === 'REQUESTED' ? 'border-[1.5px] border-dashed border-warning' : sessionBg(s), past && 'opacity-45')}
                   />
                 ))}
               </span>

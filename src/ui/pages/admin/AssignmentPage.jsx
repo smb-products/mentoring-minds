@@ -30,18 +30,17 @@ export default function AssignmentPage({ params }) {
 
   return (
     <>
-      <PageHeader back={{ href: '/admin/assignments', label: 'Assignments' }} title={a.title} subtitle={a.book ? `${a.book.title}, ${gradeLabel(a.book.grade)}. ${fmtDue(a.dueAt)}.` : `${a.instructions || 'Practice'}. ${fmtDue(a.dueAt)}.`}>
-        <Figures
-          variant="band"
-          className="mt-6"
-          items={[
-            { label: 'Assigned', value: subs.length },
-            { label: 'Done', value: subs.filter((s) => s.answers || s.status === 'GRADED').length },
-            { label: 'To check', value: subs.filter((s) => s.status === 'SUBMITTED').length, highlight: subs.some((s) => s.status === 'SUBMITTED'), note: 'Written answers' },
-            { label: 'Average', value: avg != null ? `${avg}%` : '—', note: hardest.length ? `Most missed: #${hardest.map((h) => h.number).join(', #')}` : null },
-          ]}
-        />
-      </PageHeader>
+      <PageHeader back={{ href: '/admin/assignments', label: 'Assignments' }} title={a.title} subtitle={a.book ? `${a.book.title}, ${gradeLabel(a.book.grade)}. ${fmtDue(a.dueAt)}.` : `${a.instructions || 'Practice'}. ${fmtDue(a.dueAt)}.`} />
+
+      <Figures
+        className="mb-5"
+        items={[
+          { label: 'Assigned', value: subs.length },
+          { label: 'Done', value: subs.filter((s) => s.answers || s.status === 'GRADED').length },
+          { label: 'To check', value: subs.filter((s) => s.status === 'SUBMITTED').length, highlight: subs.some((s) => s.status === 'SUBMITTED'), note: 'Written answers' },
+          { label: 'Average', value: avg != null ? `${avg}%` : '—', note: hardest.length ? `Most missed: #${hardest.map((h) => h.number).join(', #')}` : null },
+        ]}
+      />
 
       <div className="grid items-start gap-5 @4xl/page:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Section title="Students">
@@ -52,13 +51,13 @@ export default function AssignmentPage({ params }) {
               <div key={s.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 @3xl/page:px-5">
                 <Avatar name={fullName(s.student)} tone={s.student.avatarColor} size="md" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-extrabold">{fullName(s.student)}</p>
-                  <p className="text-[13.5px] text-muted-foreground">
+                  <p className="text-body font-medium">{fullName(s.student)}</p>
+                  <p className="text-small text-muted-foreground">
                     {s.submittedAt ? `Sent ${fmtAgo(s.submittedAt)}` : 'Not started'}
                     {s.feedback && `. “${s.feedback}”`}
                   </p>
                 </div>
-                {s.maxScore != null && s.status === 'GRADED' && <span className="tabular text-[15px] font-extrabold">{s.score}/{s.maxScore}</span>}
+                {s.maxScore != null && s.status === 'GRADED' && <span className="tabular text-body font-semibold">{s.score}/{s.maxScore}</span>}
                 {s.status === 'GRADED' && <Stars count={s.stars} />}
                 <StatusBadge status={s.status} />
                 {s.status === 'SUBMITTED' && <Button size="sm" variant="primary" onClick={() => setGrading(s)}>Check</Button>}
@@ -79,7 +78,7 @@ export default function AssignmentPage({ params }) {
                   const answered = it.right + it.wrong;
                   const tone = !answered ? 'bg-muted text-muted-foreground' : it.wrong === 0 ? 'bg-good-soft text-good-soft-foreground' : it.right === 0 ? 'bg-critical-soft text-critical-soft-foreground' : 'bg-warning-soft text-warning-soft-foreground';
                   return (
-                    <li key={it.number} title={`#${it.number}: ${it.right} right, ${it.wrong} wrong${it.pending ? `, ${it.pending} to check` : ''}. ${it.area.name}`} className={cn('tabular grid h-11 place-items-center rounded-lg text-[14px] font-extrabold', tone)}>
+                    <li key={it.number} title={`#${it.number}: ${it.right} right, ${it.wrong} wrong${it.pending ? `, ${it.pending} to check` : ''}. ${it.area.name}`} className={cn('tabular grid h-11 place-items-center rounded-md text-body font-semibold', tone)}>
                       <span>{it.number}<span className="sr-only">: {it.right} right, {it.wrong} wrong</span></span>
                     </li>
                   );
@@ -134,9 +133,9 @@ function GradeDrawer({ submission, assignment, onClose }) {
         {open.map((it) => {
           const photo = s.photos.find((p) => p.number === it.number);
           return (
-            <div key={it.number} className="rounded-xl border border-border p-4">
+            <div key={it.number} className="rounded-lg border border-border p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[16px] font-extrabold">Question {it.number}</p>
+                <p className="text-heading">Question {it.number}</p>
                 <AreaTag area={it.area} />
               </div>
               {photo?.file && (
@@ -145,9 +144,9 @@ function GradeDrawer({ submission, assignment, onClose }) {
                   onClick={() => window.open(`/api/files/${photo.file.id}`, '_blank', 'noopener')}
                   className="mt-3 flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg bg-muted text-muted-foreground hover:bg-muted/70"
                 >
-                  <FileImage size={28} aria-hidden />
-                  <span className="text-[14px] font-bold">{photo.file.filename}</span>
-                  <span className="text-[13px]">Tap to open</span>
+                  <FileImage size={28} strokeWidth={1.75} aria-hidden />
+                  <span className="text-body font-medium">{photo.file.filename}</span>
+                  <span className="text-small">Tap to open</span>
                 </button>
               )}
               <div className="mt-3 grid grid-cols-2 gap-2" role="radiogroup" aria-label={`Question ${it.number}`}>
@@ -155,7 +154,7 @@ function GradeDrawer({ submission, assignment, onClose }) {
                   [true, 'Right', Check, 'border-good bg-good-soft text-good-soft-foreground'],
                   [false, 'Not yet', X, 'border-critical bg-critical-soft text-critical-soft-foreground'],
                 ].map(([val, label, Icon, on]) => (
-                  <button key={label} type="button" role="radio" aria-checked={marks[it.number] === val} onClick={() => setMarks({ ...marks, [it.number]: val })} className={cn('flex h-12 items-center justify-center gap-2 rounded-xl border-2 text-[15px] font-extrabold', marks[it.number] === val ? on : 'border-border text-muted-foreground hover:bg-muted')}>
+                  <button key={label} type="button" role="radio" aria-checked={marks[it.number] === val} onClick={() => setMarks({ ...marks, [it.number]: val })} className={cn('flex h-12 items-center justify-center gap-2 rounded-md border-2 text-body font-medium', marks[it.number] === val ? on : 'border-border text-muted-foreground hover:bg-muted')}>
                     <Icon size={17} strokeWidth={2.6} aria-hidden />
                     {label}
                   </button>
@@ -165,7 +164,7 @@ function GradeDrawer({ submission, assignment, onClose }) {
           );
         })}
         <label className="block">
-          <span className="text-[14px] font-bold">A note for the family (optional)</span>
+          <span className="text-small font-medium">A note for the family (optional)</span>
           <Textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} className="mt-1.5" placeholder="Great work showing every step!" />
         </label>
       </div>
@@ -177,17 +176,17 @@ function AnswersDrawer({ submission, assignment, onClose }) {
   if (!submission) return null;
   return (
     <Drawer open onClose={onClose} title={`${submission.student.firstName}’s answers`} subtitle={`${submission.score} of ${submission.maxScore} points`}>
-      <ol className="divide-y divide-border rounded-xl border border-border">
+      <ol className="divide-y divide-border rounded-lg border border-border">
         {submission.answers.map((ans) => {
           const it = assignment.items.find((x) => x.number === ans.number);
           return (
             <li key={ans.number} className="flex items-center gap-3 px-4 py-2.5">
-              <span className={cn('grid size-6 shrink-0 place-items-center rounded-full', ans.correct ? 'bg-good-soft text-good-soft-foreground' : 'bg-critical-soft text-critical-soft-foreground')}>
+              <span className={cn('grid size-6 shrink-0 place-items-center rounded-md', ans.correct ? 'bg-good-soft text-good-soft-foreground' : 'bg-critical-soft text-critical-soft-foreground')}>
                 {ans.correct ? <Check size={14} strokeWidth={3} aria-label="Correct" /> : <X size={14} strokeWidth={3} aria-label="Incorrect" />}
               </span>
-              <span className="tabular w-9 text-[15px] font-extrabold">#{ans.number}</span>
-              <span className="min-w-0 flex-1 text-[14px] text-muted-foreground">
-                {it?.format === 'OPEN' ? 'Written answer' : <>Answered <span className="font-bold text-foreground">{ans.value}</span>{!ans.correct && <>, key says <span className="font-bold text-foreground">{it?.answer}</span></>}</>}
+              <span className="tabular w-9 text-body font-semibold">#{ans.number}</span>
+              <span className="min-w-0 flex-1 text-body text-muted-foreground">
+                {it?.format === 'OPEN' ? 'Written answer' : <>Answered <span className="font-medium text-foreground">{ans.value}</span>{!ans.correct && <>, key says <span className="font-medium text-foreground">{it?.answer}</span></>}</>}
               </span>
               <AreaTag area={it?.area} className="hidden @3xl/page:inline-flex" />
             </li>
