@@ -30,14 +30,19 @@ const watchForMessage = (page: Page) =>
   });
 const sawGone = (page: Page) => page.evaluate(() => Boolean((window as unknown as { sawGone?: boolean }).sawGone));
 
-test('on a slow connection, Ana’s own assignment never says it can’t be found', async ({ page, as, db }) => {
-  const own = await db.submission.findFirstOrThrow({ where: { student: { parent: { email: USERS.ana } } }, include: { assignment: true } });
+test('on a slow connection, Ana’s own assignment for either child never says it can’t be found', async ({ page, as, db }) => {
+  const mine = await db.submission.findMany({ where: { student: { parent: { email: USERS.ana } } }, include: { assignment: true, student: true }, orderBy: { id: 'asc' } });
+  const oneEach = [...new Map(mine.map((s) => [s.studentId, s])).values()];
+  expect(oneEach.length, 'both of Ana’s children have work').toBe(2);
   await as('ana');
   await watchForMessage(page);
   await slowReads(page);
-  await page.goto(`/parent/learning/${own.id}`);
-  await expect(page.getByRole('heading', { level: 1, name: own.assignment.title, exact: true })).toBeVisible({ timeout: 30_000 });
-  expect(await sawGone(page), 'the "couldn’t find" message showed while her real assignment was loading').toBe(false);
+  for (const own of oneEach) {
+    await page.goto(`/parent/learning/${own.id}`);
+    await expect(page.getByRole('heading', { level: 1, name: own.assignment.title, exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(main(page)).toContainText(`For ${own.student.firstName}.`);
+    expect(await sawGone(page), 'the "couldn’t find" message showed while her real assignment was loading').toBe(false);
+  }
   await page.unrouteAll({ behavior: 'ignoreErrors' });
 });
 
@@ -105,17 +110,29 @@ test('a resource Vienne removed says so, with the way back to Content', async ({
   await db.resource.update({ where: { id: resource.id }, data: { deletedAt: null } });
 });
 
-test('a garbled, over-long address (a link pasted twice) still says so, with the way back', async ({ page, as }) => {
+test('a garbled, over-long address (a link pasted twice) still says so on every detail page', async ({ page, as, db }) => {
   const garbled = 'cmnotreal00s35000000000000'.repeat(3);
+  const book = await db.book.findFirstOrThrow();
+  const testKey = (book.tests as { key: string }[])[0].key;
+  const expectGone = async (url: string, what: string, back: string, href: string) => {
+    await page.goto(url);
+    await expect.soft(main(page).getByText(gone(what), { exact: true }), url).toBeVisible({ timeout: 5_000 });
+    await expect.soft(main(page).getByRole('link', { name: `Back to ${back}`, exact: true }), url).toHaveAttribute('href', href, { timeout: 1_000 });
+    await expect.soft(page.getByLabel('Loading', { exact: true }), url).toHaveCount(0);
+  };
+
   await as('vienne');
-  const routes = [
-    ['families', 'family', 'Families'],
-    ['assignments', 'assignment', 'Assignments'],
-    ['reports', 'report', 'Reports'],
-  ];
-  for (const [list, what, back] of routes) {
-    await page.goto(`/admin/${list}/${garbled}`);
-    await expect.soft(page.getByText(gone(what), { exact: true }), list).toBeVisible({ timeout: 5_000 });
-    await expect.soft(page.getByRole('link', { name: `Back to ${back}`, exact: true }), list).toBeVisible({ timeout: 1_000 });
-  }
+  await expectGone(`/admin/families/${garbled}`, 'family', 'Families', '/admin/families');
+  await expectGone(`/admin/assignments/${garbled}`, 'assignment', 'Assignments', '/admin/assignments');
+  await expectGone(`/admin/content/${garbled}`, 'resource', 'Content', '/admin/content');
+  await expectGone(`/admin/content/book/${garbled}/${testKey}`, 'answer key', 'Content', '/admin/content');
+  // A real book with a test that isn't in it.
+  await expectGone(`/admin/content/book/${book.id}/ZZ99`, 'answer key', 'Content', '/admin/content');
+  await expectGone(`/admin/content/book/${book.id}/${garbled}`, 'answer key', 'Content', '/admin/content');
+  await expectGone(`/admin/reports/${garbled}`, 'report', 'Reports', '/admin/reports');
+  await expectGone(`/admin/messages/${garbled}`, 'conversation', 'Messages', '/admin/messages');
+
+  await page.context().clearCookies();
+  await as('ana');
+  await expectGone(`/parent/learning/${garbled}`, 'assignment', 'Learning', '/parent/learning');
 });
