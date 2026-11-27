@@ -3,6 +3,26 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: open sign-up, no invite code needed (J1, J2, J3)
+
+- **What:** new parents are ACTIVE at sign-up (email or Google) and add their own children (first name and grade
+  K–6). The invite code is optional: entered, it links them to the family Vienne made. Vienne is told "New
+  family joined: <parent>, <n> children", with no child names. Booking stays a request Vienne confirms or
+  declines, and she can still pause a family. Email sign-up is limited per IP (`SIGNUPS_PER_IP_PER_HOUR`).
+  The landing page's steps, its Get started links and the "Questions? Message Vienne" form follow.
+  Approved by Javaris (via OSA).
+- **Tickets:** J1 (server and migration, held for Zero), J2 (sign-up and the Add your child step), J3 (landing).
+  J1 and J3 run in parallel, and J2 follows J1 and A1.
+- **PREVIEW stays for old rows only.** The UserStatus default becomes ACTIVE, and the migration changes no
+  existing row. The server's PREVIEW checks, and the locked view old PREVIEW rows see, stay as they are. A new
+  parent never sees an invite-code gate, so the gates go for everyone who signs up from now on, without rewriting
+  the many locked tests that use the seeded preview parents. An old PREVIEW parent gets the Add your child step,
+  which makes them ACTIVE.
+- **Locked tests that change (only as the tickets' checks list):** a new sign-up expects ACTIVE (`auth.spec.ts`,
+  `s14-signup-password.test.ts`, holdout `W2.spec.ts`). The landing specs and holdouts swap in the new words
+  (steps, Get started, the form's name and button). A1's spec swaps the Request an invite link for "Questions?
+  Message Vienne". A lead makes the holdout edits on the ticket's PR.
+
 ## 2026-11-27: D5, auto-promote with a migration guard
 
 - **D5 changed:** a merge to main goes live by itself once its production build is ready ("Auto-assign Custom
