@@ -197,7 +197,13 @@ class Kit(unittest.TestCase):
         self.assertFalse(log.exists(), "the lane built from a stale checkout")
         self.assertIn("isn't claiming: the main checkout is on elsewhere", self.kit("msg.py", "inbox", "osa").stdout)
         run(["git", "checkout", "-q", "main"], self.repo)
+        other = self.tmp / "other"  # main moves on elsewhere; FETCH_HEAD holds several heads, as after others' fetches
+        run(["git", "clone", "-q", str(self.tmp / "remote.git"), str(other)], self.tmp)
+        run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "newer"], other)
+        run(["git", "push", "-q", "origin", "main:main", "main:side"], other)
+        run(["git", "fetch", "-q", "origin", "main", "side"], self.repo)
         self.assertEqual(self.kit("lane.py", "--agent", "soap", "--once").returncode, 0)  # back on main: claims
+        self.assertEqual(run(["git", "log", "-1", "--format=%s", "main"], self.repo).stdout.strip(), "newer")
 
     def test_a_features_own_auth_words_never_stop_the_lane(self):
         r = self.kit("lane.py", "--agent", "soap", "--once",

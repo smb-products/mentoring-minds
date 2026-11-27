@@ -379,17 +379,27 @@ def in_flight():
 
 
 PULL_FAILING = set()
+PULL_TRIES, PULL_RETRY_PAUSE_S = 3, 2
 
 
 def pull_main(agent):
     """Fast-forward the main checkout to origin/main before a claim. A claim from a stale plan can hand out work
     whose deps or touches changed, so a failure is logged, OSA hears once per run of failures, and the lane
-    doesn't claim. A bare `git pull` breaks when FETCH_HEAD holds several heads, so name the branch."""
+    doesn't claim. Never `git pull`: it merges FETCH_HEAD, which the guard, the other lanes and OSA rewrite
+    when they fetch in this same checkout ("Cannot fast-forward to multiple branches"). Fetch, then merge
+    origin/main by name, with a retry for a fetch that loses a ref lock to another one."""
     branch = git("rev-parse", "--abbrev-ref", "HEAD", cwd=ROOT)
     if branch != "main":
         code, out = 1, f"the main checkout is on {branch or '(no branch)'}, not main"
     else:
-        code, out = sh(["git", "pull", "-q", "--ff-only", "origin", "main"], cwd=ROOT)
+        for attempt in range(PULL_TRIES):
+            if attempt:
+                time.sleep(PULL_RETRY_PAUSE_S)
+            code, out = sh(["git", "fetch", "-q", "origin", "main"], cwd=ROOT)
+            if not code:
+                code, out = sh(["git", "merge", "-q", "--ff-only", "refs/remotes/origin/main"], cwd=ROOT)
+            if not code:
+                break
     if not code:
         PULL_FAILING.discard(agent)
         return True
