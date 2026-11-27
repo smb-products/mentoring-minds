@@ -24,17 +24,22 @@ export default function AssignmentItemPage({ params }) {
 }
 
 function AssignmentItem({ params }) {
-  const { students } = useShell();
+  const { user, students } = useShell();
   const show = useResultToast();
-  const { data: all } = useQuery(async () => (await Promise.all(students.map((s) => api.assignments.listForStudent({ studentId: s.id })))).flat(), [students.map((s) => s.id).join()]);
+  // The shell's list of children is empty until its read is back, so an empty list isn't final: read them
+  // here then. The answer counts only once every read it waits for has come back.
+  const { data } = useQuery(async () => {
+    const kids = students.length ? students : ((await api.families.getFamily({ parentId: user.id }))?.students ?? []);
+    return { kids, all: (await Promise.all(kids.map((s) => api.assignments.listForStudent({ studentId: s.id })))).flat() };
+  }, [user.id, students.map((s) => s.id).join()]);
   const [playing, setPlaying] = useState(false);
   const [done, marking] = useAction(api.assignments.markPracticeDone);
-  const w = all?.find((x) => x.id === params.submissionId);
+  const w = data?.all.find((x) => x.id === params.submissionId);
   // Once the list is back: not this family's, or no longer there. Same words for any id, so it reveals nothing.
-  if (!w) return all ? <Section><Empty title="We couldn’t find that assignment. It may have been removed." action={<Link href="/parent/learning" className="text-small hit-area font-medium text-brand hover:underline">Back to Learning</Link>} /></Section> : <PageLoading />;
+  if (!w) return data ? <Section><Empty title="We couldn’t find that assignment. It may have been removed." action={<Link href="/parent/learning" className="text-small hit-area font-medium text-brand hover:underline">Back to Learning</Link>} /></Section> : <PageLoading />;
 
   const a = w.assignment;
-  const kid = students.find((s) => s.id === w.studentId);
+  const kid = (students.length ? students : data.kids).find((s) => s.id === w.studentId);
   const open = ['ASSIGNED', 'RETURNED'].includes(w.status);
   const testName = a.book?.tests.find((t) => t.key === a.bookTest)?.name;
   const started = w.draft?.filter((d) => String(d.value ?? '').trim()).length ?? 0;

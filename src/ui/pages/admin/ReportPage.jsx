@@ -19,7 +19,7 @@ import { Link } from '../../lib/router';
  */
 export default function ReportPage({ params }) {
   const show = useResultToast();
-  const { data: report } = useQuery(() => api.reports.getReport({ reportId: params.reportId }).catch((e) => { if (e?.code === 'NOT_FOUND') return null; throw e; }), [params.reportId]);
+  const { data: report } = useQuery(() => api.reports.getReport({ reportId: params.reportId }).catch((e) => { if (e?.code === 'NOT_FOUND' || e?.code === 'INVALID') return null; throw e; }) /* no such id, or one the server refuses (garbled, too long) */, [params.reportId]);
   const { data: subjects = [] } = useQuery(() => api.taxonomy.listSubjects(), []);
   const student = report?.student;
   const parent = report?.parent;
