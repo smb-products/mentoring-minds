@@ -3,6 +3,33 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L4's header under 480px (lead amend)
+
+- **L4 (#160), lead amend on f/L4:** under 480px the landing header shows only the logo, the name and **Sign in**.
+  Services, Rates and Get started are hidden, because the hero already has the call to action. The name has
+  `min-width: 0` with an ellipsis, and the header stays on one row. Nothing else changes.
+  `tests/holdout/L3.spec.ts`'s 320px test now clicks the hero's "Request an invite" and expects the form of that
+  name, since Landing C has no "Get started" in the page body (lead edit).
+- Why: holdout `tests/holdout/L3.spec.ts` (320px: Sign in must clear the name) failed on #160, because the
+  header's nav overlapped the name. L4 had used its two attempts. Approved: Javaris (2026-11-27, via OSA),
+  option A, a lead amend.
+
+## 2026-11-27: L4 lead edits on #160; the L2 holdout's real cause
+
+- **L4, check 3 (Fantem's amend):** the sample card's child is "Ella, grade 3", a name that's in no family's data,
+  not even the demo seed's. It replaces the mockup's Mateo, so the five holdouts that ban seed names on `/` (L1,
+  L3, R3, W8 ×2) hold as written. An earlier pick, Emma, turned out to be a planned student in the demo seed;
+  Zero caught it.
+- **Lead edits to holdouts:** `tests/holdout/L1.spec.ts` and `tests/holdout/L3.spec.ts` read Landing C's hero and
+  subhead instead of L3's.
+- **The L2 holdout's failure was not a timeout:**
+  - Since R1, the Alerts rail button's accessible name starts with its unread count ("1 Alerts"), and
+    `openAlerts` in `tests/e2e/support/ui.ts` matched only `^Alerts`, so the test failed whenever the parent had
+    an unread alert.
+  - The helper now allows the count in front. #158's `test.slow()` is harmless, but it wasn't the fix.
+- Why: L4's report and OSA's mockup approval, with Javaris waiting to launch. Approved: Axis (lead), OSA (L4's look),
+  Zero (review).
+
 ## 2026-11-27: L2 reopened, the limits count every request
 
 - **L2 (check 6, new):** the per-IP and overall limits count every request that passes validation, repeats of

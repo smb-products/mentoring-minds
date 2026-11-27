@@ -10,9 +10,10 @@ export async function openAccount(page: Page) {
   return panel;
 }
 
-/** Notifications (desktop: the Alerts rail button; phone: the bell). */
+/** Notifications (desktop: the Alerts rail button; phone: the bell). With unread alerts the rail button's name
+ * starts with the count ("1 Alerts", since R1), so the count is allowed in front. */
 export async function openAlerts(page: Page) {
-  await page.getByRole('button', { name: /^(Alerts|Notifications)/ }).first().click();
+  await page.getByRole('button', { name: /^(\d+\s*)?(Alerts|Notifications)\b/ }).first().click();
   const panel = page.getByRole('dialog', { name: 'Notifications' });
   await expect(panel).toBeVisible();
   return panel;
