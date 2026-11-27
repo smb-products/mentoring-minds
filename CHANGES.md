@@ -3,6 +3,18 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: R1 reopened, fields are 15px on phones
+
+- **R1 (needs_checks, then ready after R2 and L1 merge):** new check 2.
+  - At 390px every field computes 16px, and at 1280px 14px.
+  - The type token becomes `text-field`, renamed everywhere, because `text-input` collided with
+    `--color-input`. Tailwind set only a gray color and no size, so iOS zoomed on focus.
+  - The design source test now fails on any type token that shares a name with a color token.
+- **docs/DESIGN.md:** the field token is renamed and the rule is written down. Other tickets' checks say
+  `text-field`.
+- Why: Rigg's R1 holdout (#140, `plan/holdouts/R1.spec.ts`). The old source test only read class names.
+  Approved: Axis (lead), Zero reviews.
+
 ## 2026-11-27: L3 landing polish; holdouts S6 and S29 let / be the landing page
 
 - **L3 (new, not held, after L2):** a landing polish pass.
