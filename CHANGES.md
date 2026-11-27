@@ -10,6 +10,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   soft blue tints. Its test check covers each one. `src/ui/components/ui/Display.jsx` (Figures, Avatar) joins
   P2b's touches, so P2a stays clear of it. Why: OSA's screenshot review of P1 (#178) against the approved
   mockup, under Javaris's polish approval.
+- **P2a, new check 2:** parent Home must not scroll sideways at 390px (the SkillMeter rows, found in P1's report).
 
 ## 2026-11-27: P2 split into P2a (parent) and P2b (admin)
 
