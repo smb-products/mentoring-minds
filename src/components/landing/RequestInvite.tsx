@@ -58,8 +58,8 @@ export function RequestInvite() {
   }
 
   return (
-    // text-(length:--text-input): the controls inherit it, at 16px on phones (`text-input` alone resolves to the input colour).
-    <form onSubmit={onSubmit} noValidate aria-label="Request an invite" className="relative grid max-w-2xl gap-4 text-(length:--text-input) sm:grid-cols-2">
+    // text-field: the controls inherit it, at 16px on phones (R1 renamed the field token, which Tailwind had read as a colour).
+    <form onSubmit={onSubmit} noValidate aria-label="Request an invite" className="relative grid max-w-2xl gap-4 text-field sm:grid-cols-2">
       <Field label="Parent name">{(id: string) => <Input id={id} name="parentName" autoComplete="name" maxLength={80} required />}</Field>
       <Field label="Email">{(id: string) => <Input id={id} name="email" type="email" inputMode="email" autoComplete="email" maxLength={254} required />}</Field>
       <Field label="Phone (optional)">{(id: string) => <Input id={id} name="phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={30} />}</Field>

@@ -82,7 +82,7 @@ test('when requests are paused for the hour, the form says so', async ({ page, d
 test('@phone the form: 16px inputs on phones, and the honeypot is hidden from people and screen readers', async ({ page }) => {
   await page.goto('/#request-invite');
   const f = form(page);
-  // docs/DESIGN.md → text-input: 16px on phones (iOS zooms below that), 14px from 768px.
+  // docs/DESIGN.md → text-field: 16px on phones (iOS zooms below that), 14px from 768px.
   const want = (page.viewportSize()?.width ?? 0) < 768 ? '16px' : '14px';
   for (const label of ['Parent name', 'Email', 'Phone (optional)', /Child.s grade/, 'Message']) {
     expect(await f.getByLabel(label).evaluate((el) => getComputedStyle(el).fontSize), String(label)).toBe(want);

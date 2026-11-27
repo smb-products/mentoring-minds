@@ -13,7 +13,7 @@ export function ChangePasswordForm({ forced = false }: { forced?: boolean }) {
   const [newPassword, setNew] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const input = 'h-11 w-full rounded-md border border-input/70 bg-card px-3 text-input';
+  const input = 'h-11 w-full rounded-md border border-input/70 bg-card px-3 text-field';
   return (
     <form
       className={forced ? 'rounded-lg border border-border bg-card p-5 shadow-card' : 'space-y-2'}

@@ -93,7 +93,7 @@ export function Thread({ conversationId, className, header }) {
             }
           }}
           placeholder={user.role === 'ADMIN' ? `Message ${data.parent.name.split(' ')[0]}` : 'Message Vienne'}
-          className="max-h-40 min-h-10 flex-1 resize-none rounded-md border border-input/70 bg-background px-3 py-2 text-input placeholder:text-subtle-foreground focus-visible:border-ring"
+          className="max-h-40 min-h-10 flex-1 resize-none rounded-md border border-input/70 bg-background px-3 py-2 text-field placeholder:text-subtle-foreground focus-visible:border-ring"
         />
         <Button type="submit" variant="primary" icon={SendHorizontal} disabled={sending || !body.trim()}>
           Send
