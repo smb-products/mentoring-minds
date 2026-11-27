@@ -171,12 +171,15 @@ jobs:
         run: npm run build:e2e
       - if: env.RUN == 'true'
         run: PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE mm_e2e_test'
-      # The runner's Microsoft apt source has returned 403s (#170), and --with-deps runs apt-get update. Playwright
-      # needs nothing from it.
+      # Browser and its system libraries. Two runner faults seen: the Microsoft apt source returning 403 (#170;
+      # Playwright needs nothing from it), and a runner with empty package lists, so every font package was
+      # "unable to locate" (#174, shard 3). Drop that source, refresh the lists with retries, then install.
       - if: env.RUN == 'true'
         run: |
           sudo find /etc/apt/sources.list.d -iname '*microsoft*' -print -delete
-          npx playwright install --with-deps chromium
+          for i in 1 2 3; do sudo apt-get update -q && break; echo "apt-get update failed ($i), retrying"; sleep 10; done
+          for i in 1 2; do npx playwright install --with-deps chromium && exit 0; echo "playwright install failed ($i), retrying"; sleep 10; done
+          exit 1
       # Browser tests (tests/e2e and the holdout specs): sign-in always; each wiring area once it's listed in LIVE.
       - if: env.RUN == 'true' && needs.scope.outputs.app == 'true'
         run: npx playwright test --shard=${{ matrix.shard }}/4
