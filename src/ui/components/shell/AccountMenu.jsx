@@ -23,7 +23,7 @@ export function AccountPanel() {
   return (
     <div className="w-full">
       <div className="flex items-center gap-3 px-4 pb-3 pt-4">
-        <Avatar name={user.name} tone="ink" size="md" />
+        <Avatar name={user.name} tone="brand" size="md" />
         <div className="min-w-0">
           <h2 className="truncate text-heading">{user.name}</h2>
           <p className="truncate text-small text-muted-foreground">{user.email}</p>

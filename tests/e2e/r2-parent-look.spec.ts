@@ -5,9 +5,9 @@ import { chooseChild, main } from './support/ui';
 
 /**
  * R2 (docs/DESIGN.md): the parent screens on the new look. Phone first: Home's Next session card is in view
- * without scrolling, the navy band ends above the child chips, nothing scrolls sideways, and "Stars earned"
- * is gone from the stats (stars stay beside the homework). At 1280×800 the band is 140px or less and nothing
- * on the page overlaps it. The fixture fails any test that logs a console error.
+ * without scrolling, the page header ends above the child chips, nothing scrolls sideways, and "Stars earned"
+ * is gone from the stats (stars stay beside the homework). At 1280×800 the page header is 140px or less and
+ * nothing on the page overlaps it. The fixture fails any test that logs a console error.
  */
 freshData();
 
@@ -38,8 +38,8 @@ async function settle(page: Page, url: string) {
   await expect(main(page).getByRole('heading', { level: 1 })).toBeVisible();
 }
 
-/** The navy header band: the shell's bg-ink block that holds the page title. */
-const band = (page: Page) => page.locator('.bg-ink', { has: page.getByRole('heading', { level: 1 }) }).first();
+/** The page header: the <header> that holds the page title, on the light page since P1 (no navy band). */
+const band = (page: Page) => page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).first();
 
 async function box(page: Page, locator: ReturnType<Page['locator']>) {
   const b = await locator.boundingBox();

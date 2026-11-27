@@ -14,6 +14,7 @@ function Dot({ n }) {
   return <span className="tabular absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-sidebar-primary px-1 text-caption font-semibold leading-none text-sidebar-primary-foreground ring-2 ring-sidebar">{n > 9 ? '9+' : n}</span>;
 }
 
+/** One tab of the white phone nav: the selected one soft blue with blue text, like the sidebar. */
 function TabInner({ icon: Icon, label, active, count }) {
   return (
     <>
@@ -21,12 +22,12 @@ function TabInner({ icon: Icon, label, active, count }) {
         <Icon size={18} strokeWidth={1.75} aria-hidden />
         <Dot n={count} />
       </span>
-      <span className={cn('text-caption leading-none', active ? 'font-semibold text-sidebar-accent-foreground' : 'text-sidebar-foreground')}>{label}</span>
+      <span className={cn('text-caption leading-none', active ? 'font-semibold text-sidebar-accent-foreground' : 'font-medium text-sidebar-foreground')}>{label}</span>
     </>
   );
 }
 
-/** Phone: top row (scrolls with the page, not a fixed bar). The app shows a text wordmark, not the brain logo. */
+/** Phone: top row on the light page (scrolls with it, not a fixed bar). The app shows a text wordmark, not the brain logo. */
 export function PhoneTop() {
   const { user } = useShell();
   const unread = useUnreadNotifications();
@@ -34,14 +35,14 @@ export function PhoneTop() {
   return (
     <>
       <div className="relative flex items-center gap-2.5 px-4 pt-3">
-        <span className="text-heading text-ink-foreground">Mentoring Minds</span>
+        <span className="text-heading text-foreground">Mentoring Minds</span>
         <div className="ml-auto flex items-center gap-1">
-          <button type="button" onClick={() => setPanel('alerts')} aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} className="relative grid size-10 place-items-center rounded-md text-ink-muted hover:bg-ink-foreground/10 hover:text-ink-foreground">
+          <button type="button" onClick={() => setPanel('alerts')} aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} className="relative grid size-10 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground">
             <Bell size={18} strokeWidth={1.75} aria-hidden />
-            {unread > 0 && <span className="absolute right-2 top-2 size-2 rounded-full bg-ink-foreground ring-2 ring-ink" />}
+            {unread > 0 && <span className="absolute right-2 top-2 size-2 rounded-full bg-primary ring-2 ring-background" />}
           </button>
           <button type="button" onClick={() => setPanel('account')} className="grid size-10 place-items-center rounded-md">
-            <span aria-hidden><Avatar name={user.name} tone="sidebar" size="sm" /></span>
+            <span aria-hidden><Avatar name={user.name} tone="brand" size="sm" /></span>
             <span className="sr-only">Account</span>
           </button>
         </div>
@@ -60,7 +61,7 @@ export function PhoneTop() {
   );
 }
 
-/** Phone: bottom navigation bar, flat navy. Sits in the layout flow, so it never covers content. */
+/** Phone: bottom navigation bar, white with a top border. Sits in the layout flow, so it never covers content. */
 export function PhoneNav() {
   const { role } = useShell();
   const pathname = usePathname();
