@@ -3,6 +3,14 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-26: S23 closed, delete runbook by id
+
+- **S23 (closed):** marked `superseded` in the plan. S23b replaced its name and email matching with ids, and S23b
+  is merged and checked. Why: OSA's handoff asked for it to be closed. Approved: Axis (lead), Zero reviews.
+- **DEPLOY, Deleting a family or a child:** the "Not available yet" note is gone, and step 5 now says what S23b
+  does: only the code the parent used is touched, codes they never used stay (Vienne revokes an active one), and
+  alerts go by their link, never by name. Why: S23b merged. Docs only, no check changes.
+
 ## 2026-11-26: S30, the joined alert stops naming children
 
 - **S30 (new, held for Zero):** an alert linked only to a family never names a child. The joined alert says
