@@ -138,38 +138,29 @@ From OSA's taste review of L1 (#136). The page should read like a business, not 
   - "In person or online" sits on a full-width light-gray band.
 - **Width:** still about 1080px at most, with wide side gutters. No photos.
 
-### Landing v2 (L4)
+### Landing C (L4)
 
-Javaris, 2026-11-27: the page is still too basic. Landing v2 replaces L3's hero and layout. There are no new
-facts and no made-up content: every line is something the app does today.
+Javaris picked direction C, "Bright and clear", on 2026-11-27. The source of truth is the mockup,
+`docs/design/landing-c.html`: match it section by section. **The landing page only** may break the app's rules
+in these ways, and the app keeps its rules:
+- **Type:** weight 700 for the hero and section titles, with the mockup's tight tracking. Inter, not the
+  mockup's Plus Jakarta Sans.
+- **Corners:** 24–32px on its panels and tiles, as in the mockup.
+- **Patterns:** the graph-paper hero and the yellow highlight on "real confidence" are CSS gradients used as
+  patterns. They're the only gradients allowed.
+- **Colors:** the mockup's blue accent and its pastel tile colors become named landing tokens in
+  `globals.css` (`--landing-*`), which only the landing page uses.
 
-1. **Hero on the navy brand band** (`--ink`, flat):
-   - The white headline and subhead from L3, with **Get started** and **Sign in**.
-   - On the right (below, on phones), a phone-frame screenshot of a parent's Home. The frame is drawn in CSS or
-     SVG. The screenshot is a static image in `public/landing/`, made by a committed script from the restyled
-     app with the demo seed, so it has only demo names and no real family.
-2. **Trust strip** under the hero, as one line: "Grades K–6 · Florida B.E.S.T. standards · F.A.S.T. test prep ·
-   In person or online".
-3. **"What families get in the app":** a 3×2 grid, each item with one line icon.
-   - Book sessions online.
-   - Homework with Vienne's feedback.
-   - Progress reports from Vienne.
-   - FAST score tracking.
-   - Message Vienne directly.
-   - Video sessions when you can't meet in person.
-4. **Services:** 4 cards with icons, on a light-gray band. Cards here are white, with a 1px border and 8px
-   corners, and no shadow.
-5. **Rates and payment** beside **"In person or online"** on desktop, stacked on phones. The payment methods
-   read "Cash", "Zelle", "Cash App", "Apple Pay" and "Step Up For Students scholarship" (capitalized, no "the").
-6. **How it works:** numbered steps, joined by a thin connecting line (vertical on phones).
-7. **Closing navy CTA band:** "Ready to get started?", with **Request an invite**, which scrolls to the form.
-8. **Navy footer:** Privacy, Sign in and "© Mentoring Minds Academy".
-9. **Throughout:**
-   - Subtle section spacing, about 1080px wide at most, and Inter.
-   - Only this file's tokens, one accent (blue), and still no gradients.
-   - No testimonials unless they're real, and no photos except the app screenshot.
-   - Leave a slot in the code for a later "About Vienne" section with a photo, but render nothing until Javaris
-     sends its content.
+On top of the mockup:
+- **Header:** the brain logo mark at 32px next to "Mentoring Minds Academy".
+- **Icons:** the four trust tiles get 20px line icons (graduation cap, book, clipboard-check, badge-dollar)
+  instead of letter badges. Each service card gets a 20px line icon.
+- **Kept as in the mockup:** the graph-paper hero with the highlight, the pastel service tiles, and the dark
+  progress card labelled "Sample screen with demo data". Also the pricing card with Step Up For Students
+  linked to `https://www.stepupforstudents.org`, the three steps, and the dark "Ready to get started?" panel,
+  which holds the real L2 form restyled, with its fields, labels and messages unchanged.
+- **Phone:** hero padding 48px, trust tiles 2 per row, services 1 per row, and buttons full width.
+- **"About Vienne":** stays out until Javaris sends the content.
 
 ## Privacy page (L1)
 

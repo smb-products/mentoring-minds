@@ -3,22 +3,19 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
-## 2026-11-27: Landing v2 (L4 rewritten)
+## 2026-11-27: Landing C (L4 rewritten)
 
-- **L4 becomes "Landing v2":**
-  - A navy hero with a phone-frame screenshot of a parent's Home, taken from the demo seed by a committed script.
-  - A trust strip.
-  - "What families get in the app", a 3×2 grid of things the app does.
-  - Service cards on a light band.
-  - Rates beside "In person or online", keeping L4's capitalized payments.
-  - Numbered steps joined by a line.
-  - A closing navy call to action, and a navy footer.
-
-  There are no new facts, testimonials or photos besides the screenshot. A slot waits for "About Vienne". L4 may
-  update L1's and L3's specs where v2 supersedes them. docs/DESIGN.md gets a Landing v2 section that replaces
-  L3's light-gray hero.
-- Why: Javaris finds the landing page still too basic. L4 was on hold from the start, so no lane claimed the
-  small version. Approved: Javaris (2026-11-27, via OSA).
+- **L4 becomes "Landing C":** the page Javaris picked from OSA's mockups, "Bright and clear".
+  - The mockup is committed as `docs/design/landing-c.html`, and L4 matches it section by section.
+  - On top of it: Inter, weight 700 for titles, line icons on the trust and service tiles, and the 32px logo mark
+    in the header. On phones, 2 trust tiles per row, 1 service per row and full-width buttons.
+  - The progress card is labelled as demo data, and L2's real form sits in the dark panel, restyled.
+  - L4 may update the L1, L2 and L3 specs where C replaces what they check.
+  - It ends blocked, so OSA can compare it to the mockup before it queues.
+- **docs/DESIGN.md:** a Landing C section, replacing L3's. Only the landing page may use 700, 24–32px corners,
+  the graph-paper and highlight patterns, and its own pastel tokens. The app keeps its rules.
+- **L2:** its touches drop `src/components/landing/`, because its redo is server-only, so L4 can run now.
+- Why: Javaris picked direction C (2026-11-27, via OSA). Approved: Javaris.
 
 ## 2026-11-27: /privacy accuracy updates; L3 amend; L4 landing copy; R1 check 4 says text-field
 
