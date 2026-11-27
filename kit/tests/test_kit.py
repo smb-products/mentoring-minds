@@ -46,7 +46,7 @@ case "$1 $2" in
   "pr list") case "$*" in *open*) echo "${GH_OPEN:-[]}";; *) echo "${GH_MERGED:-[]}";; esac;;
   "issue comment") echo "comment $*" >> "$GH_LOG";;
   "pr ready") echo "ready $3" >> "$GH_LOG";;
-  "api graphql") echo "${GH_QUEUE:-null}";;
+  "api graphql") case "$*" in *timelineItems*) echo "${GH_DROPS:-null}";; *) echo "${GH_QUEUE:-null}";; esac;;
   "issue view") case "$*" in *state*) echo OPEN; exit 0;; esac; echo '{"comments":[{"createdAt":"2026-11-22T10:00:00Z","body":"[to:osa][from:soap][id:abc123] hi from miosa"}]}';;
 esac
 """
@@ -310,6 +310,38 @@ class Kit(unittest.TestCase):
         self.kit("msg.py", "inbox", "axis")
         self.kit("watch.py", "--seats", env=env)
         self.assertEqual(len(typed()), 3, "woke a seat that had already read its inbox")
+
+    def test_a_pr_the_merge_queue_drops_is_reported_once_and_not_nudged_as_waiting(self):
+        self.kit("plan.py", "set", "A", "review")
+        green = lambda n, head, labels=(): {"number": n, "headRefName": head, "headRefOid": f"sha{n}", "isDraft": False,
+                                           "mergeable": "MERGEABLE", "autoMergeRequest": None,
+                                           "labels": [{"name": l} for l in labels],
+                                           "statusCheckRollup": [{"name": "check", "conclusion": "SUCCESS",
+                                                                  "completedAt": "2026-01-01T00:00:00Z"}]}
+        prs = json.dumps([green(7, "f/A"), green(8, "ops/x", ["owner:atlas"]), green(9, "f/B")])
+        event = lambda n, kind, reason="": {"number": n, "timelineItems": {"nodes": [
+            {"__typename": kind, "createdAt": "2026-01-01T00:05:00Z", "reason": reason}]}}
+        drops = json.dumps({"data": {"repository": {"pullRequests": {"nodes": [
+            event(7, "RemovedFromMergeQueueEvent", "Required status check \"check\" failed"),
+            event(8, "RemovedFromMergeQueueEvent", "Required status check \"check\" failed"),
+            event(9, "AddedToMergeQueueEvent")]}}}})
+        env = {"GH_OPEN": prs, "GH_DROPS": drops}
+        for _ in range(2):
+            self.kit("plan.py", "refresh", env=env)
+        osa = self.kit("msg.py", "inbox", "osa").stdout
+        self.assertEqual(osa.count("PR #7 (f/A) was dropped from the merge queue"), 1, osa)
+        self.assertEqual(osa.count("PR #8 (ops/x) was dropped"), 1, osa)
+        self.assertNotIn("PR #9", osa)  # last added, not removed: still queued
+        self.assertIn("PR #7", self.kit("msg.py", "inbox", "axis").stdout)   # A has no `held`: the leads
+        self.assertIn("PR #8", self.kit("msg.py", "inbox", "atlas").stdout)  # not a plan PR: its owner label
+        self.kit("msg.py", "inbox", "zero")  # the leads alert, read: only the watch pass below is left
+        (self.tmp / "bin" / "tmux").write_text("#!/usr/bin/env bash\nexit 0\n")
+        (self.tmp / "bin" / "tmux").chmod(0o755)
+        self.kit("watch.py", "--seats", env=env)
+        nudges = self.kit("msg.py", "inbox", "axis").stdout + self.kit("msg.py", "inbox", "zero").stdout
+        self.assertNotIn("PR #7", nudges)  # dropped after its checks passed: not "waiting for you to merge"
+        self.assertNotIn("PR #8", nudges)
+        self.assertIn("PR #9", nudges)     # a green PR the queue didn't drop is still nudged
 
     def test_checker_skips_tickets_a_seat_runs_itself(self):
         self.kit("plan.py", "set", "E", "merged")  # role ops: no holdouts

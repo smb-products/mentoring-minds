@@ -10,7 +10,8 @@ different worktrees never conflict on a tracked file.
   plan.py reopen <id> --note TEXT                   a checker found a failing holdout: next round, fresh branch,
                                                     held as needs_checks until a lead writes the case into its
                                                     checks and runs `plan.py set <id> ready`
-  plan.py refresh                                   mark merged PRs; checking → checked; heal conflicting lane PRs (needs gh)
+  plan.py refresh                                   mark merged PRs; checking → checked; heal conflicting lane PRs;
+                                                    report a PR the merge queue dropped (needs gh)
   plan.py ready                                     "<build> <check>": features ready to claim (read-only)
   plan.py show <id>                                 the feature as JSON, for a prompt
   plan.py board                                     who is on what, and cost so far
@@ -136,6 +137,27 @@ def set_status(fid, status, **kw):
         write_json(STATE, st)
 
 
+DROPS_Q = ('query($owner:String!,$name:String!){repository(owner:$owner,name:$name){pullRequests(states:OPEN,first:100)'
+           '{nodes{number timelineItems(last:1,itemTypes:[ADDED_TO_MERGE_QUEUE_EVENT,REMOVED_FROM_MERGE_QUEUE_EVENT])'
+           '{nodes{__typename ... on RemovedFromMergeQueueEvent{createdAt reason}}}}}}}')
+
+
+def queue_drops():
+    """Open PRs the merge queue last removed without merging them: {number: (when, reason)}. A PR's own `check` is
+    only CI's fast part (ci.yml), so a failure in the full suite shows up here, not on the PR."""
+    code, out = sh(["gh", "api", "graphql", "-F", "owner={owner}", "-F", "name={repo}", "-f", f"query={DROPS_Q}"])
+    try:
+        nodes = json.loads(out)["data"]["repository"]["pullRequests"]["nodes"]
+    except (ValueError, KeyError, TypeError):
+        return {}
+    drops = {}
+    for p in nodes or []:
+        last = ((p.get("timelineItems") or {}).get("nodes") or [None])[-1] or {}
+        if last.get("__typename") == "RemovedFromMergeQueueEvent" and (last.get("reason") or "").lower() != "merged":
+            drops[p["number"]] = (last.get("createdAt") or "", last.get("reason") or "no reason given")
+    return drops
+
+
 def refresh():
     code, out = sh(["gh", "pr", "list", "--state", "merged", "--limit", "200",
                     "--json", "headRefName,number"])
@@ -162,8 +184,23 @@ def refresh():
         reviewing = {branch_of(f["id"], st["features"].get(f["id"], {})): f for f in features()
                      if status_of(f, st) == "review"}
         code, out = sh(["gh", "pr", "list", "--state", "open", "--limit", "100",
-                        "--json", "headRefName,headRefOid,number,statusCheckRollup,mergeable"])
+                        "--json", "headRefName,headRefOid,number,statusCheckRollup,mergeable,labels"])
         open_prs = json.loads(out) if code == 0 else []
+        dropped = []
+        drops = queue_drops() if open_prs else {}
+        for p in open_prs:  # once per removal: the PR is green on its own but failed (or was pulled) in the queue
+            if p["number"] not in drops:
+                continue
+            when, why = drops[p["number"]]
+            fid = checking.get(p["headRefName"])
+            f = reviewing.get(p["headRefName"])
+            rec = st["features"].setdefault(fid or f["id"], {}) if (fid or f) else st.setdefault("qdrops", {}).setdefault(str(p["number"]), {})
+            if rec.get("qdrop") == when:
+                continue
+            rec["qdrop"] = when
+            owners = [l["name"].split(":", 1)[1] for l in p.get("labels") or [] if l.get("name", "").startswith("owner:")]
+            to = [] if fid else [f.get("held") or "leads"] if f else (owners or [ENV.get("HELD_OWNER", "zero")])
+            dropped.append((p["number"], p["headRefName"], why, to))
         red_builds = []
         for p in open_prs:
             bad = any((c.get("conclusion") or c.get("state") or "").upper() in ("FAILURE", "ERROR", "TIMED_OUT")
@@ -179,8 +216,13 @@ def refresh():
                 st["features"][f["id"]]["cifail"] = p.get("headRefOid")
                 red_builds.append((f["id"], p["number"], f.get("held") or "leads"))
         write_json(STATE, st)
-    if failed or red_builds:
+    if failed or red_builds or dropped:
         from msg import send
+        for pr, head, why, to in dropped:
+            text = (f"PR #{pr} ({head}) was dropped from the merge queue: {why}. Its PR check is only CI's fast part; "
+                    "read the queue's merge_group run (the full suite), fix it on the branch, then queue it again.")
+            for who in ["osa", *to]:
+                send(who, text, "lane")
         for fid, pr in failed:
             send("osa", f"{fid}: holdout PR #{pr} CI failed. A broken test is the checker's to fix; "
                         f"if the feature is wrong, kit/plan.py reopen {fid}.", "lane")
