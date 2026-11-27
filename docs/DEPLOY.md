@@ -221,8 +221,8 @@ What stops guessing and runaway costs. Each is a named constant, and `tests/inte
 | `MAX_FAILURES` (10) | `src/server/invites.ts` | Wrong invite codes lock code entry on that account for an hour. |
 | `GLOBAL_REDEEM_FAILURES_PER_HOUR` (30) | `src/server/invites.ts` | More wrong codes than this from everyone in an hour pause code entry for everyone, and Vienne is told. |
 | `MAX_BYTES` (25 MB) | `src/lib/storage.ts` | The largest upload. Blob enforces it again on the upload token. |
-| `REQUESTS_PER_IP_PER_HOUR` (3) | `src/server/requests.ts` | Invite requests from one visitor's IP (stored only as a hash) in an hour. Arrives with L2. |
-| `REQUESTS_PER_HOUR` (20) | `src/server/requests.ts` | Invite requests from everyone in an hour. Past it, requests pause for the hour, and Vienne gets one alert. Arrives with L2. |
+| `REQUESTS_PER_IP_PER_HOUR` (3) | `src/server/requests.ts` | Invite requests from one visitor's IP (stored only as a hash) in an hour. Every request counts, repeats of an earlier email included (L2's `InviteAttempt`, kept a day). |
+| `REQUESTS_PER_HOUR` (20) | `src/server/requests.ts` | Invite requests from everyone in an hour, counted the same way. At the limit, requests pause for the hour, and Vienne gets one alert. |
 | `DUPLICATE_EMAIL_HOURS` (24) | `src/server/requests.ts` | A second request from the same email within this time is answered the same way, but nothing is stored and Vienne isn't told again. Arrives with L2. |
 | `REQUEST_KEEP_DAYS` (90) | `src/server/requests.ts`, mirrored in `src/lib/jobs.ts` | The daily job deletes invite requests, and their alerts, after this many days. Arrives with L2. |
 
