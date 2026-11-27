@@ -1680,6 +1680,37 @@
         "Not held. It waits only for L3. L2's redo is server-only now, so the two can run at the same time.",
         "Its icons come from lucide-react, already a dependency. Add no package."
       ]
+    },
+    {
+      "id": "L5",
+      "title": "Landing C: a photo on each service card instead of the line icon",
+      "spec": "tests/e2e/l5-service-photos.spec.ts (new)",
+      "deps": [
+        "L4"
+      ],
+      "touches": [
+        "src/components/landing/",
+        "public/landing/services/",
+        "tests/e2e/l5-service-photos.spec.ts",
+        "tests/e2e/l4-landing-c.spec.ts",
+        "tests/e2e/l3-landing-polish.spec.ts",
+        "tests/e2e/l1-landing.spec.ts",
+        "plan/reports/L5.md"
+      ],
+      "checks": [
+        "Each of the 4 service cards in 'Ways to learn with Vienne' shows its photo across the top instead of the line icon, in order: 1-on-1 Tutoring → public/landing/services/one-on-one.jpg, Small Groups → small-groups.jpg, In-Home Tutoring → in-home.jpg, Online Tutoring → online.jpg (already on main; don't edit or re-encode them). Each photo spans the card's full width at a 2:1 ratio with object-fit: cover, and the card's top corners stay rounded (24px, the photo clipped to them). Below it come the title and line, unchanged, on the card's pastel body. The service cards have no svg any more; the trust tiles keep their icons.",
+        "Each photo is a next/image with a sizes attribute that matches the grid (4 across from lg, 2 across from sm, 1 across below), lazy-loaded (no priority, no eager). Import each file statically from public/landing/services/, so it's served from /_next/static and /_next/image, which src/proxy.ts already lets through signed out. Don't edit src/proxy.ts or its matcher. Signed out, every photo on / loads (naturalWidth > 0) and its URL returns 200 with an image content type.",
+        "Alt text describes the scene generically, with no names and no place: 'A tutor helping a student with a worksheet', 'A tutor working with a small group of students', 'A tutor and a student working at a kitchen table', 'A student in an online session with a tutor on a laptop'. No other text on / changes.",
+        "Nothing else on the page changes: the header, hero, trust tiles, app section, pricing, steps, the Request an invite form, the footer, the metadata and the phone layout (services 1 per row, no sideways scroll on a Pixel 7) stay as L4 built them.",
+        "Tests: tests/e2e/l5-service-photos.spec.ts, signed out on a production build, checks the 4 photos in card order (src, alt, loading=lazy, sizes present, naturalWidth > 0), the 2:1 box (width ÷ height within 2 ± 0.05), object-fit cover, that the photo's top sits at the card's top edge, the 24px card corners, no svg in the service cards, and that each image URL returns 200 image/*. Its @phone test checks 1 card per row, each photo the card's full width, and no sideways scroll. Lead edits authorized here and nowhere else in those files: in tests/e2e/l4-landing-c.spec.ts, the service-tiles test drops its 20px svg check and its title's ', each with a 20px icon' (the colors, radius and four-across checks stay); in tests/e2e/l1-landing.spec.ts the 'only image is the logo' test and in tests/e2e/l3-landing-polish.spec.ts the img src check allow the logo plus exactly these 4 photos and nothing else (the bio, email, phone, mailto and tel checks stay). List each edit in the report. auth.spec.ts, the L2 spec and the whole browser suite pass.",
+        "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone), then asks a lead to queue it."
+      ],
+      "hints": [
+        "Javaris, for Vienne, 2026-11-27 (via OSA): 'people, not symbols'. The photos are illustrative scenes cropped from her Tutoring Services flyer, not her students or families. Not held.",
+        "The files are about 570×272, so the 2:1 crop trims a few pixels at the sides. Don't upscale or replace them.",
+        "Static import, for example `import oneOnOne from '../../../public/landing/services/one-on-one.jpg'`, gives next/image its width and height. A plain '/landing/services/…' src would go through src/proxy.ts and redirect signed-out visitors to /sign-in.",
+        "Drop the now-unused lucide service icons (Home, Laptop, User, Users) from Landing.tsx's import. Add no package."
+      ]
     }
   ]
 }
