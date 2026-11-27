@@ -1659,7 +1659,6 @@
         "tests/e2e/l4-landing-c.spec.ts",
         "tests/e2e/l3-landing-polish.spec.ts",
         "tests/e2e/l1-landing.spec.ts",
-        "tests/e2e/l2-request-invite.spec.ts",
         "plan/reports/L4.md"
       ],
       "checks": [
@@ -1668,7 +1667,7 @@
         "The dark progress card is clearly a sample: it's labelled 'Sample screen with demo data', and every name in it comes from the demo seed (the mockup's Mateo, grade 3). It's static markup, not a live read. Each line of 'Know exactly how your child is doing' must be true of the app today. If one isn't (for example 'the area to work on next' on FAST scores), drop that clause and say so in the report. There are no testimonials, ratings or other made-up claims.",
         "The dark panel holds L2's real form (RequestInvite.tsx), restyled to the mockup, with the same fields, labels, honeypot, messages and requestInvite call. Its id stays #request-invite, so every 'Get started' and 'Request an invite' scrolls to it. 'Have a code? Create your account' links to /sign-in. Don't touch L2's server files.",
         "Phone (Pixel 7): hero padding 48px, trust tiles 2 per row, services 1 per row, buttons full width, and no sideways scroll. The 'About Vienne' section isn't rendered (a comment marks its slot). The page title, canonical URL, Open Graph tags, /privacy and the signed-in redirects don't change.",
-        "Tests: tests/e2e/l4-landing-c.spec.ts, signed out on a production build, checks each section's heading and text above, the Step Up link's attributes, the 'Sample screen with demo data' label, that the form sends and shows L2's success message, and that the footer links work. Its @phone test checks the phone rules. Where Landing C replaces what the L1, L3 and L2 specs check (the hero headline and subhead, the gray band, the payment list's shape, the form's look), update those lines only and list each change in the report. That's authorized here. auth.spec.ts and the whole browser suite pass.",
+        "Tests: tests/e2e/l4-landing-c.spec.ts, signed out on a production build, checks each section's heading and text above, the Step Up link's attributes, the 'Sample screen with demo data' label, that the form sends and shows L2's success message, and that the footer links work. Its @phone test checks the phone rules. Where Landing C replaces what the L1 and L3 specs check (the hero headline and subhead, the gray band, the payment list's shape), update those lines only and list each change in the report. That's authorized here. L2's spec stays as it is and must pass, since the form keeps its roles, labels and messages. auth.spec.ts and the whole browser suite pass.",
         "End the run with status: blocked, with 'waiting for OSA to compare it to the mockup' in the report, so the PR doesn't queue itself. OSA compares it to docs/design/landing-c.html and then asks a lead to queue it."
       ],
       "hints": [

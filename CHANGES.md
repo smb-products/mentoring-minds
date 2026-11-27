@@ -10,7 +10,7 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   - On top of it: Inter, weight 700 for titles, line icons on the trust and service tiles, and the 32px logo mark
     in the header. On phones, 2 trust tiles per row, 1 service per row and full-width buttons.
   - The progress card is labelled as demo data, and L2's real form sits in the dark panel, restyled.
-  - L4 may update the L1, L2 and L3 specs where C replaces what they check.
+  - L4 may update the L1 and L3 specs where C replaces what they check. L2's spec must still pass.
   - It ends blocked, so OSA can compare it to the mockup before it queues.
 - **docs/DESIGN.md:** a Landing C section, replacing L3's. Only the landing page may use 700, 24–32px corners,
   the graph-paper and highlight patterns, and its own pastel tokens. The app keeps its rules.
