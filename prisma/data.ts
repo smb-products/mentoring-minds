@@ -106,7 +106,8 @@ export function parseLocations(text: string): SeedLocation[] {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) throw refuse(`${n} isn’t a { name, kind, address } entry`);
     const { name, kind, address, ...rest } = entry as Record<string, unknown>;
     const extra = Object.keys(rest);
-    if (extra.length) throw refuse(`${n} has ${extra.length === 1 ? 'a field' : 'fields'} it doesn’t know: ${extra.map((k) => JSON.stringify(k.slice(0, 40))).join(', ')}`);
+    // The keys aren't shown: in a wrong-shaped file the place itself can be a key.
+    if (extra.length) throw refuse(`${n} has ${extra.length === 1 ? 'a field' : `${extra.length} fields`} it doesn’t know`);
     if (typeof name !== 'string' || !name.trim()) throw refuse(`${n} has no name`);
     if (name.trim().length > LOCATION_NAME_MAX) throw refuse(`${n}’s name is longer than ${LOCATION_NAME_MAX} characters`);
     if (typeof kind !== 'string' || !KINDS.includes(kind)) throw refuse(`${n}’s kind must be one of ${KINDS.join(', ')}`);
@@ -121,9 +122,10 @@ export function parseLocations(text: string): SeedLocation[] {
   });
 }
 
+/** True when p is root or under it. Only a '..' segment leaves root: a name like '..places' is still inside. */
 const within = (p: string, root: string) => {
   const rel = path.relative(root, p);
-  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+  return rel === '' || (rel !== '..' && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel));
 };
 
 /** Reads and checks SEED_LOCATIONS_FILE. Refuses a file inside the checkout, so real places stay out of git. */
