@@ -154,6 +154,10 @@ never by name or email, so a delete can't touch another family's rows. It delete
 A mistaken delete can come back only from Neon's history, inside that window. Only Javaris restores
 (**Restoring the database**), and he copies back only that family's rows, never all of `main`.
 
+**An invite request** (L2) is a stranger's name, email, phone and message. The daily job deletes it, and its alert,
+after `REQUEST_KEEP_DAYS` (90). If someone asks sooner, Javaris deletes that one `InviteRequest` row and its
+alert (`Notification.inviteRequestId`) by id. That's an irreversible op, so it's his to run.
+
 ## Environment variables
 
 | Variable | Where | What |
@@ -215,6 +219,10 @@ What stops guessing and runaway costs. Each is a named constant, and `tests/inte
 | `GLOBAL_REDEEM_FAILURES_PER_HOUR` (30) | `src/server/invites.ts` | More wrong codes than this from everyone in an hour pause code entry for everyone, and Vienne is told. |
 | `AI_DAILY_LIMIT` (150) | `src/lib/ai/prompts.ts` | AI drafts per 24 hours (only Vienne can ask), counted before Claude is called. Goes with the AI code in S33. |
 | `MAX_BYTES` (25 MB) | `src/lib/storage.ts` | The largest upload. Blob enforces it again on the upload token. |
+| `REQUESTS_PER_IP_PER_HOUR` (3) | `src/server/requests.ts` | Invite requests from one visitor's IP (stored only as a hash) in an hour. Arrives with L2. |
+| `REQUESTS_PER_HOUR` (20) | `src/server/requests.ts` | Invite requests from everyone in an hour. Past it, requests pause for the hour, and Vienne gets one alert. Arrives with L2. |
+| `DUPLICATE_EMAIL_HOURS` (24) | `src/server/requests.ts` | A second request from the same email within this time is answered the same way, but nothing is stored and Vienne isn't told again. Arrives with L2. |
+| `REQUEST_KEEP_DAYS` (90) | `src/server/requests.ts` | The daily job deletes invite requests, and their alerts, after this many days. Arrives with L2. |
 
 No limit in the app yet, and what covers it:
 
