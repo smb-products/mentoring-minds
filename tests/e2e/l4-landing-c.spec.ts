@@ -165,14 +165,14 @@ test.describe('signed out', () => {
     const card = section.locator('figure[data-sample-screen]');
     await expect(card.locator('figcaption')).toHaveText('Sample screen with demo data.');
     expect(squish(await card.innerText())).toBe(
-      'Progress · Emma, grade 3 From Vienne Much more patient with word problems, and now draws a picture before solving. Average score 83% Next session Mon, 6:30 PM Sample screen with demo data.',
+      'Progress · Ella, grade 3 From Vienne Much more patient with word problems, and now draws a picture before solving. Average score 83% Next session Mon, 6:30 PM Sample screen with demo data.',
     );
     expect(await css(card, 'background-color')).toBe('rgb(16, 24, 40)');
     // Static markup: the page makes no server call to draw it.
     const source = readFileSync(path.join(process.cwd(), 'src/components/landing/Landing.tsx'), 'utf8');
     expect(source).not.toMatch(/@\/server|@\/lib\/db|prisma|fetch\(/);
-    // Emma is a made-up sample name: in no family's data, not even the demo seed's (the leak holdouts ban those on /).
-    expect(readFileSync(path.join(process.cwd(), 'prisma/demo/seed.js'), 'utf8')).not.toMatch(/'Emma'/);
+    // Ella is a made-up sample name: in no family's data, not even the demo seed's (the leak holdouts ban those on /).
+    expect(readFileSync(path.join(process.cwd(), 'prisma/demo/seed.js'), 'utf8')).not.toMatch(/\bElla\b/);
   });
 
   test('the pricing card: $50 per hour, the ways to pay, and Step Up For Students linked out', async ({ page }) => {
