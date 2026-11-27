@@ -3,6 +3,15 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: S34, rates and services on parent Home
+
+- **S34 (new, not held):** parent Home ends with a text-only "Rates and services" section: $50 per hour; cash,
+  Zelle, Cash App, Apple Pay and the Step Up For Students scholarship (linked to its home page, in a new tab);
+  and four services (1-on-1, Small Groups, In-Home, Online). It's static text in one UI file, with no schema or
+  Settings field, and laid out phone first. Why: Vienne asked for it, so families see her rates and how to pay.
+  It's the first screen addition since wiring, which otherwise keeps the prototype's look. Approved: Javaris
+  (2026-11-27, via OSA).
+
 ## 2026-11-27: S33, no AI for launch
 
 - **S33 (new, held for Zero):** the voice session-note draft ("Talk about it") and the answer-key photo read

@@ -1410,6 +1410,30 @@
         "next.config.ts keeps serverActions.bodySizeLimit '4mb'. Say in the report whether anything besides the photo read still sends a body that big."
       ],
       "held": "zero"
+    },
+    {
+      "id": "S34",
+      "title": "Parent Home shows Vienne's rates, how to pay and her services",
+      "spec": "tests/e2e/s34-rates-and-services.spec.ts (new)",
+      "deps": [],
+      "touches": [
+        "src/ui/components/home/RatesAndServices.jsx",
+        "src/ui/pages/parent/HomePage.jsx",
+        "tests/e2e/s34-rates-and-services.spec.ts",
+        "plan/reports/S34.md"
+      ],
+      "checks": [
+        "Parent Home (/parent/home) ends with a 'Rates and services' section, below Latest progress (or From Vienne when there's no report), built with the existing Section component and nothing else new in style: text only, no photos, no icons beyond the ones Home already imports. It shows for every parent who sees Home's content, whatever child is picked.",
+        "It reads, word for word (curly apostrophes, as the app writes them): Rate: '$50 per hour'. Payment: 'Cash, Zelle, Cash App, Apple Pay, and the Step Up For Students scholarship', where 'Step Up For Students' is a link to exactly https://www.stepupforstudents.org with target=\"_blank\" and rel=\"noopener noreferrer\". Services, in this order, each a name with its line under it: '1-on-1 Tutoring' (Individual support for students who need extra help in a subject.), 'Small Groups' (Students practice and learn alongside their peers.), 'In-Home Tutoring' (For special circumstances.), 'Online Tutoring' (For special circumstances.).",
+        "All of the text lives in one file, src/ui/components/home/RatesAndServices.jsx, as plain constants at its top so Vienne's next change is one edit. No schema, Settings field, server call or new read. HomePage.jsx gains only the import and one line that places it.",
+        "Phone first: tests/e2e/s34-rates-and-services.spec.ts signs in as a parent with the existing fixture (no console errors) and checks every string and the link's href, target and rel. Its test tagged @phone also checks the section fits the phone width (the page's scrollWidth is no wider than its clientWidth) and the link is visible. tests/e2e/auth.spec.ts, the w*.spec files, p-product.spec.ts and the rest of the browser suite still pass."
+      ],
+      "hints": [
+        "Vienne's request, approved by Javaris 2026-11-27 (via OSA). It's her own published business information, not family data.",
+        "Not held: no PROTECT_MERGE path. It shares no touches with S33, so the two can run on separate lanes.",
+        "Other external links in src/ui use rel=\"noreferrer\". Javaris asked for noopener, so this one carries both.",
+        "Preview parents see the invite-code page (LockedPage) instead of Home's content. Leave that page alone; it's out of scope."
+      ]
     }
   ]
 }
