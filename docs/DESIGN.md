@@ -138,6 +138,30 @@ From OSA's taste review of L1 (#136). The page should read like a business, not 
   - "In person or online" sits on a full-width light-gray band.
 - **Width:** still about 1080px at most, with wide side gutters. No photos.
 
+### Landing C (L4)
+
+Javaris picked direction C, "Bright and clear", on 2026-11-27. The source of truth is the mockup,
+`docs/design/landing-c.html`: match it section by section. **The landing page only** may break the app's rules
+in these ways, and the app keeps its rules:
+- **Type:** weight 700 for the hero and section titles, with the mockup's tight tracking. Inter, not the
+  mockup's Plus Jakarta Sans.
+- **Corners:** 24–32px on its panels and tiles, as in the mockup.
+- **Patterns:** the graph-paper hero and the yellow highlight on "real confidence" are CSS gradients used as
+  patterns. They're the only gradients allowed.
+- **Colors:** the mockup's blue accent and its pastel tile colors become named landing tokens in
+  `globals.css` (`--landing-*`), which only the landing page uses.
+
+On top of the mockup:
+- **Header:** the brain logo mark at 32px next to "Mentoring Minds Academy".
+- **Icons:** the four trust tiles get 20px line icons (graduation cap, book, clipboard-check, badge-dollar)
+  instead of letter badges. Each service card gets a 20px line icon.
+- **Kept as in the mockup:** the graph-paper hero with the highlight, the pastel service tiles, and the dark
+  progress card labelled "Sample screen with demo data". Also the pricing card with Step Up For Students
+  linked to `https://www.stepupforstudents.org`, the three steps, and the dark "Ready to get started?" panel,
+  which holds the real L2 form restyled, with its fields, labels and messages unchanged.
+- **Phone:** hero padding 48px, trust tiles 2 per row, services 1 per row, and buttons full width.
+- **"About Vienne":** stays out until Javaris sends the content.
+
 ## Privacy page (L1)
 
 `/privacy` is plain language, with no legal boilerplate. It's linked from the landing footer and sign-in, and
