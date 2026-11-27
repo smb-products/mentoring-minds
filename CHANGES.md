@@ -16,6 +16,15 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   the graph-paper and highlight patterns, and its own pastel tokens. The app keeps its rules.
 - **L2:** its touches drop `src/components/landing/`, because its redo is server-only, so L4 can run now.
 - Why: Javaris picked direction C (2026-11-27, via OSA). Approved: Javaris.
+## 2026-11-27: S35 reopened, not found only when final; a refused id is not found
+
+- **S35 (needs_checks, new check 3):**
+  - The "couldn't find" message waits until every read the page depends on has come back, so a slow connection
+    never shows it for a real assignment.
+  - An id the server refuses as INVALID (garbled or too long) gets the same message and link as NOT_FOUND, with
+    no console error.
+  - S35 may change src/ui/api/live-hooks.js only to stop logging INVALID and NOT_FOUND reads.
+  - Why: Rigg's S35 holdout (`plan/holdouts/S35.spec.ts`). Approved: Axis (lead).
 
 ## 2026-11-27: /privacy accuracy updates; L3 amend; L4 landing copy; R1 check 4 says text-field
 
