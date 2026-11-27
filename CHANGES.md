@@ -8,6 +8,8 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **L4 (#160), lead amend on f/L4:** under 480px the landing header shows only the logo, the name and **Sign in**.
   Services, Rates and Get started are hidden, because the hero already has the call to action. The name has
   `min-width: 0` with an ellipsis, and the header stays on one row. Nothing else changes.
+  `tests/holdout/L3.spec.ts`'s 320px test now clicks the hero's "Request an invite" and expects the form of that
+  name, since Landing C has no "Get started" in the page body (lead edit).
 - Why: holdout `tests/holdout/L3.spec.ts` (320px: Sign in must clear the name) failed on #160, because the
   header's nav overlapped the name. L4 had used its two attempts. Approved: Javaris (2026-11-27, via OSA),
   option A, a lead amend.
