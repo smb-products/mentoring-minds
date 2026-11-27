@@ -67,11 +67,30 @@ notes: Done before production exists: the setup checklist, the cron decision, ro
 
 ## After setup (Atlas, once Javaris says "production is set up")
 
-- [ ] 1: env names per environment; no DEMO_MODE anywhere; production boots
-- [ ] 2: production cron route without the secret → 401; first 13:00 UTC run → 200
-- [ ] 3: raw Blob URL without a token → 403 (preview file); the store shows Private
+- [ ] 1: env names per environment; no DEMO_MODE anywhere; production boots. **Production done** (2026-11-27): the
+  names match `src/lib/env-check.ts` (`DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `INVITE_PEPPER`, both Google keys,
+  `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`, the three VAPID keys). `DEMO_MODE`, `ALLOW_LOCAL_UPLOADS` and
+  `DATABASE_POOL_MAX` aren't set in any environment, and production boots. **Open:** Preview and Development have no
+  `DATABASE_URL` or `DIRECT_URL` yet (Neon `preview` and `dev`, setup Part 5), so previews can't start.
+- [ ] 2: production cron route without the secret → 401; first 13:00 UTC run → 200. **401 done** (2026-11-27, on
+  `https://mentoringmindsacademy.org/api/cron/daily`). **Open:** the first 13:00 UTC run.
+- [ ] 3: raw Blob URL without a token → 403 (preview file); the store shows Private. Waits on the preview database (check 1).
 - [ ] 4: Neon restore into a new branch rehearsed and timed
 - [ ] 5: the three caps confirmed set
 - [ ] 6: instant rollback rehearsed on a preview and timed
-- [ ] 7: D5: auto-assign is off, still off after Part 7's promote; the next merge to main is Staged; its build log shows `migrate status`, and no `migrate deploy`
-- [ ] 8: domain: `https://mentoringmindsacademy.org` serves the promoted deployment with a valid certificate; `www` and `mentoring-minds.vercel.app` return 308 to the apex with the path kept; after the next promote all three serve the new deployment; Auth.js's Google callback is `https://mentoringmindsacademy.org/api/auth/callback/google`
+- [ ] 7: D5: auto-assign is off, still off after Part 7's promote; the next merge to main is Staged; its build log
+  shows `migrate status`, and no `migrate deploy`. **Mostly done** (2026-11-27). Every production build before the
+  first promote stayed Staged, with no current deployment. Their logs ran `migrate status` only: the 15:23 UTC build
+  of 7bd1f97 said "NOT UP TO DATE" (L2's `invite_attempts` was still pending), and the 15:25 UTC rebuild, after the
+  migrate, said "Database schema is up to date!". After `vercel promote` of `dpl_4T9k4HVpWNdX89MRdxhZSYtqwxhs`,
+  auto-assign is still **off**, so a promote doesn't switch it back on. **Open:** a merge after that promote stays Staged.
+- [ ] 8: domain. **Done for the first promote** (2026-11-27, `dpl_4T9k…`, main 7bd1f97):
+  - `https://mentoringmindsacademy.org/`, `/sign-in` and `/privacy` return 200.
+  - `www.mentoringmindsacademy.org` and `mentoring-minds.vercel.app` return 308 to the apex with the path and query
+    kept, and `http://` returns 308 to `https://`.
+  - The certificate is Let's Encrypt for the apex and `*.mentoringmindsacademy.org`. It verifies and is valid to
+    2027-02-25. HSTS, `X-Frame-Options: DENY` and CSP `frame-ancestors 'none'` are served.
+  - The promoted deployment carries the apex, `www` and `mentoring-minds.vercel.app`. Its other `vercel.app` aliases
+    and its own URL redirect to the Vercel login.
+  - Auth.js reports `https://mentoringmindsacademy.org/api/auth/callback/google` as the Google callback.
+  - **Open:** after the next promote, all three names serve the new deployment.
