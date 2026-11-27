@@ -14,19 +14,23 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: 'What the app stores',
     body: (
       <ul className="list-disc space-y-1.5 pl-5">
-        <li>Your account: your name and email. If you sign in with Google, Google shares only those two.</li>
+        <li>Your account: your name, email and phone number. If you sign in with Google, Google shares only your name and email.</li>
         <li>Your children’s first names and grades.</li>
         <li>Sessions, and Vienne’s notes about them.</li>
         <li>Homework, and the photos of it you send.</li>
         <li>Messages between you and Vienne.</li>
         <li>FAST scores.</li>
-        <li>Invite requests: what you write when you ask for an invite.</li>
+        <li>Invite requests: your name, email, phone and message when you ask for an invite.</li>
       </ul>
     ),
   },
   {
     title: 'Who sees it',
     body: <p>Vienne sees everything, so she can teach. Each family sees only its own children and messages, never another family’s.</p>,
+  },
+  {
+    title: 'Who else handles it',
+    body: <p>We never sell or share your information. Only the services that run the app handle it: Vercel (hosting), Neon (the database) and Google (if you sign in with Google).</p>,
   },
   {
     title: 'Where it lives',
