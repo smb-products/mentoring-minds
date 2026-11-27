@@ -12,6 +12,19 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **docs/DEPLOY.md → Limits:** the two rows say how requests are counted.
 - Why: Rigg's L2 holdout (`plan/holdouts/L2.test.ts`) shows checks 4 and 5 can't both hold while repeats go
   uncounted. Details are in the test. Approved: Zero (lead; L2 is held for Zero).
+## 2026-11-27: Landing C (L4 rewritten)
+
+- **L4 becomes "Landing C":** the page Javaris picked from OSA's mockups, "Bright and clear".
+  - The mockup is committed as `docs/design/landing-c.html`, and L4 matches it section by section.
+  - On top of it: Inter, weight 700 for titles, line icons on the trust and service tiles, and the 32px logo mark
+    in the header. On phones, 2 trust tiles per row, 1 service per row and full-width buttons.
+  - The progress card is labelled as demo data, and L2's real form sits in the dark panel, restyled.
+  - L4 may update the L1 and L3 specs where C replaces what they check. L2's spec must still pass.
+  - It ends blocked, so OSA can compare it to the mockup before it queues.
+- **docs/DESIGN.md:** a Landing C section, replacing L3's. Only the landing page may use 700, 24–32px corners,
+  the graph-paper and highlight patterns, and its own pastel tokens. The app keeps its rules.
+- **L2:** its touches drop `src/components/landing/`, because its redo is server-only, so L4 can run now.
+- Why: Javaris picked direction C (2026-11-27, via OSA). Approved: Javaris.
 ## 2026-11-27: S35 reopened, not found only when final; a refused id is not found
 
 - **S35 (needs_checks, new check 3):**
