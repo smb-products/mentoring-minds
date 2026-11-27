@@ -3,6 +3,21 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L4 lead edits on #160; the L2 holdout's real cause
+
+- **L4, check 3 (Fantem's amend):** the sample card's child is "Emma, grade 3", a name in no family's data, not even
+  the demo seed's. It replaces the mockup's Mateo, so the five holdouts that ban seed names on `/` (L1, L3, R3,
+  W8 ×2) hold as written.
+- **Lead edits on #160 (cb2e3d8):** `tests/holdout/L1.spec.ts` and `tests/holdout/L3.spec.ts` read Landing C's
+  hero and subhead instead of L3's.
+- **The L2 holdout's failure was not a timeout:**
+  - Since R1, the Alerts rail button's accessible name starts with its unread count ("1 Alerts"), and
+    `openAlerts` in `tests/e2e/support/ui.ts` matched only `^Alerts`. So the test failed whenever the parent had
+    an unread alert.
+  - The helper now allows the count in front (on #160). #158's `test.slow()` stays, but it wasn't the fix.
+- Why: L4's report (#160) and OSA's mockup approval. Javaris is waiting to launch. Approved: Axis (lead), OSA
+  (L4's look).
+
 ## 2026-11-27: Landing C (L4 rewritten)
 
 - **L4 becomes "Landing C":** the page Javaris picked from OSA's mockups, "Bright and clear".
