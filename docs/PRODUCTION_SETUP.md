@@ -18,7 +18,7 @@ Decided 2026-11-26 (Javaris, via OSA): D1–D4 as recommended, and D5 **manual**
 | # | Decision | Chosen | Why |
 |---|---|---|---|
 | D1 | Neon: its own account, or through the Vercel Marketplace | **Its own account** | The Marketplace's preview integration makes each preview database a copy of production, which would put real family data in every preview. It also names the direct URL `DATABASE_URL_UNPOOLED`, but the app reads `DIRECT_URL`. |
-| D2 | Address: a custom domain, or `<project>.vercel.app` | Start on `vercel.app`, add a domain later | Google's redirect address has to be updated when the domain changes (Part 4, step 6). |
+| D2 | Address: a custom domain, or `<project>.vercel.app` | **`mentoringmindsacademy.org`** (Javaris bought it on Vercel, 2026-11-27) | The apex is production. `www` and `mentoring-minds.vercel.app` redirect to it with a 308, so Google needs only one redirect address (Part 4, step 4). |
 | D3 | One Blob store, or one for production and one for previews | **Two stores** | A preview deployment runs code that hasn't launched yet. With one shared store, its token could read or delete families' photos. |
 | D4 | Neon plan | Free to start | Free keeps 6 hours of restore history. Launch (paid, by usage) keeps up to 7 days. See [Neon's history window](https://neon.com/docs/introduction/history-window). |
 | D5 | Production migrations after launch | **Manual: you migrate, then promote** | RULES.md says production migrations are yours. Production builds never run `prisma migrate deploy`; previews still do, on their own database. Merges to main build a **Staged** production deployment that doesn't go live until you promote it (Part 2, step 8). `docs/DEPLOY.md` → Releasing has the steps. |
@@ -46,13 +46,20 @@ keeps the variables it was built with, so an Instant Rollback to one from before
 
 ## Part 2. Vercel project, about 10 min
 
+**Done by Atlas on 2026-11-27, by CLI:** Parts 2 and 3, the domain (step 4), and Part 5's `AUTH_SECRET`,
+`INVITE_PEPPER` and `CRON_SECRET`. Look the settings over; don't create anything again. What's still yours
+in Part 5: the Neon URLs, the Google keys and, if you want push, the VAPID keys.
+
 1. **vercel.com**. Create the Pro team, or use the existing one, and pay for Pro.
 2. **Add New… → Project → Import Git Repository**, then install the GitHub app on `smb-products` for
    **this repository only**, then pick `mentoring-minds`.
 3. Framework: Next.js, detected. Root: `./`. Build command: leave it; it comes from `vercel.json`. Click **Deploy**.
    - This first deployment builds without a database, then shows an error page. That's expected: the server
      won't start until Part 5 is done.
-4. Write down the production address, for example `https://mentoring-minds-xxxx.vercel.app`. It's called **PROD_URL** below.
+4. **Settings → Domains**: `mentoringmindsacademy.org` is the production domain, and `www.mentoringmindsacademy.org` and
+   `mentoring-minds.vercel.app` both redirect to it (**308**). The domain is on Vercel DNS, so there are no
+   records to add. The production address, `https://mentoringmindsacademy.org`, is called **PROD_URL** below. It serves nothing
+   until your first **Promote** (Part 7); each promote moves all three names to the new deployment.
 5. **Settings → Build and Deployment → Node.js Version**: check it says **22.x**. CI tests on 22, and
    `package.json` pins `"engines": "22.x"` (S12), which Vercel follows.
 6. **Settings → Deployment Protection**: leave **Vercel Authentication** on for Preview. Only your team can
@@ -86,8 +93,8 @@ Vienne signs in to **console.cloud.google.com** with **her** Google account. You
    - Contact email: Vienne's address. Agree, then **Create**.
 3. **Data Access**: add no scopes. The defaults (email, profile, openid) mean Google doesn't need to review the app.
 4. **Clients → Create client**, type **Web application**, name `Mentoring Minds web`.
-   - Authorised JavaScript origins: `PROD_URL`.
-   - Authorised redirect URIs: `PROD_URL/api/auth/callback/google` and
+   - Authorised JavaScript origins: `https://mentoringmindsacademy.org`.
+   - Authorised redirect URIs: `https://mentoringmindsacademy.org/api/auth/callback/google` and
      `http://localhost:3000/api/auth/callback/google`.
    - **Create**.
 5. A box shows the **Client ID** and **Client secret**. Google may show the secret only this once. Keep the
@@ -98,6 +105,9 @@ Vienne signs in to **console.cloud.google.com** with **her** Google account. You
    role **Owner**.
 
 Previews can't use Google, because their addresses change. Use email and password there.
+
+Only the apex is needed: `www` and the `vercel.app` address redirect before they reach the app. Don't set
+`AUTH_URL`. On Vercel, Auth.js builds its links from the address the visitor used, and that's always the apex.
 
 ## Part 5. Environment variables, about 15 min
 
@@ -200,7 +210,8 @@ with a file that lists only the new place. Names already there are skipped, neve
    Environments → Production → Branch Tracking** and check "Auto-assign Custom Production Domains" is still
    **off**. Vercel's docs don't say whether promoting switches it back on; if it did, switch it off again and
    tell Atlas.
-3. Open `PROD_URL`. You should see the sign-in screen.
+3. Open `PROD_URL`. You should see the sign-in screen. `https://www.mentoringmindsacademy.org` and
+   `https://mentoring-minds.vercel.app` should both land there too.
    - If you see an error page instead, open the deployment's **Logs**. The start-up check names the missing
      or unsafe setting.
 
