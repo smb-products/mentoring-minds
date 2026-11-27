@@ -28,7 +28,9 @@ If a test breaks, the change is wrong, not the test.
 | `text-figure` | 22px | 24px | 600 | Big numbers in a stat row |
 
 - Line height is 1.45 for body and 1.25 for headings. Headings have −0.01em tracking and nothing else.
-- Weights are 400, 500 and 600. No 800 extrabold anywhere.
+- Weights are 400, 500 and 600, never 700 (`font-bold`) or 800 (`font-extrabold`). Use 600 for headings and
+  card titles, and 500 for labels such as "Open hours", "Next session", "Sessions so far", legends and day
+  headers. Names and times are 500 or 400.
 - Text size in Settings (`data-text` zoom: Large, Extra large) stays, on top of this scale.
 
 ## Color
@@ -62,9 +64,13 @@ If a test breaks, the change is wrong, not the test.
 
 ## The shell
 
-- **Header band:** flat navy, with no brain line-art (`Masthead.jsx`'s `BRAIN_*` art goes). It's slimmer: the
-  title is `text-page`, the padding is tighter, and the overlap is shallower. On a phone, a parent's Home shows
-  the Next session card fully in view without scrolling.
+- **Header band:** flat navy, with no brain line-art (`Masthead.jsx`'s `BRAIN_*` art goes). It holds only the
+  back link, the title (`text-page`), the subtitle and the actions, so it's about 120px tall on desktop.
+  - Stat rows (`Figures`) and the child chips sit on the gray page below it, and nothing overlaps the band.
+  - On phone Home the band ends above the child chips, and the Next session card is fully in view without
+    scrolling.
+- **Date tiles** (the next session's date on parent Home) are light gray with navy text, not a navy block.
+- **Child chips** are 6px rectangles, like every other chip.
 - **Logo:** in the app (rail, phone nav), a simple text wordmark "Mentoring Minds" in Inter 600. The brain
   logo (`LogoMark`, `/logo-*.png`) appears only on the landing page and sign-in.
 - **Rail and phone nav:** flat navy. The selected item gets a lighter navy fill and white text, and the others

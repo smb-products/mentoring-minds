@@ -3,6 +3,23 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: R2, R3 and L1 take OSA's taste review of R1
+
+- **docs/DESIGN.md:**
+  - No 700 weight: 600 for headings, 500 for labels.
+  - The band holds only back, title, subtitle and actions, about 120px. Stat rows and child chips sit below it,
+    and on phone Home the band ends above the chips.
+  - Date tiles are light gray with navy text, and child chips are 6px.
+- **R2:**
+  - The same, on the parent screens.
+  - It now also owns the shared components (ui/, shell/, SessionParts, Thread, FastResults) for these fixes,
+    since R1 is done.
+  - Its spec measures the band.
+- **R3:** the weights, and the stat rows moved out of the band on Vienne's screens.
+- **L1:** the sign-in card has 8px corners.
+- Why: OSA's review of R1 (#133) from production screenshots; R1 merges as is. Approved: OSA (taste review,
+  under Javaris's restyle approval of 2026-11-27).
+
 ## 2026-11-27: the restyle and the landing page (R1–R3, L1, L2)
 
 - **docs/DESIGN.md (new)** is the spec for how the app looks:
