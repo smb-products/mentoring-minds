@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Home, Laptop, User, Users, type LucideIcon } from 'lucide-react';
 import { SiteFooter, SiteHeader } from './SiteChrome';
 import { STEP_UP_URL } from './site';
+import { RequestInvite } from './RequestInvite';
 
 const SERVICES: { name: string; line: string; icon: LucideIcon }[] = [
   { name: '1-on-1 Tutoring', line: 'Individual support for students who need extra help in a subject.', icon: User },
@@ -97,8 +98,8 @@ export function Landing() {
         </Section>
 
         <Section id="request-invite" title="Request an invite">
-          {/* L2: the request form (src/components/landing/RequestInvite.tsx) goes here. */}
-          <p className="max-w-2xl text-body text-muted-foreground">
+          <RequestInvite />
+          <p className="mt-8 max-w-2xl text-body text-muted-foreground">
             Have an invite code from Vienne?{' '}
             <Link href="/sign-in" className={link}>Create your account on the sign-in page.</Link>
           </p>

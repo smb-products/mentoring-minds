@@ -42,7 +42,7 @@ Tests create their tables from `prisma/migrations` and refuse any database whose
 
 ## Rules
 
-1. **Every `src/server` export is a public endpoint.** Start with a guard (`requireUser` / `requireActive` / `requireAdmin` / `requireStudentAccess`), then `parse()` the input with zod. Helpers that mustn't be endpoints go in `src/lib` behind `import 'server-only'`.
+1. **Every `src/server` export is a public endpoint.** Start with a guard (`requireUser` / `requireActive` / `requireAdmin` / `requireStudentAccess`), then `parse()` the input with zod. Helpers that mustn't be endpoints go in `src/lib` behind `import 'server-only'`. The one export without a guard is `requests.requestInvite` (L2). It's listed in p-sec's `PUBLIC` with its reason.
 2. **Wrap every export in `action()` or `query()`** (`src/lib/result.ts`). They return `{ ok, data } | { ok: false, error, code }`, turn Dates into ISO strings, and keep the plain-language message, which Next.js would otherwise hide in production.
 3. **Return DTOs (`src/lib/dto.ts`), never raw rows.** This keeps password hashes, invite hashes, answer keys, `adminNotes` and video links out of family responses. `tests/integration/leaks.test.ts` checks it.
 4. **The answer key never leaves the server for families.** Use `bookItemDTO(item, { withAnswer: false })`. Grade on the server with `lib/grading.ts`.

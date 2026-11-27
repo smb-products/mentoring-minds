@@ -2,6 +2,7 @@ import 'server-only';
 import { after } from 'next/server';
 import { db } from './db';
 import { pushToUser } from './push';
+import type { Prisma } from '@prisma/client';
 
 /**
  * Internal helpers, deliberately NOT in a 'use server' file: every export of a
@@ -27,11 +28,17 @@ export type NewNotification = {
   studentId?: string | null;
   /** S23b: the family (the parent's user id) this alert is about, stored so deleting the family removes it by id. */
   parentId?: string | null;
+  /** L2: the invite request this alert is about, stored so the daily job deletes it with its request. */
+  inviteRequestId?: string | null;
+  /** L2: the push carries only the title (a stranger's details stay in the app). */
+  pushTitleOnly?: boolean;
 };
 
-export async function notify({ about, ...n }: NewNotification) {
-  const row = await db.notification.create({ data: { ...n, body: n.body ?? null, href: n.href ?? null, studentId: n.studentId ?? null, parentId: n.parentId ?? null, channel: 'IN_APP', sentAt: new Date() } });
-  afterResponse(() => pushToUser(n.userId, { title: n.title, body: n.body, href: n.href, tag: pushTag(n.type, about) }));
+export async function notify({ about, pushTitleOnly, ...n }: NewNotification) {
+  const row = await db.notification.create({
+    data: { ...n, body: n.body ?? null, href: n.href ?? null, studentId: n.studentId ?? null, parentId: n.parentId ?? null, inviteRequestId: n.inviteRequestId ?? null, channel: 'IN_APP', sentAt: new Date() },
+  });
+  afterResponse(() => pushToUser(n.userId, { title: n.title, body: pushTitleOnly ? null : n.body, href: n.href, tag: pushTag(n.type, about) }));
   return row;
 }
 
@@ -58,6 +65,23 @@ function afterResponse(task: () => Promise<unknown>) {
   } catch {
     void run();
   }
+}
+
+/**
+ * L2: an alert that must reach Vienne once (a pause), decided under an advisory lock. The rows are written
+ * on `tx`, so they exist only if the transaction commits and the next caller under the same lock sees them.
+ * Call the returned function AFTER the commit: it sends the pushes. Queries run one at a time (rule 13).
+ */
+export async function adminAlertsInTx(tx: Prisma.TransactionClient, { about, pushTitleOnly, ...n }: Omit<NewNotification, 'userId' | 'audience'>) {
+  const admins = await tx.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
+  for (const a of admins) {
+    await tx.notification.create({
+      data: { ...n, userId: a.id, audience: 'ADMIN', body: n.body ?? null, href: n.href ?? null, studentId: n.studentId ?? null, parentId: n.parentId ?? null, inviteRequestId: n.inviteRequestId ?? null, channel: 'IN_APP', sentAt: new Date() },
+    });
+  }
+  return () => {
+    for (const a of admins) afterResponse(() => pushToUser(a.id, { title: n.title, body: pushTitleOnly ? null : n.body, href: n.href, tag: pushTag(n.type, about) }));
+  };
 }
 
 /** Notify Vienne (every admin account). */
