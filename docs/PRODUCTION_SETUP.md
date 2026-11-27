@@ -210,8 +210,8 @@ with a file that lists only the new place. Names already there are skipped, neve
    Environments → Production → Branch Tracking** and check "Auto-assign Custom Production Domains" is still
    **off**. Vercel's docs don't say whether promoting switches it back on; if it did, switch it off again and
    tell Atlas.
-3. Open `PROD_URL`. You should see the sign-in screen. `https://www.mentoringmindsacademy.org` and
-   `https://mentoring-minds.vercel.app` should both land there too.
+3. Open `PROD_URL`. Signed out, you should see the landing page (L1), with **Sign in** at the top.
+   `https://www.mentoringmindsacademy.org` and `https://mentoring-minds.vercel.app` should both land there too.
    - If you see an error page instead, open the deployment's **Logs**. The start-up check names the missing
      or unsafe setting.
 

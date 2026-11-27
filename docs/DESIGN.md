@@ -68,6 +68,8 @@ If a test breaks, the change is wrong, not the test.
 
 - **Header band:** flat navy, with no brain line-art (`Masthead.jsx`'s `BRAIN_*` art goes). It holds only the
   back link, the title (`text-page`), the subtitle and the actions, so it's about 120px tall on desktop.
+  A page with tabs in its band (some of Vienne's screens) adds the tab row on top of that, about 150px
+  (Rigg's R3 holdout, #144).
   - Stat rows (`Figures`) and the child chips sit on the gray page below it, and nothing overlaps the band.
   - On phone Home the band ends above the child chips, and the Next session card is fully in view without
     scrolling.
