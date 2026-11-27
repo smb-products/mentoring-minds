@@ -10,6 +10,7 @@ import { Drawer } from '../../components/ui/Overlay';
 import { useResultToast, useToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/cn';
 import { fmtAgo, fmtDue, fmtLongDay, fullName, gradeLabel } from '../../lib/format';
+import { Link } from '../../lib/router';
 
 /**
  * /admin/assignments/[assignmentId] — who's done, results per question number,
@@ -17,9 +18,10 @@ import { fmtAgo, fmtDue, fmtLongDay, fullName, gradeLabel } from '../../lib/form
  * Data: assignments.getAssignment · Writes: gradeSubmission, returnSubmission
  */
 export default function AssignmentPage({ params }) {
-  const { data: a } = useQuery(() => api.assignments.getAssignment({ assignmentId: params.assignmentId }), [params.assignmentId]);
+  const { data: a } = useQuery(() => api.assignments.getAssignment({ assignmentId: params.assignmentId }).catch((e) => { if (e?.code === 'NOT_FOUND') return null; throw e; }), [params.assignmentId]);
   const [grading, setGrading] = useState(null);
   const [answersFor, setAnswersFor] = useState(null);
+  if (a === null) return <Section><Empty title="We couldn’t find that assignment. It may have been removed." action={<Link href="/admin/assignments" className="text-small hit-area font-medium text-brand hover:underline">Back to Assignments</Link>} /></Section>;
   if (!a) return <PageLoading />;
 
   const order = { SUBMITTED: 0, RETURNED: 1, ASSIGNED: 2, GRADED: 3 };
