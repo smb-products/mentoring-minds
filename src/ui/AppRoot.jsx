@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { InviteCodeForm } from '@/components/family/InviteCodeForm';
 import { ChangePasswordForm } from '@/components/family/ChangePasswordForm';
+import { AuthScreen } from '@/components/auth/AuthScreen';
 import { useStoredState } from './lib/useStoredState';
 import { AppShell } from './components/shell/AppShell';
 import { ShellProvider, ThemeContext } from './components/shell/ShellContext';
@@ -43,10 +44,14 @@ export function AppRoot({ user, children }) {
   // After Vienne's "Reset password": a new password before anything else.
   if (user.mustChangePassword) {
     content = (
-      <div className="flex h-full w-full items-center justify-center overflow-y-auto bg-background p-4">
-        <div className="w-full max-w-md">
+      <div className="h-full w-full overflow-y-auto">
+        <AuthScreen
+          main={false}
+          title="Choose a new password"
+          lede="Vienne reset your password. Enter the temporary one she gave you, then pick your own."
+        >
           <ChangePasswordForm forced />
-        </div>
+        </AuthScreen>
       </div>
     );
   }

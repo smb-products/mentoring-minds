@@ -12,6 +12,12 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   mockup, under Javaris's polish approval.
 - **P2a, new check 2:** parent Home must not scroll sideways at 390px (the SkillMeter rows, found in P1's report).
 
+## 2026-11-27: L4 spec allows A1's auth panel to use the landing tokens
+
+- **tests/e2e/l4-landing-c.spec.ts (a lead edit on #176):** the "landing tokens used only by the landing page"
+  check now also allows `src/components/auth/AuthScreen.tsx`, and its no-hex-colors check covers that file too.
+  Why: A1's check 1 (and docs/DESIGN.md → Auth screens) puts the landing tokens on the auth panel, and the plan
+  missed this locked test. By Axis; A1 is approved by Javaris.
 ## 2026-11-27: D5, auto-promote with a migration guard
 
 - **D5 changed:** a merge to main goes live by itself once its production build is ready ("Auto-assign Custom
