@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import '@fontsource-variable/nunito-sans';
-import '@fontsource-variable/fredoka';
+import '@fontsource-variable/inter';
 import './globals.css';
 import { RegisterServiceWorker } from '@/components/pwa/RegisterServiceWorker';
 

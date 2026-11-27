@@ -38,12 +38,12 @@ function PushOptIn() {
             const ok = show(await turnOnPush({ key: VAPID_KEY, save }), 'Notifications are on', 'This device will show new alerts.');
             setState(ok ? 'hidden' : 'offer');
           }}
-          className="flex items-center gap-2 text-[14px] hit-area font-bold text-brand hover:underline disabled:opacity-60"
+          className="flex items-center gap-2 text-body hit-area font-medium text-brand hover:underline disabled:opacity-60"
         >
-          <BellRing size={16} strokeWidth={2.2} aria-hidden /> Turn on notifications
+          <BellRing size={16} strokeWidth={1.75} aria-hidden /> Turn on notifications
         </button>
       )}
-      <p className="mt-1 text-[12.5px] text-muted-foreground">{HOME_SCREEN}</p>
+      <p className="mt-1 text-small text-muted-foreground">{HOME_SCREEN}</p>
     </div>
   );
 }
@@ -78,16 +78,16 @@ export function NotificationsPanel({ onDone }) {
   return (
     <div className="flex max-h-[min(34rem,80vh)] w-full flex-col">
       <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <h2 className="text-[15px] font-extrabold">Notifications</h2>
+        <h2 className="text-heading">Notifications</h2>
         {unread > 0 && (
-          <button type="button" onClick={() => api.notifications.markAllRead()} className="text-[13px] hit-area font-bold text-brand hover:underline">
+          <button type="button" onClick={() => api.notifications.markAllRead()} className="text-small hit-area font-medium text-brand hover:underline">
             Mark all as read
           </button>
         )}
       </div>
       {data.length === 0 ? (
-        <div className="flex items-center gap-3 px-4 py-6 text-[14px] text-muted-foreground">
-          <BellOff size={18} aria-hidden /> Nothing new.
+        <div className="flex items-center gap-3 px-4 py-6 text-body text-muted-foreground">
+          <BellOff size={18} strokeWidth={1.75} aria-hidden /> Nothing new.
         </div>
       ) : (
         <ul className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
@@ -104,15 +104,15 @@ export function NotificationsPanel({ onDone }) {
                   }}
                   className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-muted/60"
                 >
-                  <span className={cn('mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg', n.readAt ? 'bg-muted text-muted-foreground' : 'bg-brand-soft text-brand-soft-foreground')}>
-                    <Icon size={16} strokeWidth={2.2} aria-hidden />
+                  <span className={cn('mt-0.5 grid size-8 shrink-0 place-items-center rounded-md', n.readAt ? 'bg-muted text-muted-foreground' : 'bg-brand-soft text-brand-soft-foreground')}>
+                    <Icon size={16} strokeWidth={1.75} aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className={cn('block text-[14px] leading-snug', n.readAt ? 'font-semibold text-muted-foreground' : 'font-bold text-foreground')}>{n.title}</span>
-                    {n.body && <span className="mt-0.5 block truncate text-[13px] text-muted-foreground">{n.body}</span>}
+                    <span className={cn('block text-body', n.readAt ? 'text-muted-foreground' : 'font-medium text-foreground')}>{n.title}</span>
+                    {n.body && <span className="mt-0.5 block truncate text-small text-muted-foreground">{n.body}</span>}
                   </span>
                   <span className="flex shrink-0 flex-col items-end gap-1.5 pt-0.5">
-                    <span className="text-[12px] font-semibold text-subtle-foreground">{fmtAgo(n.createdAt)}</span>
+                    <span className="text-caption text-subtle-foreground">{fmtAgo(n.createdAt)}</span>
                     {!n.readAt && <span className="size-2 rounded-full bg-primary" aria-label="Unread" />}
                   </span>
                 </button>

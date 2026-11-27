@@ -41,22 +41,22 @@ export function InstallPrompt({ className = '' }: { className?: string }) {
   };
 
   return (
-    <section aria-label="Add to home screen" className={`surface relative rounded-[14px] p-5 ${className}`}>
-      <button type="button" onClick={dismiss} aria-label="Not now" className="absolute right-3 top-3 grid size-10 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
-        <X size={18} aria-hidden />
+    <section aria-label="Add to home screen" className={`relative rounded-lg border border-border bg-card p-5 shadow-card ${className}`}>
+      <button type="button" onClick={dismiss} aria-label="Not now" className="absolute right-3 top-3 grid size-10 place-items-center rounded-md text-muted-foreground hover:bg-muted">
+        <X size={18} strokeWidth={1.75} aria-hidden />
       </button>
-      <p className="pr-10 text-[17px] font-extrabold">Add Mentoring Minds to your home screen</p>
+      <p className="pr-10 text-title">Add Mentoring Minds to your home screen</p>
       {ios ? (
-        <ol className="mt-3 space-y-2 text-[16px]">
-          <li className="flex items-center gap-2">1. Tap <Share size={18} aria-label="Share" className="text-primary" /> at the bottom of Safari.</li>
-          <li className="flex items-center gap-2">2. Tap <SquarePlus size={18} aria-hidden className="text-primary" /> Add to Home Screen.</li>
+        <ol className="mt-3 space-y-2 text-body">
+          <li className="flex items-center gap-2">1. Tap <Share size={18} strokeWidth={1.75} aria-label="Share" className="text-primary" /> at the bottom of Safari.</li>
+          <li className="flex items-center gap-2">2. Tap <SquarePlus size={18} strokeWidth={1.75} aria-hidden className="text-primary" /> Add to Home Screen.</li>
         </ol>
       ) : (
         <>
-          <p className="mt-1 text-[16px] text-muted-foreground">It opens like an app, full screen, with one tap.</p>
+          <p className="mt-1 text-body text-muted-foreground">It opens like an app, full screen, with one tap.</p>
           <button
             type="button"
-            className="chrome-primary mt-4 h-12 rounded-xl bg-primary px-6 text-base font-bold text-primary-foreground"
+            className="mt-4 h-12 rounded-md bg-primary px-6 text-body font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             onClick={async () => {
               await deferred?.prompt();
               setShow(false);

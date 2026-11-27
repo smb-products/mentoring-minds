@@ -27,33 +27,33 @@ export function FastResults({ student, canEdit = true, compact = false }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[14px] font-extrabold">{testName(data.testType)} results</p>
+        <p className="text-heading">{testName(data.testType)} results</p>
         {canEdit && <Button size="xs" variant="ghost" icon={Plus} onClick={() => setEditing({})}>Add result</Button>}
       </div>
       {data.results.length === 0 ? (
-        <p className="mt-1.5 text-[14px] text-muted-foreground">
+        <p className="mt-1.5 text-body text-muted-foreground">
           No results yet. {data.testType === 'FAST_MATH' ? 'Scores are in the school’s Family Portal after each test.' : 'Star Math scores come home from school after each test.'}
         </p>
       ) : (
         <>
           {latest && data.testType === 'FAST_MATH' && (
-            <p className="mt-1.5 text-[14px] text-muted-foreground">
-              Latest: <span className="font-bold text-foreground">{LEVEL_TEXT[latest.level]}</span>
+            <p className="mt-1.5 text-body text-muted-foreground">
+              Latest: <span className="font-medium text-foreground">{LEVEL_TEXT[latest.level]}</span>
               {previous?.level && previous.level !== latest.level && <> (was Level {previous.level})</>}
               {latest.categories.length > 0 && (
-                <>. Weakest area: <span className="font-bold text-foreground">{[...latest.categories].sort((a, b) => a.level - b.level)[0].name}</span></>
+                <>. Weakest area: <span className="font-medium text-foreground">{[...latest.categories].sort((a, b) => a.level - b.level)[0].name}</span></>
               )}
             </p>
           )}
-          <ul className="mt-2 divide-y divide-border rounded-xl border border-border">
+          <ul className="mt-2 divide-y divide-border rounded-lg border border-border">
             {shown.map((r) => (
               <li key={r.id} className="flex items-center gap-3 px-3 py-2.5">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[14.5px] font-bold">
+                  <p className="text-body font-medium">
                     {r.window} {r.schoolYear}
-                    {r.gradeTested !== student.grade && <span className="font-semibold text-muted-foreground"> (grade {r.gradeTested === 0 ? 'K' : r.gradeTested})</span>}
+                    {r.gradeTested !== student.grade && <span className="font-normal text-muted-foreground"> (grade {r.gradeTested === 0 ? 'K' : r.gradeTested})</span>}
                   </p>
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-small text-muted-foreground">
                     Score {r.scaleScore}
                     {r.percentile ? `, ${ordinal(r.percentile)} percentile` : ''}. Entered by {r.enteredBy?.role === 'ADMIN' ? 'Vienne' : r.enteredBy?.name.split(' ')[0]}, {fmtDate(r.enteredAt)}
                   </p>
@@ -140,11 +140,11 @@ function ResultDrawer({ open, result, student, info, onClose }) {
               <Segmented label="Level" value={form.level} onChange={(level) => set({ level })} className="w-full" options={[1, 2, 3, 4, 5].map((l) => ({ value: l, label: String(l) }))} />
             </Field>
             {info.categories.length > 0 && (
-              <fieldset className="space-y-3 rounded-xl border border-border p-4">
-                <legend className="px-1 text-[14px] font-extrabold">Areas (optional)</legend>
+              <fieldset className="space-y-3 rounded-lg border border-border p-4">
+                <legend className="px-1 text-heading">Areas (optional)</legend>
                 {info.categories.map((c) => (
                   <div key={c.id}>
-                    <p className="text-[13.5px] font-bold" title={c.fullName}>{c.name}</p>
+                    <p className="text-small font-medium" title={c.fullName}>{c.name}</p>
                     <Segmented
                       size="sm"
                       label={c.name}

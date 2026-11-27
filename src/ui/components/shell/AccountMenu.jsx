@@ -25,13 +25,13 @@ export function AccountPanel() {
       <div className="flex items-center gap-3 px-4 pb-3 pt-4">
         <Avatar name={user.name} tone="ink" size="md" />
         <div className="min-w-0">
-          <h2 className="truncate text-[15px] font-extrabold">{user.name}</h2>
-          <p className="truncate text-[13px] text-muted-foreground">{user.email}</p>
+          <h2 className="truncate text-heading">{user.name}</h2>
+          <p className="truncate text-small text-muted-foreground">{user.email}</p>
         </div>
       </div>
       <div className="space-y-3 border-t border-border px-4 py-3">
         <div>
-          <p className="mb-1.5 text-[13px] font-bold text-muted-foreground">Appearance</p>
+          <p className="mb-1.5 text-small font-medium text-muted-foreground">Appearance</p>
           <Segmented
             label="Appearance"
             size="sm"
@@ -45,7 +45,7 @@ export function AccountPanel() {
           />
         </div>
         <div>
-          <p className="mb-1.5 text-[13px] font-bold text-muted-foreground">Text size</p>
+          <p className="mb-1.5 text-small font-medium text-muted-foreground">Text size</p>
           <Segmented
             label="Text size"
             size="sm"
@@ -68,9 +68,9 @@ export function AccountPanel() {
           type="button"
           aria-expanded={changingPassword}
           onClick={() => setChangingPassword((open) => !open)}
-          className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[14px] font-bold text-foreground hover:bg-muted"
+          className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-body font-medium text-foreground hover:bg-muted"
         >
-          <KeyRound size={16} strokeWidth={2.2} className="text-muted-foreground" aria-hidden />
+          <KeyRound size={16} strokeWidth={1.75} className="text-muted-foreground" aria-hidden />
           Change password
         </button>
         {changingPassword && (
@@ -95,9 +95,9 @@ export function AccountPanel() {
               show(thrown(e));
             }
           }}
-          className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[14px] font-bold text-foreground hover:bg-muted"
+          className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-body font-medium text-foreground hover:bg-muted"
         >
-          <LogOut size={16} strokeWidth={2.2} className="text-muted-foreground" aria-hidden />
+          <LogOut size={16} strokeWidth={1.75} className="text-muted-foreground" aria-hidden />
           Sign out
         </button>
       </div>

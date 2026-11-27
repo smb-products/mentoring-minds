@@ -67,16 +67,16 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
         tabIndex={-1}
         className={cn(
           'absolute flex flex-col bg-popover text-popover-foreground shadow-float outline-none',
-          phone ? 'inset-x-0 bottom-0 max-h-[88%] animate-sheet-up rounded-t-[18px]' : `inset-y-0 right-0 max-w-full animate-drawer-in border-l border-border ${width}`,
+          phone ? 'inset-x-0 bottom-0 max-h-[88%] animate-sheet-up rounded-t-lg' : `inset-y-0 right-0 max-w-full animate-drawer-in border-l border-border ${width}`,
         )}
         style={dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : undefined}
       >
         <div {...drag} className="shrink-0 touch-none">
-        {phone && <div className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-border" aria-hidden />}
+        {phone && <div className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-sm bg-border" aria-hidden />}
         <div className={cn('flex shrink-0 items-start gap-3 border-b border-border px-5', phone ? 'pb-3 pt-2' : 'py-4')}>
           <div className="min-w-0 flex-1">
-            <h2 className="text-[17px] font-extrabold leading-snug">{title}</h2>
-            {subtitle && <p className="mt-0.5 text-[13.5px] text-muted-foreground">{subtitle}</p>}
+            <h2 className="text-title">{title}</h2>
+            {subtitle && <p className="mt-0.5 text-small text-muted-foreground">{subtitle}</p>}
           </div>
           <IconButton icon={X} label="Close" onClick={onClose} className="-mr-1.5" />
         </div>
@@ -112,7 +112,7 @@ export function Popover({ open, onClose, className, children, ignoreRef, label }
   }, [open, onClose, ignoreRef]);
   if (!open) return null;
   return (
-    <div ref={ref} role="dialog" aria-label={label} tabIndex={-1} className={cn('absolute z-50 animate-pop rounded-[14px] border border-border bg-popover text-popover-foreground shadow-float', className)}>
+    <div ref={ref} role="dialog" aria-label={label} tabIndex={-1} className={cn('absolute z-50 animate-pop rounded-lg border border-border bg-popover text-popover-foreground shadow-float', className)}>
       {children}
     </div>
   );

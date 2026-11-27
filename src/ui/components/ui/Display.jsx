@@ -2,20 +2,21 @@ import { Star } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { initials } from './initials';
 
-/* ── Avatar ── tone is Student.avatarColor ('brand' | 'reward' | 'good') or 'ink'/'neutral' */
+/* ── Avatar ── tone is Student.avatarColor ('brand' | 'reward' | 'good') or 'ink'/'neutral'/'sidebar'.
+   Round, in quiet tints: gold is only for stars, and status colors only for status. */
 const AVATAR_TONES = {
   brand: 'bg-brand-soft text-brand-soft-foreground',
-  reward: 'bg-reward-soft text-reward-soft-foreground',
-  good: 'bg-good-soft text-good-soft-foreground',
+  reward: 'bg-badge text-badge-foreground',
+  good: 'bg-badge text-badge-foreground',
   ink: 'bg-ink text-ink-foreground',
-  neutral: 'bg-muted text-muted-foreground',
-  rail: 'bg-sidebar-primary text-sidebar-primary-foreground',
+  neutral: 'bg-badge text-badge-foreground',
+  sidebar: 'bg-sidebar-primary text-sidebar-primary-foreground',
 };
-const AVATAR_SIZES = { xs: 'size-6 text-[10px] rounded-md', sm: 'size-8 text-[12px] rounded-lg', md: 'size-10 text-[14px] rounded-[10px]', lg: 'size-12 text-[16px] rounded-xl' };
+const AVATAR_SIZES = { xs: 'size-6 text-caption', sm: 'size-8 text-caption', md: 'size-10 text-small', lg: 'size-12 text-body' };
 
 export function Avatar({ name, tone = 'neutral', size = 'sm', className }) {
   return (
-    <span aria-hidden className={cn('grid shrink-0 place-items-center font-extrabold tracking-tight', AVATAR_TONES[tone] ?? AVATAR_TONES.neutral, AVATAR_SIZES[size], className)}>
+    <span aria-hidden className={cn('grid shrink-0 place-items-center rounded-full font-semibold leading-none', AVATAR_TONES[tone] ?? AVATAR_TONES.neutral, AVATAR_SIZES[size], className)}>
       {initials(name)}
     </span>
   );
@@ -43,32 +44,35 @@ const STATUS = {
   PUBLISHED: ['Published', 'good', 'dot'],
   LATE: ['Late', 'serious', 'bar'],
 };
-const BADGE_TONES = {
-  good: 'bg-good-soft text-good-soft-foreground',
-  warning: 'bg-warning-soft text-warning-soft-foreground',
-  serious: 'bg-serious-soft text-serious-soft-foreground',
-  critical: 'bg-critical-soft text-critical-soft-foreground',
-  brand: 'bg-brand-soft text-brand-soft-foreground',
-  neutral: 'bg-muted text-muted-foreground',
+// Every badge is the same neutral tint with dark text. The tone is only the glyph's color.
+const BADGE = 'inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-md bg-badge px-2 text-caption text-badge-foreground';
+const GLYPH_TONES = {
+  good: 'text-good-soft-foreground',
+  warning: 'text-warning-soft-foreground',
+  serious: 'text-serious-soft-foreground',
+  critical: 'text-critical-soft-foreground',
+  brand: 'text-brand',
+  neutral: 'text-subtle-foreground',
 };
 
-function Glyph({ shape }) {
-  if (shape === 'ring') return <span className="size-[7px] rounded-full border-[1.5px] border-current" />;
-  if (shape === 'bar') return <span className="h-[1.5px] w-2 rounded bg-current" />;
+function Glyph({ shape, tone }) {
+  const color = GLYPH_TONES[tone];
+  if (shape === 'ring') return <span className={cn('size-[7px] rounded-full border-[1.5px] border-current', color)} />;
+  if (shape === 'bar') return <span className={cn('h-[1.5px] w-2 rounded-xs bg-current', color)} />;
   if (shape === 'check')
     return (
-      <svg viewBox="0 0 10 10" className="size-2.5" aria-hidden>
+      <svg viewBox="0 0 10 10" className={cn('size-2.5', color)} aria-hidden>
         <path d="M1.5 5.2 4 7.5l4.5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
-  return <span className="size-[7px] rounded-full bg-current" />;
+  return <span className={cn('size-[7px] rounded-full bg-current', color)} />;
 }
 
 export function StatusBadge({ status, label, className }) {
   const [text, tone, shape] = STATUS[status] ?? [status, 'neutral', 'dot'];
   return (
-    <span className={cn('inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-md px-2 text-[12px] font-bold', BADGE_TONES[tone], className)}>
-      <Glyph shape={shape} />
+    <span className={cn(BADGE, className)}>
+      <Glyph shape={shape} tone={tone} />
       {label ?? text}
     </span>
   );
@@ -81,8 +85,8 @@ export const subjectBg = (color) => SUBJECT_BG[color] ?? 'bg-chart-1';
 export function SubjectTag({ subject, className }) {
   if (!subject) return null;
   return (
-    <span className={cn('inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-muted-foreground', className)}>
-      <span className={cn('size-2 rounded-[3px]', subjectBg(subject.color))} aria-hidden />
+    <span className={cn('inline-flex shrink-0 items-center gap-1.5 text-small font-medium text-muted-foreground', className)}>
+      <span className={cn('size-2 rounded-xs', subjectBg(subject.color))} aria-hidden />
       {subject.name}
     </span>
   );
@@ -95,8 +99,8 @@ export const areaColor = (area) => AREA_COLOR[area?.id?.replace(/^rc_\d_/, '')] 
 export function AreaTag({ area, className }) {
   if (!area) return null;
   return (
-    <span className={cn('inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold text-muted-foreground', className)} title={area.fullName}>
-      <span className={cn('size-2 shrink-0 rounded-[3px]', subjectBg(areaColor(area)))} aria-hidden />
+    <span className={cn('inline-flex min-w-0 items-center gap-1.5 text-small font-medium text-muted-foreground', className)} title={area.fullName}>
+      <span className={cn('size-2 shrink-0 rounded-xs', subjectBg(areaColor(area)))} aria-hidden />
       <span className="truncate">{area.name}</span>
     </span>
   );
@@ -104,7 +108,7 @@ export function AreaTag({ area, className }) {
 
 /** Right-out-of-total per area, weakest first. areas: [{ id, name, fullName, right, total }] */
 export function AreaBars({ areas, className, empty = 'No book work checked yet.' }) {
-  if (!areas?.length) return <p className={cn('text-[14px] text-muted-foreground', className)}>{empty}</p>;
+  if (!areas?.length) return <p className={cn('text-body text-muted-foreground', className)}>{empty}</p>;
   return (
     <ul className={cn('space-y-3', className)}>
       {areas.map((a) => {
@@ -112,11 +116,11 @@ export function AreaBars({ areas, className, empty = 'No book work checked yet.'
         return (
           <li key={a.id}>
             <div className="flex items-baseline justify-between gap-3">
-              <span className="flex min-w-0 items-center gap-2 text-[14px] font-bold" title={a.fullName}><span className={cn('size-2.5 shrink-0 rounded-[3px]', subjectBg(areaColor(a)))} aria-hidden />{a.name}</span>
-              <span className="tabular shrink-0 text-[13.5px] font-bold text-muted-foreground">{a.right} of {a.total}</span>
+              <span className="flex min-w-0 items-center gap-2 text-body font-medium" title={a.fullName}><span className={cn('size-2.5 shrink-0 rounded-xs', subjectBg(areaColor(a)))} aria-hidden />{a.name}</span>
+              <span className="tabular shrink-0 text-small font-medium text-muted-foreground">{a.right} of {a.total}</span>
             </div>
-            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted" role="img" aria-label={`${a.name}: ${a.right} of ${a.total} right`}>
-              <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(pct, 4)}%` }} />
+            <div className="mt-1.5 h-2 overflow-hidden rounded-sm bg-muted" role="img" aria-label={`${a.name}: ${a.right} of ${a.total} right`}>
+              <div className="h-full rounded-sm bg-primary" style={{ width: `${Math.max(pct, 4)}%` }} />
             </div>
           </li>
         );
@@ -127,28 +131,27 @@ export function AreaBars({ areas, className, empty = 'No book work checked yet.'
 
 /** FAST achievement level 1–5. Level 3 and up is on grade level. */
 export const LEVEL_TEXT = { 1: 'Well below grade level', 2: 'Below grade level', 3: 'On grade level', 4: 'Above grade level', 5: 'Well above grade level' };
+/** Neutral, like every other badge: the level number says enough. */
 export function LevelBadge({ level, className }) {
   if (!level) return null;
-  const tone = level >= 4 ? 'good' : level === 3 ? 'brand' : level === 2 ? 'warning' : 'serious';
-  return (
-    <span className={cn('inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-md px-2 text-[12px] font-bold', BADGE_TONES[tone], className)}>
-      Level {level}
-    </span>
-  );
+  return <span className={cn(BADGE, className)}>Level {level}</span>;
 }
 
 /* ── Page header ── lives in the masthead band */
 export { PageHeader } from '../shell/Masthead';
 
+/* ── Card ── white, a 1px border, 8px corners and at most a 1px shadow */
+const CARD = 'rounded-lg border border-border bg-card shadow-card';
+
 /* ── Section ── one bordered container per topic; rows inside use <Row> with hairlines */
 export function Section({ title, description, action, children, className, bodyClassName, flush }) {
   return (
-    <section className={cn('surface rounded-[14px]', className)}>
+    <section className={cn(CARD, className)}>
       {(title || action) && (
         <div className="flex items-center justify-between gap-3 border-b border-border/80 px-4 py-3 @3xl/page:px-5">
           <div className="min-w-0">
-            <h2 className="text-[15px] font-extrabold text-foreground">{title}</h2>
-            {description && <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>}
+            <h2 className="text-heading text-foreground">{title}</h2>
+            {description && <p className="mt-0.5 text-small text-muted-foreground">{description}</p>}
           </div>
           {action}
         </div>
@@ -179,20 +182,20 @@ export function Empty({ icon: Icon, title, children, action, className }) {
   return (
     <div className={cn('flex items-start gap-3 px-4 py-6 @3xl/page:px-5', className)}>
       {Icon && (
-        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-border text-subtle-foreground">
-          <Icon size={18} strokeWidth={2} aria-hidden />
+        <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border text-subtle-foreground">
+          <Icon size={18} strokeWidth={1.75} aria-hidden />
         </span>
       )}
       <div className="min-w-0 pt-0.5">
-        <p className="text-[14.5px] font-bold text-foreground">{title}</p>
-        {children && <p className="mt-0.5 max-w-prose text-[14px] leading-relaxed text-muted-foreground">{children}</p>}
+        <p className="text-body font-medium text-foreground">{title}</p>
+        {children && <p className="mt-0.5 max-w-prose text-body text-muted-foreground">{children}</p>}
         {action && <div className="mt-3">{action}</div>}
       </div>
     </div>
   );
 }
 
-/* ── Figures ── key numbers. variant="band" renders glass tiles on the navy masthead. */
+/* ── Figures ── key numbers. variant="band" renders flat tiles on the navy masthead. */
 export function Figures({ items, className, variant }) {
   const band = variant === 'band';
   return (
@@ -200,7 +203,7 @@ export function Figures({ items, className, variant }) {
       role={band ? 'region' : undefined}
       aria-label={band ? 'Key numbers' : undefined}
       tabIndex={band ? 0 : undefined}
-      className={cn(band ? 'scrollbar-none -mx-4 grid auto-cols-[minmax(9.5rem,1fr)] grid-flow-col gap-2.5 overflow-x-auto px-4 @3xl/page:mx-0 @3xl/page:px-0' : 'surface grid overflow-hidden rounded-[14px]', className)}
+      className={cn(band ? 'scrollbar-none -mx-4 grid auto-cols-[minmax(9.5rem,1fr)] grid-flow-col gap-2.5 overflow-x-auto px-4 @3xl/page:mx-0 @3xl/page:px-0' : `${CARD} grid overflow-hidden`, className)}
       style={band ? undefined : { gridTemplateColumns: `repeat(${items.length}, minmax(0,1fr))` }}
     >
       {items.map((item, i) => {
@@ -212,25 +215,25 @@ export function Figures({ items, className, variant }) {
             {...(item.onClick && { type: 'button', onClick: item.onClick })}
             className={cn(
               'group min-w-0 text-left transition-colors',
-              band ? 'glass rounded-xl px-3 py-3 @3xl/page:px-4 @3xl/page:py-3.5' : 'px-3 py-3 @3xl/page:px-5 @3xl/page:py-4',
+              band ? 'rounded-lg bg-ink-foreground/[0.08] px-3 py-3 @3xl/page:px-4 @3xl/page:py-3.5' : 'px-3 py-3 @3xl/page:px-5 @3xl/page:py-4',
               !band && i > 0 && 'border-l border-border/80',
               item.onClick && (band ? 'hover:bg-ink-foreground/[0.12]' : 'hover:bg-muted/60'),
             )}
           >
-            <span className={cn('flex items-center gap-1.5 truncate text-[12.5px] font-bold @3xl/page:text-[13px]', band ? 'text-ink-muted' : 'text-muted-foreground')}>
-              {Icon && <Icon size={14} strokeWidth={2.3} aria-hidden className="hidden shrink-0 @xl/page:block" />}
+            <span className={cn('flex items-center gap-1.5 truncate text-small font-medium', band ? 'text-ink-muted' : 'text-muted-foreground')}>
+              {Icon && <Icon size={14} strokeWidth={1.75} aria-hidden className="hidden shrink-0 @xl/page:block" />}
               {item.label}
             </span>
-            <span className={cn('tabular mt-1.5 flex items-baseline gap-2 text-[24px] font-extrabold leading-none @3xl/page:text-[30px]', band ? 'text-ink-foreground' : item.highlight ? 'text-brand' : 'text-foreground')}>
+            <span className={cn('tabular mt-1.5 flex items-baseline gap-2 text-figure leading-none', band ? 'text-ink-foreground' : item.highlight ? 'text-brand' : 'text-foreground')}>
               {item.value}
               {band && item.highlight && (
                 <>
-                  <span className="size-2 -translate-y-1 rounded-full bg-reward" aria-hidden />
+                  <span className="size-2 -translate-y-1 rounded-full bg-warning" aria-hidden />
                   <span className="sr-only">needs attention</span>
                 </>
               )}
             </span>
-            {item.note && <span className={cn('mt-1.5 line-clamp-2 block text-[12.5px] font-semibold leading-snug @3xl/page:truncate', band ? 'text-ink-muted' : 'text-muted-foreground')}>{item.note}</span>}
+            {item.note && <span className={cn('mt-1.5 line-clamp-2 block text-small @3xl/page:truncate', band ? 'text-ink-muted' : 'text-muted-foreground')}>{item.note}</span>}
           </Comp>
         );
       })}
@@ -243,10 +246,10 @@ export function PageLoading() {
   return (
     <div className="space-y-5" aria-busy="true" aria-label="Loading">
       <div className="grid gap-5 @4xl/page:grid-cols-[1.7fr_1fr]">
-        <div className="surface h-40 animate-pulse rounded-[14px]" />
-        <div className="surface h-40 animate-pulse rounded-[14px]" />
+        <div className={cn(CARD, 'h-40 animate-pulse')} />
+        <div className={cn(CARD, 'h-40 animate-pulse')} />
       </div>
-      <div className="surface h-64 animate-pulse rounded-[14px]" />
+      <div className={cn(CARD, 'h-64 animate-pulse')} />
     </div>
   );
 }
@@ -269,10 +272,10 @@ export function SkillMeter({ rating, className }) {
     <div className={cn('flex items-center gap-2.5', className)}>
       <div className="flex w-24 gap-1" aria-hidden>
         {[1, 2, 3, 4].map((step) => (
-          <span key={step} className={cn('h-1.5 flex-1 rounded-full', step <= rating ? 'bg-primary' : 'bg-border')} />
+          <span key={step} className={cn('h-1.5 flex-1 rounded-xs', step <= rating ? 'bg-primary' : 'bg-border')} />
         ))}
       </div>
-      <span className="w-[5.5rem] text-[13px] font-bold text-foreground">{RATING_LABELS[rating - 1]}</span>
+      <span className="w-[5.5rem] text-small font-medium text-foreground">{RATING_LABELS[rating - 1]}</span>
     </div>
   );
 }
@@ -281,8 +284,8 @@ export function SkillMeter({ rating, className }) {
 export function Progress({ value, max, className }) {
   const pct = max ? Math.round((value / max) * 100) : 0;
   return (
-    <div className={cn('h-1.5 w-full overflow-hidden rounded-full bg-muted', className)} role="progressbar" aria-valuenow={value} aria-valuemax={max}>
-      <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${pct}%` }} />
+    <div className={cn('h-1.5 w-full overflow-hidden rounded-xs bg-muted', className)} role="progressbar" aria-valuenow={value} aria-valuemax={max}>
+      <div className="h-full rounded-xs bg-primary transition-[width]" style={{ width: `${pct}%` }} />
     </div>
   );
 }
@@ -290,9 +293,9 @@ export function Progress({ value, max, className }) {
 /* ── Labelled value pair for detail drawers ── */
 export function Detail({ label, children }) {
   return (
-    <div className="grid grid-cols-[7.5rem_1fr] gap-3 py-2 text-[14px]">
-      <dt className="font-semibold text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 font-semibold text-foreground">{children}</dd>
+    <div className="grid grid-cols-[7.5rem_1fr] gap-3 py-2 text-body">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 font-medium text-foreground">{children}</dd>
     </div>
   );
 }
