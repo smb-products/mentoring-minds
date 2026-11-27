@@ -11,6 +11,8 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   declines, and she can still pause a family. New limits: `SIGNUPS_PER_IP_PER_HOUR` (5), `SIGNUPS_PER_HOUR` (30),
   `MAX_CHILDREN_AT_SIGNUP` (6), `OPEN_REQUESTS_PER_FAMILY` (5) and `MESSAGES_PER_DAY` (50), because any stranger can
   now act as a family (Zero's spec, `plan/specs/S36.md`).
+- **Uploads:** a parent can upload at most 40 files a day (`MAX_UPLOADS_PER_DAY` was 200). Vienne isn't counted.
+  Javaris took OSA's recommendation (2026-11-27).
   The landing page's steps, its Get started links and the "Questions? Message Vienne" form follow.
   Approved by Javaris (via OSA).
 - **Tickets:** S36 (server, migration and limits, held for Zero, from his spec), J2 (sign-up and the Add your
