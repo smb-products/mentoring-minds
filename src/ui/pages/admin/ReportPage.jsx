@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, useAction, useQuery } from '../../api';
 import { Button } from '../../components/ui/Button';
-import { AreaBars, areaColor, Avatar, PageHeader, RATING_LABELS, Section, SkillMeter, StatusBadge, subjectBg } from '../../components/ui/Display';
+import { AreaBars, areaColor, Avatar, Empty, PageHeader, RATING_LABELS, Section, SkillMeter, StatusBadge, subjectBg } from '../../components/ui/Display';
 import { skillArea } from '../../api/best';
 import { FastResults } from '../../components/fast/FastResults';
 import { cn } from '../../lib/cn';
@@ -11,6 +11,7 @@ import { PageLoading } from '../../components/ui/Display';
 import { Field, Segmented, Textarea } from '../../components/ui/Form';
 import { useResultToast } from '../../components/ui/Toast';
 import { fmtDate, fmtDateYear, fullName, gradeLabel } from '../../lib/format';
+import { Link } from '../../lib/router';
 
 /**
  * /admin/reports/[reportId] — progress report editor.
@@ -18,7 +19,7 @@ import { fmtDate, fmtDateYear, fullName, gradeLabel } from '../../lib/format';
  */
 export default function ReportPage({ params }) {
   const show = useResultToast();
-  const { data: report } = useQuery(() => api.reports.getReport({ reportId: params.reportId }), [params.reportId]);
+  const { data: report } = useQuery(() => api.reports.getReport({ reportId: params.reportId }).catch((e) => { if (e?.code === 'NOT_FOUND') return null; throw e; }), [params.reportId]);
   const { data: subjects = [] } = useQuery(() => api.taxonomy.listSubjects(), []);
   const student = report?.student;
   const parent = report?.parent;
@@ -50,6 +51,7 @@ export default function ReportPage({ params }) {
     });
     return [...map.values()];
   }, [student, subjects]);
+  if (report === null) return <Section><Empty title="We couldn’t find that report. It may have been removed." action={<Link href="/admin/reports" className="text-small hit-area font-medium text-brand hover:underline">Back to Reports</Link>} /></Section>;
   if (!report || !student) return <PageLoading />;
   const published = report.status === 'PUBLISHED';
   const rated = Object.values(ratings).filter(Boolean).length;

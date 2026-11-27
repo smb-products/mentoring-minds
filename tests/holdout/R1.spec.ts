@@ -1,10 +1,9 @@
 import type { Page } from '@playwright/test';
-import { expect, openAs, requires, test, type Who } from '../../tests/e2e/support/fixtures';
+import { expect, openAs, requires, test, type Who } from '../e2e/support/fixtures';
+import { openAccount } from '../e2e/support/ui';
 
 /**
- * R1 holdout: what the restyle looks like in a real browser, and what each person's shell shows.
- * Parked: the phone test fails (the other two pass). In tests/holdout/, the import above is '../e2e/support/fixtures'.
- */
+ * R1 holdout: what the restyle looks like in a real browser, and what each person's shell shows. */
 requires('families', 'messages');
 
 const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true };
@@ -46,6 +45,28 @@ for (const [device, options, input, title] of [['phone', PHONE, 16, 22], ['deskt
       expect(s.errors).toEqual([]);
       await s.close();
     }
+
+    // Sign-in (signed out) and change password (in the account panel) have fields too.
+    const out = await browser.newContext(options);
+    const signedOut = await out.newPage();
+    await signedOut.goto('/sign-in');
+    await expect(signedOut.locator('input[name=password]')).toBeVisible();
+    const onSignIn = (await sizes(signedOut)).fields;
+    expect(onSignIn.length, 'sign-in has fields').toBeGreaterThanOrEqual(2);
+    for (const f of onSignIn) if (f.px !== input) wrong.push(`/sign-in field "${f.field}" is ${f.px}px, want ${input}px`);
+    await out.close();
+
+    const ana = await openAs(browser, 'ana', options);
+    await ana.page.goto('/parent/home');
+    const panel = await openAccount(ana.page);
+    const current = panel.getByLabel('Current password');
+    if (!(await current.isVisible())) await panel.getByRole('button', { name: /change password/i }).click();
+    for (const label of ['Current password', 'New password']) {
+      const px = await panel.getByLabel(label).evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+      if (px !== input) wrong.push(`change password "${label}" is ${px}px, want ${input}px`);
+    }
+    expect(ana.errors).toEqual([]);
+    await ana.close();
     expect(wrong).toEqual([]);
   });
 }

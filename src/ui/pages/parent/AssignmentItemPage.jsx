@@ -7,10 +7,11 @@ import { AnswerSheet } from '../../components/learning/AnswerSheet';
 import { LockedPage, useLocked } from '../../components/shell/Locked';
 import { useShell } from '../../components/shell/ShellContext';
 import { Button } from '../../components/ui/Button';
-import { AreaTag, PageHeader, PageLoading, Section, Stars, StatusBadge } from '../../components/ui/Display';
+import { AreaTag, Empty, PageHeader, PageLoading, Section, Stars, StatusBadge } from '../../components/ui/Display';
 import { useResultToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/cn';
 import { fmtDate, fmtDue } from '../../lib/format';
+import { Link } from '../../lib/router';
 
 /**
  * /parent/learning/[submissionId] — one assignment for the selected child.
@@ -29,7 +30,8 @@ function AssignmentItem({ params }) {
   const [playing, setPlaying] = useState(false);
   const [done, marking] = useAction(api.assignments.markPracticeDone);
   const w = all?.find((x) => x.id === params.submissionId);
-  if (!w) return <PageLoading />;
+  // Once the list is back: not this family's, or no longer there. Same words for any id, so it reveals nothing.
+  if (!w) return all ? <Section><Empty title="We couldn’t find that assignment. It may have been removed." action={<Link href="/parent/learning" className="text-small hit-area font-medium text-brand hover:underline">Back to Learning</Link>} /></Section> : <PageLoading />;
 
   const a = w.assignment;
   const kid = students.find((s) => s.id === w.studentId);

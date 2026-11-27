@@ -1440,7 +1440,7 @@
         "Tokens: src/app/globals.css defines docs/DESIGN.md's type scale in @theme, with the phone and desktop sizes from its table (text-field stays 16px on phones), plus its radii and color rules: one blue accent, flat navy for the rail and band, neutral badge tints, and gold only for --reward. The surface, band, glass, chrome-*, press-* and rail utilities stay defined, so R2 and R3's screens keep working, but they're flat: no gradient, glow, inset highlight or press shadow. Dark mode keeps every token, and text contrast stays AA.",
         "Reopened by plan/holdouts/R1.spec.ts ('phone: fields are 16px'): at 390px wide, every input, select and textarea computes font-size 16px, and at 1280px 14px. That covers the invite code, the message composer, admin Settings, sign-in and change password. The cause was the token name: --text-input and --color-input share 'input', so Tailwind's text-input class set only a gray text color and no size. Rename the type token to text-field (docs/DESIGN.md) and change every use across src/ to text-field, so nothing still says text-input. tests/r1-design.test.ts also fails if any --text-<name> in globals.css shares <name> with a --color-<name>, and plan/holdouts/R1.spec.ts passes.",
         "One font: Inter, self-hosted with @fontsource-variable/inter (already installed by Zero's deps PR), imported once in src/app/layout.tsx. @fontsource-variable/fredoka and @fontsource-variable/nunito-sans leave package.json and every import, and --font-display goes. Zero regenerates package-lock.json at review.",
-        "Shared components (every file in this ticket's touches) follow docs/DESIGN.md. Type uses only the scale's tokens (text-caption, text-small, text-body, text-input, text-heading, text-title, text-page, text-figure): no text-[Npx], font-display or font-extrabold. Shape and depth follow docs/DESIGN.md: 8px corners on cards, drawers and dialogs, 6px on controls and badges, rounded-full only on avatars, status dots and counts, and no gradient, glow, inset highlight, press shadow, or surface/band/glass/chrome-*/press-*/rail utility. Buttons: primary is solid blue, secondary is white with a border, ghost is text only, destructive is solid red, and nothing moves on press. Inputs, tabs, segmented controls and chips are rectangles with 6px corners.",
+        "Shared components (every file in this ticket's touches) follow docs/DESIGN.md. Type uses only the scale's tokens (text-caption, text-small, text-body, text-field, text-heading, text-title, text-page, text-figure): no text-[Npx], font-display or font-extrabold. Shape and depth follow docs/DESIGN.md: 8px corners on cards, drawers and dialogs, 6px on controls and badges, rounded-full only on avatars, status dots and counts, and no gradient, glow, inset highlight, press shadow, or surface/band/glass/chrome-*/press-*/rail utility. Buttons: primary is solid blue, secondary is white with a border, ghost is text only, destructive is solid red, and nothing moves on press. Inputs, tabs, segmented controls and chips are rectangles with 6px corners.",
         "Shell: the brain line-art in Masthead.jsx (BRAIN_PATHS, BRAIN_NODES, BRAIN_LINKS) is gone. The band is flat navy and slimmer: tighter padding, a shallower overlap, and the PageHeader title at text-page. The rail and phone nav show a text wordmark 'Mentoring Minds' instead of LogoMark, which stays in brand/Logo.jsx for sign-in and the landing page.",
         "tests/r1-design.test.ts reads this ticket's files and fails on any text-[Npx], font-display, font-extrabold, linear-gradient, radial-gradient, or chrome-*/glass/press-* class, and on rounded-full in Button, the form controls, Tabs, Segmented or Chip. It also fails if package.json lists Fredoka or Nunito, or lacks @fontsource-variable/inter.",
         "Nothing a person reads or taps changes: layouts, wording, and every label, role and accessible name stay. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass on a production build, including tests/e2e/auth.spec.ts, the w*.spec files, p-product.spec.ts and the holdouts."
@@ -1614,7 +1614,7 @@
         "Hero, per docs/DESIGN.md → Landing polish: the headline reads exactly 'Math tutoring for grades K–6 in Miami-Dade, with F.A.S.T. test prep' (an en dash in K–6) at a new text-display token (30px phone, 40px desktop, 600), added to src/app/globals.css's @theme and used nowhere else. Under it, the subhead reads exactly 'One-on-one and small-group math tutoring with Vienne Elliott.' The hero sits on a full-width flat light-gray band with no gradient, content balanced so the right half isn't empty, and Get started and Sign in keep their targets.",
         "Header: the brain logo at about 44px, and a Sign in link at top right that goes to /sign-in. Rates: one bordered panel (1px border, 8px corners, no shadow) showing '$50' at text-figure and 'per hour' at text-small, then the five payment methods as a plain list, with Step Up For Students still linked to exactly https://www.stepupforstudents.org, target=\"_blank\" and rel=\"noopener noreferrer\".",
         "Rhythm: no <hr> dividers. Services stay a 2×2 grid (one column on phones). How it works shows its three steps numbered 1–3, each number in a light circle. 'In person or online' sits on a full-width light-gray band. The page stays at most about 1080px wide with wide gutters, has no photos, and L2's Request an invite form and the footer are unchanged.",
-        "Tests: tests/e2e/l3-landing-polish.spec.ts, signed out on a production build, checks the hero headline and subhead text, the header's Sign in link, '$50' and 'per hour' inside the rates panel, the numbered steps, and that the page has no <hr>. Its @phone test checks there's no sideways scroll and the headline fits the screen. In tests/e2e/l1-landing.spec.ts, change only the hero string, to the en dash. That's authorized here, and nothing else in that file. tests/e2e/l2-request-invite.spec.ts, auth.spec.ts and the whole browser suite pass."
+        "Tests: tests/e2e/l3-landing-polish.spec.ts, signed out on a production build, checks the hero headline and subhead text, the header's Sign in link, '$50' and 'per hour' inside the rates panel, the numbered steps, and that the page has no <hr>. Its @phone test checks there's no sideways scroll and the headline fits the screen. In tests/e2e/l1-landing.spec.ts, change only the hero string (to the en dash), and drop '|Elliott' from its no-bio regex, because the subhead names Vienne Elliott. The email, phone, mailto/tel and photo checks stay. That's authorized here, and nothing else in that file. tests/e2e/l2-request-invite.spec.ts, auth.spec.ts and the whole browser suite pass."
       ],
       "hints": [
         "OSA's taste review of L1 (#136), under Javaris's landing-page approval (2026-11-27). L1 merges as is; this is the polish pass.",
@@ -1646,6 +1646,29 @@
       "hints": [
         "From Rigg's holdout batch (#144): /parent/learning/<unknown or another family's id> stays on the loading skeleton, with no data leak. Pages like AssignmentItemPage find the item in a list and show PageLoading while it's missing, so they never stop loading.",
         "Not held. It shares no touches with R1's redo (shared components and sign-in) or with L2 and L3 (the landing page)."
+      ]
+    },
+    {
+      "id": "L4",
+      "title": "Landing copy: capitalized payment methods, and rates beside 'In person or online' on desktop",
+      "spec": "tests/e2e/l3-landing-polish.spec.ts (updated)",
+      "deps": [
+        "L3"
+      ],
+      "touches": [
+        "src/components/landing/",
+        "tests/e2e/l3-landing-polish.spec.ts",
+        "tests/e2e/l1-landing.spec.ts",
+        "plan/reports/L4.md"
+      ],
+      "checks": [
+        "The rates panel's payment list reads, in order and exactly: 'Cash', 'Zelle', 'Cash App', 'Apple Pay', 'Step Up For Students scholarship'. Each item is capitalized, and there's no leading 'the'. Step Up For Students keeps its link to exactly https://www.stepupforstudents.org, with target=\"_blank\" and rel=\"noopener noreferrer\".",
+        "On desktop (≥ 1024px), the Rates panel and the 'In person or online' block sit side by side in one row, so neither leaves the right half empty. 'In person or online' keeps its light-gray background as a panel there. On a phone they stack, Rates first, with no sideways scroll. Nothing else on the page changes.",
+        "Tests: tests/e2e/l3-landing-polish.spec.ts expects the new payment list exactly. Its desktop test checks the two blocks share a row (their top edges within a few pixels), and its @phone test checks they stack. In tests/e2e/l1-landing.spec.ts, change only 'cash' to 'Cash' in its payment list. Both edits are authorized here. The whole browser suite passes."
+      ],
+      "hints": [
+        "OSA's taste note on L3 (#151), 2026-11-27. It doesn't block launch. Title the PR 'Landing copy: …'.",
+        "Not held. It waits for L3, which owns the same folder."
       ]
     }
   ]

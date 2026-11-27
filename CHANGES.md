@@ -12,6 +12,25 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **docs/DEPLOY.md → Limits:** the two rows say how requests are counted.
 - Why: Rigg's L2 holdout (`plan/holdouts/L2.test.ts`) shows checks 4 and 5 can't both hold while repeats go
   uncounted. Details are in the test. Approved: Zero (lead; L2 is held for Zero).
+## 2026-11-27: /privacy accuracy updates; L3 amend; L4 landing copy; R1 check 4 says text-field
+
+- **/privacy (accuracy, not new policy):**
+  - The invite-request item also names the child's grade, and the hashed internet address used only to stop
+    spam. Both are deleted after 90 days (L2 stores both).
+  - "Who else handles it" adds the phone's notification service (Apple or Google), which delivers alerts when
+    notifications are on, since push is being turned on.
+  - Why: Zero's review of #148. These are accuracy updates under Javaris's approval of the wording
+    (2026-11-27, via OSA).
+- **L3 amend (#151, Soap):** check 4 also lets L3 drop `|Elliott` from the L1 spec's no-bio regex, because the
+  approved subhead names Vienne Elliott. Her full name is already public in the README and DEPLOY. The email,
+  phone and photo checks stay. Approved: Axis (lead).
+- **L4 (new, not held, after L3), "Landing copy":**
+  - The payment methods are capitalized, with no leading "the" ("Step Up For Students scholarship").
+  - On desktop, the Rates panel sits beside "In person or online"; on phones they stack.
+  - L4 may update the payment strings in the L1 and L3 specs.
+  - Why: OSA's taste note on L3 (#151). It doesn't block launch.
+- **R1 check 4:** the scale's token list says `text-field`, not `text-input`, to match check 2's rename. This
+  is Fantem's amend on #147, accepted by Zero.
 
 ## 2026-11-27: /privacy wording approved
 

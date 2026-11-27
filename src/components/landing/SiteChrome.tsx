@@ -2,14 +2,22 @@ import Link from 'next/link';
 import { LogoMark } from '@/ui/components/brand/Logo';
 import { SITE_NAME } from './site';
 
-/** The public pages' header (landing, privacy): the brain logo and the name, linking home. */
-export function SiteHeader() {
+/**
+ * The public pages' header (landing, privacy): the brain logo and the name, linking home.
+ * The landing page adds a Sign in link at top right (`signIn`); /privacy, which signed-in people open too, doesn't.
+ */
+export function SiteHeader({ signIn = false }: { signIn?: boolean }) {
   return (
-    <header className="mx-auto flex w-full max-w-[1080px] items-center px-5 pt-6 md:px-8 md:pt-8">
-      <Link href="/" className="flex items-center gap-3 rounded-md text-ink dark:text-foreground">
-        <LogoMark size={36} className="" />
+    <header className="mx-auto flex w-full max-w-[1080px] items-center gap-4 px-5 py-4 md:px-8 md:py-5">
+      <Link href="/" className="flex min-w-0 items-center gap-3 rounded-md text-ink dark:text-foreground">
+        <LogoMark size={44} className="" />
         <span className="text-title">{SITE_NAME}</span>
       </Link>
+      {signIn && (
+        <Link href="/sign-in" className="ml-auto shrink-0 rounded-md px-1 text-body font-medium text-brand underline-offset-4 hover:underline">
+          Sign in
+        </Link>
+      )}
     </header>
   );
 }

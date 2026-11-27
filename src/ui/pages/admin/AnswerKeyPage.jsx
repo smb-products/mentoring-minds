@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { api, useAction, useQuery } from '../../api';
 import { areaFor } from '../../api/best';
 import { Button } from '../../components/ui/Button';
-import { AreaTag, PageHeader, PageLoading, Section } from '../../components/ui/Display';
+import { AreaTag, Empty, PageHeader, PageLoading, Section } from '../../components/ui/Display';
 import { Input, Select } from '../../components/ui/Form';
 import { useResultToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/cn';
 import { gradeLabel } from '../../lib/format';
+import { Link } from '../../lib/router';
 
 const FORMATS = [
   { value: 'MC', label: 'One letter' },
@@ -23,7 +24,7 @@ const FORMATS = [
  */
 export default function AnswerKeyPage({ params }) {
   const show = useResultToast();
-  const { data } = useQuery(() => api.books.getAnswerKey({ bookId: params.bookId, test: params.test }), [params.bookId, params.test]);
+  const { data } = useQuery(() => api.books.getAnswerKey({ bookId: params.bookId, test: params.test }).catch((e) => { if (e?.code === 'NOT_FOUND' || e?.code === 'INVALID') return null; throw e; }) /* no such book, or a test that isn't M1–M9 / T1–T9 */, [params.bookId, params.test]);
   const [rows, setRows] = useState(null);
   const [save, saving] = useAction(api.books.saveAnswerKey);
 
@@ -43,6 +44,7 @@ export default function AnswerKeyPage({ params }) {
   const grade = data?.book.grade;
   const filled = rows?.filter((r) => r.format === 'OPEN' || r.answer.trim()) ?? [];
   const changed = rows?.filter((r) => r.dirty) ?? [];
+  if (data === null) return <Section><Empty title="We couldn’t find that answer key. It may have been removed." action={<Link href="/admin/content" className="text-small hit-area font-medium text-brand hover:underline">Back to Content</Link>} /></Section>;
   if (!data || !rows) return <PageLoading />;
 
   const setRow = (n, patch) => setRows((all) => all.map((r) => (r.number === n ? { ...r, ...patch, dirty: true } : r)));
