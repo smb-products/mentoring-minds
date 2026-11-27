@@ -1827,6 +1827,7 @@
         "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
       ],
       "hints": [
+        "The 390px scroll: SkillMeter lives in Display.jsx, which is P2b's. Fix it in HomePage.jsx's row instead (min-w-0 or flex-wrap on the row, or a className passed into SkillMeter), not inside SkillMeter.",
         "Split from P2 (OSA, 2026-11-27). It runs in parallel with P2b, with no shared touches. Don't edit a file outside these touches: a needed change elsewhere goes in the report.",
         "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
         "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead.",
