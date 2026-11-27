@@ -12,6 +12,11 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   lacks, or can't reach the database (`scripts/vercel-build.mjs`). That build never goes live, and the site
   stays on the last good deployment. Javaris still runs every production migration, then redeploys. Production
   builds still never migrate. Approved: Javaris (via OSA).
+## 2026-11-27: P2 split into P2a (parent) and P2b (admin)
+
+- **P2** is superseded by **P2a** (the parent screens and their drawers, plus the shared SessionParts, Thread and
+  FastResults) and **P2b** (Vienne's screens and her drawers). Same checks and no shared touches, so two builders
+  run them at once as soon as P1 merges. Why: speed. Asked by OSA, under Javaris's polish approval.
 
 ## 2026-11-27: A1, P1, P2, the polish pass (sign-in, the app shell, each screen)
 

@@ -1795,6 +1795,67 @@
       ],
       "hints": [
         "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
+        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead.",
+        "Split into P2a (parent) and P2b (admin) on 2026-11-27 so two builders run in parallel (OSA)."
+      ],
+      "status": "superseded"
+    },
+    {
+      "id": "P2a",
+      "title": "Per-screen pass: parent screens' cards, badges and buttons match P1",
+      "spec": "tests/p2a-design.test.ts (new)",
+      "deps": [
+        "P1"
+      ],
+      "touches": [
+        "src/ui/pages/parent/",
+        "src/ui/components/learning/",
+        "src/ui/components/sessions/ParentSessionDrawer.jsx",
+        "src/ui/components/sessions/RequestSessionDrawer.jsx",
+        "src/ui/components/sessions/SessionParts.jsx",
+        "src/ui/components/messages/Thread.jsx",
+        "src/ui/components/fast/FastResults.jsx",
+        "tests/p2a-design.test.ts",
+        "tests/e2e/p2a-screens.spec.ts",
+        "plan/reports/P2a.md"
+      ],
+      "checks": [
+        "Every parent screen under src/ui/pages/parent/, and these components: src/ui/components/learning/, src/ui/components/sessions/ParentSessionDrawer.jsx, src/ui/components/sessions/RequestSessionDrawer.jsx, src/ui/components/sessions/SessionParts.jsx, src/ui/components/messages/Thread.jsx, src/ui/components/fast/FastResults.jsx, matches P1 (docs/DESIGN.md → App polish). Cards are the shared white card (1px border, the 16px token), badges are the shared Badge, StatusBadge or LevelBadge (a soft tint or a dot), and buttons are the shared Button. There are no one-off radii (rounded-[…], or rounded-sm/xl/2xl/3xl on cards or controls) and no navy left from the band (bg-ink, text-ink-*, the band utility). SessionParts, Thread and FastResults are shared with Vienne's screens, so a change there must also look right on hers.",
+        "Only the look changes: layout order, wording, and every role, label and name stay. The r2-design and r3-design source tests pass unchanged, and so do the whole browser suite and every holdout. Dark mode keeps working.",
+        "Tests: tests/p2a-design.test.ts, a source test over its touches, checks for no bg-ink, text-ink-, band, rounded-[ or rounded-(sm|xl|2xl|3xl) class tokens, no font-bold and no text-[Npx]. tests/e2e/p2a-screens.spec.ts, as a parent (Grace) at 1280×800, opens each parent screen in the sidebar and checks that its first card has a white background, a 1px border and 16px corners, and that nothing behind its h1 is navy. Its @phone test checks there's no sideways scroll on each screen.",
+        "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
+      ],
+      "hints": [
+        "Split from P2 (OSA, 2026-11-27). It runs in parallel with P2b, with no shared touches. Don't edit a file outside these touches: a needed change elsewhere goes in the report.",
+        "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
+        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead."
+      ]
+    },
+    {
+      "id": "P2b",
+      "title": "Per-screen pass: admin screens' cards, badges and buttons match P1",
+      "spec": "tests/p2b-design.test.ts (new)",
+      "deps": [
+        "P1"
+      ],
+      "touches": [
+        "src/ui/pages/admin/",
+        "src/ui/components/sessions/AddSessionDrawer.jsx",
+        "src/ui/components/sessions/AdminSessionDrawer.jsx",
+        "src/ui/components/sessions/DayTimeline.jsx",
+        "tests/p2b-design.test.ts",
+        "tests/e2e/p2b-screens.spec.ts",
+        "plan/reports/P2b.md"
+      ],
+      "checks": [
+        "Every admin screen under src/ui/pages/admin/, and these components: src/ui/components/sessions/AddSessionDrawer.jsx, src/ui/components/sessions/AdminSessionDrawer.jsx, src/ui/components/sessions/DayTimeline.jsx, matches P1 (docs/DESIGN.md → App polish). Cards are the shared white card (1px border, the 16px token), badges are the shared Badge, StatusBadge or LevelBadge (a soft tint or a dot), and buttons are the shared Button. There are no one-off radii (rounded-[…], or rounded-sm/xl/2xl/3xl on cards or controls) and no navy left from the band (bg-ink, text-ink-*, the band utility). The shared SessionParts, Thread and FastResults belong to P2a, so don't edit them here.",
+        "Only the look changes: layout order, wording, and every role, label and name stay. The r2-design and r3-design source tests pass unchanged, and so do the whole browser suite and every holdout. Dark mode keeps working.",
+        "Tests: tests/p2b-design.test.ts, a source test over its touches, checks for no bg-ink, text-ink-, band, rounded-[ or rounded-(sm|xl|2xl|3xl) class tokens, no font-bold and no text-[Npx]. tests/e2e/p2b-screens.spec.ts, as Vienne at 1280×800, opens each admin screen in the sidebar and checks that its first card has a white background, a 1px border and 16px corners, and that nothing behind its h1 is navy. Its @phone test checks there's no sideways scroll on each screen.",
+        "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
+      ],
+      "hints": [
+        "Split from P2 (OSA, 2026-11-27). It runs in parallel with P2a, with no shared touches. Don't edit a file outside these touches: a needed change elsewhere goes in the report.",
+        "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
         "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead."
       ]
     }
