@@ -51,7 +51,7 @@ Tests create their tables from `prisma/migrations` and refuse any database whose
 7. **Notify after the transaction commits** (`lib/notify.ts`), never inside it.
 8. **Schema changes:** run `npx prisma migrate dev --name …` and commit the migration. CI fails on drift.
 9. **AI:** only the two features in `src/server/ai.ts`, Haiku 5.5 at high effort, capped daily. Never save from a draft without Vienne's tap (the draft id goes through the normal save).
-10. **Don't change the UI's look while wiring.** The screens match the prototype to the pixel.
+10. **The look follows `docs/DESIGN.md`** (approved by Javaris, 2026-11-27). A restyle changes only the look: layouts, wording and every label a test reads stay. Anything new on a screen needs a ticket Javaris approved.
 11. **API routes check their own access** (`src/proxy.ts` only guards pages). Any new route under `src/app/api` must check the session or a secret itself.
 12. **Work after the response** (push and the like) goes through `after()`, as in `lib/notify.ts`. Vercel can freeze a function once it responds.
 13. **Inside `db.$transaction(async (tx) => …)`, await queries one at a time.** Never use `Promise.all` on `tx`: it shares one connection.

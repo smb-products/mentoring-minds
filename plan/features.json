@@ -1410,6 +1410,165 @@
         "next.config.ts keeps serverActions.bodySizeLimit '4mb'. Say in the report whether anything besides the photo read still sends a body that big."
       ],
       "held": "zero"
+    },
+    {
+      "id": "R1",
+      "title": "Restyle 1: tokens, Inter, and the shared components and shell (docs/DESIGN.md)",
+      "spec": "tests/r1-design.test.ts (new)",
+      "deps": [
+        "S33"
+      ],
+      "touches": [
+        "src/app/globals.css",
+        "src/app/layout.tsx",
+        "package.json",
+        "package-lock.json",
+        "src/ui/components/ui/",
+        "src/ui/components/shell/",
+        "src/ui/components/brand/",
+        "src/ui/components/sessions/SessionParts.jsx",
+        "src/ui/components/messages/Thread.jsx",
+        "src/ui/components/fast/FastResults.jsx",
+        "src/components/family/",
+        "src/components/pwa/InstallPrompt.tsx",
+        "tests/r1-design.test.ts",
+        "plan/reports/R1.md"
+      ],
+      "checks": [
+        "Tokens: src/app/globals.css defines docs/DESIGN.md's type scale in @theme, with the phone and desktop sizes from its table (text-input stays 16px on phones), plus its radii and color rules: one blue accent, flat navy for the rail and band, neutral badge tints, and gold only for --reward. The surface, band, glass, chrome-*, press-* and rail utilities stay defined, so R2 and R3's screens keep working, but they're flat: no gradient, glow, inset highlight or press shadow. Dark mode keeps every token, and text contrast stays AA.",
+        "One font: Inter, self-hosted with @fontsource-variable/inter, imported once in src/app/layout.tsx. @fontsource-variable/fredoka and @fontsource-variable/nunito-sans leave package.json, package-lock.json and every import, and --font-display goes.",
+        "Shared components (every file in this ticket's touches) follow docs/DESIGN.md. Type uses only the scale's tokens (text-caption, text-small, text-body, text-input, text-heading, text-title, text-page, text-figure): no text-[Npx], font-display or font-extrabold. Shape and depth follow docs/DESIGN.md: 8px corners on cards, drawers and dialogs, 6px on controls and badges, rounded-full only on avatars, status dots and counts, and no gradient, glow, inset highlight, press shadow, or surface/band/glass/chrome-*/press-*/rail utility. Buttons: primary is solid blue, secondary is white with a border, ghost is text only, destructive is solid red, and nothing moves on press. Inputs, tabs, segmented controls and chips are rectangles with 6px corners.",
+        "Shell: the brain line-art in Masthead.jsx (BRAIN_PATHS, BRAIN_NODES, BRAIN_LINKS) is gone. The band is flat navy and slimmer: tighter padding, a shallower overlap, and the PageHeader title at text-page. The rail and phone nav show a text wordmark 'Mentoring Minds' instead of LogoMark, which stays in brand/Logo.jsx for sign-in and the landing page.",
+        "tests/r1-design.test.ts reads this ticket's files and fails on any text-[Npx], font-display, font-extrabold, linear-gradient, radial-gradient, or chrome-*/glass/press-* class, and on rounded-full in Button, the form controls, Tabs, Segmented or Chip. It also fails if package.json lists Fredoka or Nunito, or lacks @fontsource-variable/inter.",
+        "Nothing a person reads or taps changes: layouts, wording, and every label, role and accessible name stay. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass on a production build, including tests/e2e/auth.spec.ts, the w*.spec files, p-product.spec.ts and the holdouts."
+      ],
+      "hints": [
+        "Javaris approved the restyle on 2026-11-27 (via OSA). docs/DESIGN.md is the spec; read it first.",
+        "Held for Zero (package.json). R2, R3 and L1 wait for this ticket. It waits for S33, which also edits package.json.",
+        "Change the components, not the screens: src/ui/pages/ belongs to R2 and R3. A screen still using text-[Npx] keeps working until its ticket.",
+        "Badges: LevelBadge turns neutral, and StatusBadge keeps its tone only as a soft tint or dot with dark text."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "R2",
+      "title": "Restyle 2: the parent screens (docs/DESIGN.md)",
+      "spec": "tests/r2-design.test.ts and tests/e2e/r2-parent-look.spec.ts (new)",
+      "deps": [
+        "R1"
+      ],
+      "touches": [
+        "src/ui/pages/parent/",
+        "src/ui/components/sessions/ParentSessionDrawer.jsx",
+        "src/ui/components/sessions/RequestSessionDrawer.jsx",
+        "src/ui/components/learning/",
+        "tests/r2-design.test.ts",
+        "tests/e2e/r2-parent-look.spec.ts",
+        "plan/reports/R2.md"
+      ],
+      "checks": [
+        "Every file in this ticket's touches follows docs/DESIGN.md. Type uses only the scale's tokens (text-caption, text-small, text-body, text-input, text-heading, text-title, text-page, text-figure): no text-[Npx], font-display or font-extrabold. Shape and depth follow docs/DESIGN.md: 8px corners on cards, drawers and dialogs, 6px on controls and badges, rounded-full only on avatars, status dots and counts, and no gradient, glow, inset highlight, press shadow, or surface/band/glass/chrome-*/press-*/rail utility.",
+        "Stars leave the stats: parent Home and Progress no longer show a 'Stars earned' figure. Stars stay beside the child's homework: the stars on each graded assignment on Progress, Learning and the assignment page. The server and its shapes don't change (starsTotal is still returned, just not shown).",
+        "Phone first: tests/e2e/r2-parent-look.spec.ts, tagged @phone (Pixel 7), signs in as a parent with an upcoming session and finds Home's Next session card fully in view without scrolling. It also checks no parent screen scrolls sideways (scrollWidth ≤ clientWidth) and that 'Stars earned' isn't on Home or Progress. It uses the fixture, so there are no console errors.",
+        "tests/r2-design.test.ts runs the same source checks as tests/r1-design.test.ts, over this ticket's files.",
+        "Nothing a person reads or taps changes: layouts, wording, and every label, role and accessible name stay. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass on a production build, including tests/e2e/auth.spec.ts, the w*.spec files, p-product.spec.ts and the holdouts."
+      ],
+      "hints": [
+        "Javaris approved the restyle on 2026-11-27 (via OSA). docs/DESIGN.md is the spec.",
+        "Not held. It shares no touches with R3 or L1, so the three can run in parallel. Don't edit R1's shared components; if one needs a change, say so in the report."
+      ]
+    },
+    {
+      "id": "R3",
+      "title": "Restyle 3: Vienne's screens (docs/DESIGN.md)",
+      "spec": "tests/r3-design.test.ts (new)",
+      "deps": [
+        "R1",
+        "S33"
+      ],
+      "touches": [
+        "src/ui/pages/admin/",
+        "src/ui/components/sessions/AdminSessionDrawer.jsx",
+        "src/ui/components/sessions/AddSessionDrawer.jsx",
+        "src/ui/components/sessions/DayTimeline.jsx",
+        "tests/r3-design.test.ts",
+        "plan/reports/R3.md"
+      ],
+      "checks": [
+        "Every file in this ticket's touches follows docs/DESIGN.md. Type uses only the scale's tokens (text-caption, text-small, text-body, text-input, text-heading, text-title, text-page, text-figure): no text-[Npx], font-display or font-extrabold. Shape and depth follow docs/DESIGN.md: 8px corners on cards, drawers and dialogs, 6px on controls and badges, rounded-full only on avatars, status dots and counts, and no gradient, glow, inset highlight, press shadow, or surface/band/glass/chrome-*/press-*/rail utility.",
+        "Vienne's screens keep their density: tables, the day timeline and the families list fit as many rows as today or more at 1280×800. Status still reads at a glance from the badge tints and dots.",
+        "tests/r3-design.test.ts runs the same source checks as tests/r1-design.test.ts, over this ticket's files.",
+        "Nothing a person reads or taps changes: layouts, wording, and every label, role and accessible name stay. npm run typecheck, npm test, npm run test:contract and the whole browser suite pass on a production build, including tests/e2e/auth.spec.ts, the w*.spec files, p-product.spec.ts and the holdouts."
+      ],
+      "hints": [
+        "Javaris approved the restyle on 2026-11-27 (via OSA). docs/DESIGN.md is the spec.",
+        "Not held. It waits for S33, which rewrites AdminSessionDrawer.jsx and AnswerKeyPage.jsx. It shares no touches with R2 or L1. Don't edit R1's shared components; if one needs a change, say so in the report."
+      ]
+    },
+    {
+      "id": "L1",
+      "title": "Landing page at / for signed-out visitors, and a restyled sign-in",
+      "spec": "tests/e2e/l1-landing.spec.ts (new)",
+      "deps": [
+        "R1"
+      ],
+      "touches": [
+        "src/app/page.tsx",
+        "src/components/landing/",
+        "src/app/(auth)/sign-in/",
+        "src/proxy.ts",
+        "tests/proxy.test.ts",
+        "src/app/manifest.ts",
+        "tests/e2e/l1-landing.spec.ts",
+        "plan/reports/L1.md"
+      ],
+      "checks": [
+        "Routing: a signed-out visitor to / gets the landing page (200, no redirect). A signed-in Vienne still goes to /admin/today and a parent to /parent/home. Every other page still sends a signed-out visitor to /sign-in. src/proxy.ts lets / through only when signed out, and tests/proxy.test.ts covers both cases. The manifest's start_url becomes /sign-in, so the installed app opens to sign-in or home, never the landing page (scope stays /).",
+        "Content, in order and word for word from docs/DESIGN.md → Landing page: the hero 'Math tutoring for grades K-6 in Miami-Dade, with F.A.S.T. test prep' with Get started and Sign in; the four services with their lines; rates ('$50 per hour', and payment by cash, Zelle, Cash App, Apple Pay and the Step Up For Students scholarship, linked to exactly https://www.stepupforstudents.org with target=\"_blank\" and rel=\"noopener noreferrer\"); how it works in three short steps; 'In person or online' with no place names; then Request an invite.",
+        "Get started goes to the Request an invite section (#request-invite) and Sign in goes to /sign-in. Until L2 lands, that section says 'Have an invite code from Vienne? Create your account on the sign-in page.', with that link. Page metadata: the title 'Mentoring Minds: math tutoring in Miami-Dade', a description, and Open Graph title, description and type 'website'. No image, no photos, no bio, and no address, phone or email for Vienne.",
+        "Look: docs/DESIGN.md's tokens and rules, with the brain logo (LogoMark) in the header. The sign-in page gets the same restyle and logo, and every label auth.spec.ts, auth-hydration.spec.ts, s29 and s31 read stays. It's phone first: one column, and no sideways scroll at the Pixel 7 width.",
+        "tests/e2e/l1-landing.spec.ts checks, signed out, the hero line, both buttons' targets, the four services, the rate, the five payment ways and the link's href, target and rel. Its @phone test checks there's no sideways scroll. It also checks signed-in redirects from / for Vienne and a parent. The lead already removed '/' from auth.spec.ts's signed-out list for this ticket. npm test and the whole browser suite pass."
+      ],
+      "hints": [
+        "Javaris approved the landing page on 2026-11-27 (via OSA). It replaces S34 (#127, closed); its rates and services move here.",
+        "Not held. It shares no touches with R2 or R3. The page is a server component outside AppRoot, and it needs no database call for a signed-out visitor.",
+        "L2 adds the Request an invite form to src/components/landing/. Leave one clear spot for it."
+      ]
+    },
+    {
+      "id": "L2",
+      "title": "Request an invite: a form on the landing page that reaches Vienne's alerts",
+      "spec": "tests/integration/l2-invite-requests.test.ts and tests/e2e/l2-request-invite.spec.ts (new)",
+      "deps": [
+        "L1",
+        "S33"
+      ],
+      "touches": [
+        "src/server/inviteRequests.ts",
+        "src/lib/",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "src/components/landing/",
+        "tests/integration/p-sec.test.ts",
+        "tests/integration/leaks.test.ts",
+        "tests/integration/l2-invite-requests.test.ts",
+        "tests/e2e/l2-request-invite.spec.ts",
+        "docs/DEPLOY.md",
+        "plan/reports/L2.md"
+      ],
+      "checks": [
+        "The form, in the landing page's #request-invite section: Parent name (required), Email (required), Phone (optional), Child's grade (K through 6, required) and Message (optional), plus a honeypot field that people never see and screen readers skip (aria-hidden, tabindex -1, autocomplete off). It's labelled for screen readers and follows docs/DESIGN.md, with 16px inputs on phones. On success it shows 'Thanks. Vienne will be in touch.' and clears.",
+        "One public endpoint, requestInvite, in src/server/inviteRequests.ts. It's the only export with no guard, so it goes in tests/integration/p-sec.test.ts's PUBLIC with a one-line reason. It parse()s with zod, with named limits INVITE_REQUEST_NAME_MAX (80), INVITE_REQUEST_MESSAGE_MAX (1000) and an email of at most 254 characters, and returns a DTO that never echoes the input: { received: true }. It creates no User, Account or Invite, and reads nothing back to the visitor.",
+        "Abuse limits, each a named constant with a test that reaches it: INVITE_REQUESTS_PER_HOUR (all visitors together, 20) and INVITE_REQUESTS_PER_EMAIL_PER_DAY (3). Over a limit, the visitor gets 'Too many requests right now. Please try again later.', and nothing is stored or sent. A filled honeypot gets the same success response, with nothing stored and Vienne not told. Both constants go in docs/DEPLOY.md → Limits, and p-sec.test.ts's list reads them.",
+        "Vienne's alert: one admin notification, sent after the transaction commits (lib/notify.ts), titled 'Invite request from <parent name>', with the email, phone, grade and message in its body. The push (when push is on) says only 'New invite request', with no name or contact details. No family ever receives it (leaks.test.ts). Where the request is stored, in a small InviteRequest table or in the notification only, is Zero's call. Any schema change only adds, with its migration.",
+        "Tests: tests/integration/l2-invite-requests.test.ts covers the good path, each limit, the honeypot, over-long and bad input (INVALID), that no account is made, and that the response holds no input. tests/e2e/l2-request-invite.spec.ts fills the form signed out on a production build, then signs in as Vienne and finds the alert. npm test, p-sec and the whole browser suite pass."
+      ],
+      "hints": [
+        "Javaris approved it on 2026-11-27 (via OSA). No account is created: Vienne still sends the invite code herself.",
+        "Held for Zero: src/server, src/lib, prisma and docs. It waits for L1, which places the form, and for S33, which also edits tests/integration/ and docs/DEPLOY.md.",
+        "A request holds a stranger's contact details. DEPLOY's 'Deleting a family or a child' covers families; add one line for deleting a request (Vienne deletes the alert, plus the row if there's a table)."
+      ],
+      "held": "zero"
     }
   ]
 }

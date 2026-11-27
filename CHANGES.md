@@ -3,6 +3,32 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: the restyle and the landing page (R1–R3, L1, L2)
+
+- **docs/DESIGN.md (new)** is the spec for how the app looks:
+  - Inter instead of Fredoka and Nunito, and a smaller named type scale (body 14px on desktop, 15px on phone;
+    page titles about 24px).
+  - 6–8px corners, no pills, flat solid buttons with no gradients or glows.
+  - One blue accent on navy, white and grays, with neutral level badges.
+  - No brain line-art in the header, and a slimmer band.
+  - A text wordmark in the app; the brain logo only on the landing page and sign-in.
+  - Stars off the parent Home and Progress stats.
+
+  **AGENTS.md rule 10** changes from "don't change the look while wiring" to "the look follows docs/DESIGN.md".
+  Layouts, wording and every label a test reads stay.
+- **R1 (held for Zero; after S33):** tokens, the Inter font, and the shared components and shell.
+- **R2, R3 and L1 (after R1, in parallel):**
+  - R2 restyles the parent screens, including the phone Home with the next session in view.
+  - R3 restyles Vienne's screens, after S33 too.
+  - L1 is the public landing page at / for signed-out visitors, plus a restyled sign-in. The installed app now
+    starts at /sign-in.
+- **L2 (held for Zero; after L1 and S33):** a "Request an invite" form that reaches Vienne's alerts. It's
+  rate-limited, has a honeypot, creates no account, and returns a DTO.
+- **S34 is dropped (#127 closed):** its rates and services move to the landing page.
+- **Lead edit to a locked test:** `tests/e2e/auth.spec.ts`'s "signed out, every screen goes to sign-in" no
+  longer lists `/`, which becomes the landing page. L1's spec checks `/` instead.
+- Why: Javaris wants a professional look and a public page before launch. Approved: Javaris (2026-11-27, via OSA).
+
 ## 2026-11-27: S33, no AI for launch
 
 - **S33 (new, held for Zero):** the voice session-note draft ("Talk about it") and the answer-key photo read
