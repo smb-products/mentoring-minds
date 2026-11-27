@@ -1,14 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ExternalLink, Mic, Square, Video } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ExternalLink, Video } from 'lucide-react';
 import { api, useAction, useQuery } from '../../api';
 import { fmtDateYear, fmtLongDay, fmtTime, fmtTimeRange, fullName, gradeLabel, mapsUrl } from '../../lib/format';
 import { Button } from '../ui/Button';
-import { Detail, RATING_LABELS, StatusBadge } from '../ui/Display';
+import { Detail, StatusBadge } from '../ui/Display';
 import { CheckRow, Chip, Field, Input, Segmented, Switch, Textarea } from '../ui/Form';
 import { Drawer } from '../ui/Overlay';
 import { useResultToast } from '../ui/Toast';
-import { DraftCard } from '../ai/DraftCard';
-import { useDictation } from '../ai/useDictation';
 import { joinOpen, placeLabel } from './SessionParts';
 
 /** Admin: details for one session + the actions its status allows. view: 'details' | 'complete' | 'decline' | 'cancel' */
@@ -157,11 +155,9 @@ function CompleteForm({ s, onDone, onBack }) {
   const { data: subjects = [] } = useQuery(() => api.taxonomy.listSubjects(), []);
   const { data: redo = [] } = useQuery(() => api.books.listRedo({ studentId: s.student.id }), [s.student.id]);
   const skills = useMemo(() => (subjects[0]?.skills ?? []).filter((k) => s.student.grade >= k.gradeMin && s.student.grade <= k.gradeMax), [subjects, s]);
-  const [form, setForm] = useState({ attendance: 'PRESENT', summary: '', homework: '', sharedWithParent: true, skillIds: [], redoItemIds: [], clearRedoIds: [], source: 'TYPED', aiDraftId: null });
+  const [form, setForm] = useState({ attendance: 'PRESENT', summary: '', homework: '', sharedWithParent: true, skillIds: [], clearRedoIds: [] });
   const [complete, saving] = useAction(api.scheduling.completeSession);
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
-  const formRef = useRef(null);
-  const [newRedo, setNewRedo] = useState([]); // [{ bookItemId, label }] from the voice draft
 
   const save = async (fields) => {
     if (show(await complete({ sessionId: s.id, ...fields }), 'Session completed', fields.sharedWithParent ? 'Your note is visible to the parent.' : 'Your note is private.')) onDone();
@@ -173,26 +169,13 @@ function CompleteForm({ s, onDone, onBack }) {
         <Segmented label="Attendance" value={form.attendance} onChange={(attendance) => set({ attendance })} className="w-full" options={[{ value: 'PRESENT', label: 'Present' }, { value: 'LATE', label: 'Late' }, { value: 'ABSENT', label: 'Absent' }]} />
       </Field>
 
-      <TalkAboutIt
-        s={s}
-        onUse={(d) => save({ ...form, summary: d.note, homework: d.homework || '', skillIds: d.skills.map((k) => k.skillId), redoItemIds: d.redo.map((r) => r.bookItemId), source: 'VOICE', aiDraftId: d.draftId })}
-        onChange={(d) => {
-          set({ summary: d.note, homework: d.homework || '', skillIds: d.skills.map((k) => k.skillId), redoItemIds: d.redo.map((r) => r.bookItemId), source: 'VOICE', aiDraftId: d.draftId });
-          setNewRedo(d.redo.map((r) => ({ bookItemId: r.bookItemId, label: `${r.testName} #${r.number}` })));
-          window.setTimeout(() => formRef.current?.querySelector('textarea')?.focus(), 50);
-        }}
-        saving={saving}
-      />
-
       <form
-        ref={formRef}
         className="space-y-5 border-t border-border pt-5"
         onSubmit={async (e) => {
           e.preventDefault();
           await save(form);
         }}
       >
-        <p className="text-[14px] font-bold text-muted-foreground">Or type it</p>
         <Field label="What you worked on">
           {(id) => <Textarea id={id} rows={4} required value={form.summary} onChange={(e) => set({ summary: e.target.value })} placeholder="Comparing fractions with fraction strips…" />}
         </Field>
@@ -205,17 +188,6 @@ function CompleteForm({ s, onDone, onBack }) {
             ))}
           </div>
         </Field>
-        {newRedo.length > 0 && (
-          <Field label="Add to the redo list">
-            <div className="flex flex-wrap gap-2">
-              {newRedo.map((r) => (
-                <Chip key={r.bookItemId} selected={form.redoItemIds.includes(r.bookItemId)} onClick={() => set({ redoItemIds: form.redoItemIds.includes(r.bookItemId) ? form.redoItemIds.filter((x) => x !== r.bookItemId) : [...form.redoItemIds, r.bookItemId] })}>
-                  {r.label}
-                </Chip>
-              ))}
-            </div>
-          </Field>
-        )}
         {redo.length > 0 && (
           <Field label="Book questions they got right today" hint="Ticked questions come off the redo list.">
             <div className="divide-y divide-border rounded-xl border border-border">
@@ -235,96 +207,6 @@ function CompleteForm({ s, onDone, onBack }) {
         </div>
       </form>
     </div>
-  );
-}
-
-/**
- * "Talk about it": speak (or type) what happened, Claude drafts the note.
- * The draft fills nothing until Vienne picks Use this or Change.
- */
-function TalkAboutIt({ s, onUse, onChange, saving }) {
-  const show = useResultToast();
-  const dict = useDictation();
-  const [draft, setDraft] = useState(null);
-  const [write, writing] = useAction(api.ai.draftSessionNote);
-  const [discard] = useAction(api.ai.discardDraft);
-
-  if (draft) {
-    return (
-      <DraftCard
-        unsure={draft.unsure}
-        using={saving}
-        useLabel="Use this and finish"
-        onUse={() => onUse(draft)}
-        onChange={() => {
-          onChange(draft);
-          setDraft(null);
-        }}
-        onDiscard={() => {
-          discard({ draftId: draft.draftId });
-          setDraft(null);
-        }}
-      >
-        <p className="text-[15.5px] leading-relaxed">{draft.note}</p>
-        {draft.homework && <p className="text-[15px]"><span className="font-bold">Homework: </span>{draft.homework}</p>}
-        {draft.skills.length > 0 && (
-          <div>
-            <p className="text-[13.5px] font-bold text-muted-foreground">Skills</p>
-            <p className="mt-1 text-[15px] font-semibold">{draft.skills.map((k) => (k.rating ? `${k.name} (${RATING_LABELS[k.rating - 1].toLowerCase()})` : k.name)).join(', ')}</p>
-          </div>
-        )}
-        {draft.redo.length > 0 && (
-          <div>
-            <p className="text-[13.5px] font-bold text-muted-foreground">Add to {s.student.firstName}’s redo list</p>
-            <p className="tabular mt-1 text-[15px] font-semibold">{draft.redo.map((r) => `${r.testName} #${r.number}`).join(', ')}</p>
-          </div>
-        )}
-      </DraftCard>
-    );
-  }
-
-  return (
-    <section aria-label="Talk about it" className="rounded-[14px] border border-border p-4 @3xl/page:p-5">
-      <p className="text-[16px] font-extrabold">Talk about it</p>
-      <p className="mt-1 text-[14.5px] leading-relaxed text-muted-foreground">
-        Say how it went, what you worked on, and any book questions to redo. You’ll see a draft before anything is saved.
-      </p>
-      {dict.supported && (
-        <Button
-          size="lg"
-          variant={dict.listening ? 'destructive' : 'primary'}
-          icon={dict.listening ? Square : Mic}
-          className="mt-4 h-14 w-full text-[17px]"
-          onClick={dict.listening ? dict.stop : dict.start}
-        >
-          {dict.listening ? 'Done talking' : 'Tap to talk'}
-        </Button>
-      )}
-      {dict.error && <p className="mt-2 text-[14px] font-semibold text-critical">{dict.error}</p>}
-      <Field label={dict.supported ? 'What you said' : 'What happened (tap the microphone on your keyboard to talk)'} className="mt-4">
-        {(id) => (
-          <Textarea
-            id={id}
-            rows={4}
-            value={dict.text}
-            onChange={(e) => dict.setText(e.target.value)}
-            placeholder={`${s.student.firstName} did well on comparing fractions. Missed number 3 and 11 on mini test 1, so we’ll redo those.`}
-          />
-        )}
-      </Field>
-      <Button
-        size="lg"
-        variant="primary"
-        className="mt-3 w-full"
-        disabled={writing || dict.listening || dict.text.trim().length < 8}
-        onClick={async () => {
-          const data = show(await write({ sessionId: s.id, transcript: dict.text }));
-          if (data) setDraft(data);
-        }}
-      >
-        {writing ? 'Writing your note…' : 'Write my note'}
-      </Button>
-    </section>
   );
 }
 

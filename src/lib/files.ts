@@ -40,7 +40,7 @@ export async function canReadFile(user: Viewer, fileId: string) {
   return { file, allowed: resources.some((r) => kids.some((k) => visibleTo(r, k))) } as const;
 }
 
-/** Every `fileId` value anywhere inside a Json column (photos, drafts, answers, AI drafts…). */
+/** Every `fileId` value anywhere inside a Json column (photos, drafts, answers, resource bodies). */
 function collectFileIds(value: unknown, out: Set<string>) {
   if (Array.isArray(value)) for (const v of value) collectFileIds(v, out);
   else if (value && typeof value === 'object') {
@@ -54,7 +54,7 @@ function collectFileIds(value: unknown, out: Set<string>) {
 /**
  * The ids of every file something still points at: resources (in the bin too) and their
  * thumbnails, a submission's uploaded work, and any file id kept in a Json column
- * (a submission's photos, draft or answers, a resource's body, an AI draft).
+ * (a submission's photos, draft or answers, a resource's body).
  * The daily clean-up never removes a file in this set.
  */
 export async function fileIdsInUse(client: Tx = db) {
@@ -67,11 +67,6 @@ export async function fileIdsInUse(client: Tx = db) {
   }
   const subs = await client.submission.findMany({ select: { fileId: true, photos: true, draft: true, answers: true } });
   for (const id of fileIdsOf(subs)) used.add(id);
-  const drafts = await client.aiDraft.findMany({ select: { input: true, output: true } });
-  for (const d of drafts) {
-    collectFileIds(d.input, used);
-    collectFileIds(d.output, used);
-  }
   return used;
 }
 

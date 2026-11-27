@@ -168,10 +168,10 @@ describe('the book', () => {
     as('u_admin');
     const redo = await db.redoItem.findFirstOrThrow({ where: { clearedAt: null }, include: { bookItem: { include: { book: true } } } });
     const it0 = redo.bookItem;
-    const n = ok(await books.saveAnswerKey({ bookId: it0.bookId, test: it0.test, rows: [{ number: it0.number, format: 'NUMERIC', answer: '3/4' }], source: 'PHOTO' }));
+    const n = ok(await books.saveAnswerKey({ bookId: it0.bookId, test: it0.test, rows: [{ number: it0.number, format: 'NUMERIC', answer: '3/4' }] }));
     expect(n).toBeGreaterThan(0);
     const after = await db.bookItem.findUniqueOrThrow({ where: { id: it0.id } });
-    expect([after.format, after.answer, after.source]).toEqual(['NUMERIC', '3/4', 'PHOTO']);
+    expect([after.format, after.answer, after.source]).toEqual(['NUMERIC', '3/4', 'TYPED']);
     expect(await db.redoItem.findUnique({ where: { id: redo.id } })).not.toBeNull();
     const list = ok(await books.listBooks());
     expect(list.find((b) => b.id === it0.bookId)!.tests.find((t) => t.key === it0.test)!.keyed).toBe(n);

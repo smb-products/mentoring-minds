@@ -74,3 +74,4 @@ notes: Done before production exists: the setup checklist, the cron decision, ro
 - [ ] 5: the three caps confirmed set
 - [ ] 6: instant rollback rehearsed on a preview and timed
 - [ ] 7: D5: auto-assign is off, still off after Part 7's promote; the next merge to main is Staged; its build log shows `migrate status`, and no `migrate deploy`
+- [ ] 8: domain: `https://mentoringmindsacademy.org` serves the promoted deployment with a valid certificate; `www` and `mentoring-minds.vercel.app` return 308 to the apex with the path kept; after the next promote all three serve the new deployment; Auth.js's Google callback is `https://mentoringmindsacademy.org/api/auth/callback/google`

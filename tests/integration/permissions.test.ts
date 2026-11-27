@@ -5,7 +5,6 @@
  */
 import { describe, expect, it } from 'vitest';
 import { as, db, fails, freshDemo, ok } from './helpers';
-import * as ai from '@/server/ai';
 import * as assignments from '@/server/assignments';
 import * as books from '@/server/books';
 import * as content from '@/server/content';
@@ -77,9 +76,6 @@ const ADMIN_ONLY: [string, unknown][] = [
   ['reports.publishReport', reports.publishReport],
   ['dashboard.getAdminToday', dashboard.getAdminToday],
   ['messages.listThreads', messages.listThreads],
-  ['ai.draftSessionNote', ai.draftSessionNote],
-  ['ai.readAnswerKeyPage', ai.readAnswerKeyPage],
-  ['ai.discardDraft', ai.discardDraft],
   ['notifications.runDailyReminders', notifications.runDailyReminders],
 ];
 

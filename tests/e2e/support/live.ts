@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 /** The `api` areas (docs/WIRING.md). */
-export const AREAS = ['taxonomy', 'fast', 'families', 'invites', 'messages', 'notifications', 'books', 'content', 'assignments', 'scheduling', 'reports', 'dashboard', 'ai'] as const;
+export const AREAS = ['taxonomy', 'fast', 'families', 'invites', 'messages', 'notifications', 'books', 'content', 'assignments', 'scheduling', 'reports', 'dashboard'] as const;
 export type Area = (typeof AREAS)[number];
 
 /**

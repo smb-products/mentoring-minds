@@ -4,8 +4,8 @@ const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  // Camera for photos of work and the answer key; microphone for "Talk about it".
-  { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=()' },
+  // Camera for photos of homework. Nothing uses the microphone.
+  { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=()' },
   { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
   // A starting policy that can't break Next.js scripts: no framing, no plugins, no <base> tricks.
   // (A full script-src policy needs nonces; see docs/DEPLOY.md "Hardening later".)
@@ -14,7 +14,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   experimental: {
-    // "Set up from photos" sends one shrunk photo (~0.3–1.2 MB as base64). Vercel's own cap is 4.5 MB.
+    // Kept at 4 MB (Vercel's own cap is 4.5 MB). Files go straight to storage, so no server action
+    // sends a body near this since the photo read was removed (S33).
     serverActions: { bodySizeLimit: '4mb' },
   },
   async headers() {

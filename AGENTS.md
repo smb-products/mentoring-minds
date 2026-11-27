@@ -31,7 +31,7 @@ Tests create their tables from `prisma/migrations` and refuse any database whose
 | `src/ui/api/index.js` | Exports the live adapter as `api` (every area live since W8) |
 | `src/ui/api/live.js`, `live-hooks.js` | Live adapter (reads unwrap, writes refresh queries) |
 | `src/server/*.ts` | Server functions. Every export is a **public endpoint**. |
-| `src/lib/` | Server helpers: `guards`, `result`, `validate`, `dto`, `grading`, `slots`, `time`, `storage` (private Vercel Blob / local), `blob-upload`, `files`, `notify`, `push`, `jobs`, `auth-rules`, `ai/` |
+| `src/lib/` | Server helpers: `guards`, `result`, `validate`, `dto`, `grading`, `slots`, `time`, `storage` (private Vercel Blob / local), `blob-upload`, `files`, `notify`, `push`, `jobs`, `auth-rules` |
 | `tests/contract/mock/` | Frozen copy of the deleted `src/mock`: the shapes the screens were built on |
 | `src/ui/api/best.js`, `prisma/demo/` | What W8 kept from the mock: B.E.S.T. data, and the demo seed (same ids) |
 | `prisma/` | `schema.prisma`, `migrations/`, `seed.ts`, `data.ts` (loads the prototype data) |
@@ -50,7 +50,7 @@ Tests create their tables from `prisma/migrations` and refuse any database whose
 6. **Messages are for Vienne and parents:** plain words, say what to do next, no jargon. Keep the mock's wording when porting.
 7. **Notify after the transaction commits** (`lib/notify.ts`), never inside it.
 8. **Schema changes:** run `npx prisma migrate dev --name …` and commit the migration. CI fails on drift.
-9. **AI:** only the two features in `src/server/ai.ts`, Haiku 5.5 at high effort, capped daily. Never save from a draft without Vienne's tap (the draft id goes through the normal save).
+9. **AI:** No AI features: they were removed for launch (S33). Adding one back is a new ticket Javaris approves.
 10. **The look follows `docs/DESIGN.md`** (approved by Javaris, 2026-11-27). A restyle changes only the look: layouts, wording and every label a test reads stay. Anything new on a screen needs a ticket Javaris approved.
 11. **API routes check their own access** (`src/proxy.ts` only guards pages). Any new route under `src/app/api` must check the session or a secret itself.
 12. **Work after the response** (push and the like) goes through `after()`, as in `lib/notify.ts`. Vercel can freeze a function once it responds.
