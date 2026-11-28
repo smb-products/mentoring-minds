@@ -17,6 +17,7 @@ import { grade, id, ids, optText, parse, text } from '@/lib/validate';
 import { reportDTO, reportInclude, sessionDTO, sessionForParent, sessionInclude, studentDTO, studentInclude, submissionDTOs, submissionInclude, userSummary } from '@/lib/dto';
 import { bookResultsFor } from '@/lib/book-results';
 import { loadSettings, schoolYearOf } from '@/lib/settings';
+import { notifyAdmins } from '@/lib/notify';
 
 const MATH = 'sub_math';
 const resultOrder = (r: { schoolYear: string; window: string }) => `${r.schoolYear}${r.window}`;
@@ -169,6 +170,70 @@ export const addStudent = action(async (input: { parentId: string; firstName: st
     include: studentInclude,
   });
   return studentDTO(student, { admin: true });
+});
+
+/** S36: children a parent can add at sign-up. More later goes through Vienne (addStudent). */
+const MAX_CHILDREN_AT_SIGNUP = 6;
+/** Control characters (S32): refused in a child's name. */
+const CONTROL = /[\u0000-\u001f\u007f]/;
+const childrenSchema = z.object({
+  children: z
+    .array(
+      z.object({
+        firstName: z
+          .string('Add your child’s first name')
+          .refine((v) => !CONTROL.test(v), 'Your child’s first name can’t have line breaks or hidden characters')
+          .trim()
+          .min(1, 'Add your child’s first name')
+          .max(40, 'Keep your child’s first name under 40 characters'),
+        grade: z.number('Choose your child’s grade').int('Choose a grade from K to 6').min(0, 'Choose a grade from K to 6').max(6, 'Choose a grade from K to 6'),
+      }),
+      'Add at least one child',
+    )
+    .min(1, 'Add at least one child')
+    .max(MAX_CHILDREN_AT_SIGNUP, `You can add up to ${MAX_CHILDREN_AT_SIGNUP} children here. Message Vienne to add more.`),
+});
+
+/**
+ * S36, open sign-up: a parent with no children yet adds them (one who signed up without a code).
+ * Each becomes a student on this parent, as redeemInvite does for a code's planned children, and a
+ * PREVIEW account becomes ACTIVE. A parent who already has children is refused: more go through Vienne.
+ */
+export const addMyChildren = action(async (input: { children: { firstName: string; grade: number }[] }) => {
+  const user = await requireUser();
+  const v = parse(childrenSchema, input);
+  need(user.role === 'PARENT', 'Adding children here is for families.', 'FORBIDDEN');
+  need(user.status !== 'PAUSED', 'Your account is paused. Message Vienne to turn it back on.', 'FORBIDDEN');
+  const settings = await loadSettings();
+  const now = new Date();
+  const students = await db.$transaction(async (tx) => {
+    // The parent's row is locked, so two taps at once can't both find no children.
+    await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${user.id} FOR UPDATE`;
+    if ((await tx.student.count({ where: { parentId: user.id } })) > 0) throw new ApiError('CONFLICT', 'Your children are already on your account. Message Vienne to add another.');
+    const made = [];
+    for (const c of v.children) {
+      made.push(
+        await tx.student.create({
+          data: { parentId: user.id, firstName: c.firstName, lastName: '', grade: c.grade, schoolYear: schoolYearOf(now, settings.timezone), subjects: { create: [{ subjectId: MATH }] } },
+          include: studentInclude,
+        }),
+      );
+    }
+    await tx.conversation.upsert({ where: { parentId: user.id }, create: { parentId: user.id, lastMessageAt: now, adminLastReadAt: now, parentLastReadAt: now }, update: {} });
+    await tx.user.updateMany({ where: { id: user.id, status: 'PREVIEW' }, data: { status: 'ACTIVE' } });
+    return made;
+  });
+  // S30's rule: linked only to the family, so it names no child (deleting one leaves it). It counts them.
+  const n = students.length;
+  await notifyAdmins({
+    type: 'FAMILY_JOINED',
+    title: `New family joined: ${user.name}`,
+    body: `${n} ${n === 1 ? 'child' : 'children'} added. They signed up without an invite code.`,
+    href: '/admin/families',
+    about: user.id,
+    parentId: user.id,
+  });
+  return { students: students.map((s) => studentDTO(s, { admin: false })) };
 });
 
 const ADMIN_FIELDS = ['firstName', 'lastName', 'grade', 'school', 'goals', 'adminNotes', 'status'] as const;

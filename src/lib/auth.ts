@@ -8,8 +8,9 @@ import { db } from './db';
 import { MAX_PASSWORD, refreshToken, secureLinkedAccount } from './auth-rules';
 
 /**
- * One sign-in screen: Google, or email + password. New accounts start as PREVIEW
- * (they can look around, locked) until they enter Vienne's invite code.
+ * One sign-in screen: Google, or email + password. New accounts start ACTIVE (S36, open sign-up:
+ * the column default), add their children themselves (families.addMyChildren) or enter Vienne's
+ * optional invite code. PREVIEW is only on accounts made before that.
  * Kids never have their own login: they use the parent's account.
  */
 // Any length is checked (and counted toward the lockout); the 8-character minimum applies when a password is set.

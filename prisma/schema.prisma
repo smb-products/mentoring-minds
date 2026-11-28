@@ -28,7 +28,7 @@ enum Role {
 }
 
 enum UserStatus {
-  PREVIEW // signed up, no invite code yet: can look, can't open or book
+  PREVIEW // made before open sign-up (S36), no invite code or child yet: can look, can't open or book
   ACTIVE
   PAUSED
 }
@@ -157,7 +157,7 @@ model User {
   image              String?
   passwordHash       String? // null for Google-only users
   role               Role       @default(PARENT)
-  status             UserStatus @default(PREVIEW)
+  status             UserStatus @default(ACTIVE)
   textSize           TextSize   @default(NORMAL)
   /// Password sign-in lockout: 5 wrong passwords lock the account for 15 minutes.
   failedLogins       Int        @default(0)
@@ -713,6 +713,18 @@ model InviteAttempt {
   @@index([createdAt])
   @@index([ipHash, createdAt])
   @@index([requestId])
+}
+
+/// S36: one email sign-up (createAccount) that passed the form check, for SIGNUPS_PER_IP_PER_HOUR and
+/// SIGNUPS_PER_HOUR. No name or email. The daily job deletes it after a day.
+model SignupAttempt {
+  id        String   @id @default(cuid())
+  /// sha256(ip + ':' + INVITE_PEPPER), as on InviteRequest. Never the IP itself.
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+  @@index([createdAt])
 }
 
 /// PWA push (phase 2). One row per device that allowed notifications.

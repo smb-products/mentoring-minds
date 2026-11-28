@@ -118,7 +118,7 @@ export const requestInvite = action(async (input: { parentName: string; email: s
     // React escapes the body, so no HTML is built. The push carries only the title.
     await notifyAdmins({
       type: 'INVITE_REQUEST',
-      title: `Invite request from ${r.parentName}`,
+      title: `Question from ${r.parentName}`,
       body: `${[gradeLabel(r.grade), r.email, r.phone].filter(Boolean).join(' · ')}${r.message ? `\n${r.message}` : ''}`,
       href: '/admin/families',
       about: r.id,
