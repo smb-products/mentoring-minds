@@ -3,6 +3,15 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: P1 reopened for the dark-mode tab; kit refuses unknown ids
+
+- **P1, new check (reopen 1):** in dark mode the selected page-header tab must reach AA (≥ 4.5:1) through a token
+  with a dark value, with light mode unchanged. Its touches drop `src/ui/components/ui/` (P2b owns `Display.jsx`).
+  Why: Rigg's P1 holdout (#183) measured 3.47:1. It's docs/DESIGN.md's own rule (AA holds in dark), so no new
+  approval is needed.
+- **Kit:** `kit/plan.py set` and `reopen` refuse an id that isn't in `plan/features.json`. `reopen --help` had made
+  a feature called "--help", which has since been removed from the lane state. By Axis.
+
 ## 2026-11-27: S36 uploads are 80 a day for parents, not 40
 
 - **S36, check 6:** `MAX_UPLOADS_PER_DAY` is 80 for parents (two full tests of photos, with room for a retake), not

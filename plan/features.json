@@ -1752,7 +1752,6 @@
       "touches": [
         "src/app/globals.css",
         "src/ui/components/shell/",
-        "src/ui/components/ui/",
         "tests/r1-design.test.ts",
         "tests/e2e/r2-parent-look.spec.ts",
         "tests/e2e/p1-app-shell.spec.ts",
@@ -1764,13 +1763,15 @@
         "No navy band: Masthead's PageHeader puts the back link, the title (text-page), the subtitle and the actions (on the right) on the light page. Tabs sit under it, and nothing overlaps it. Nothing in the shell uses bg-ink, text-ink-foreground or the band utility, which stays defined so nothing breaks. Figures (Display.jsx) become white cards (1px border, 16px corners), each with a 40px tinted icon square in order blue, amber, green, violet, keeping role=region 'Key numbers' and the 'needs attention' cue. Button, Badge and Card in src/ui/components/ui pick up the new radii and accent through tokens. Screens under src/ui/pages don't change in P1 (that's P2).",
         "Only the look changes: no wording, layout order, role or name changes anywhere. The parent and admin browser suites, auth.spec.ts and the S8–S10 nav holdouts pass unchanged. Dark mode keeps working.",
         "Lead-authorized test edits, and only these. In tests/r1-design.test.ts: in 'tokens', the type-scale sizes for page (24 phone, 28 desktop) plus the two 700 font-weight lines; the radii test (10px and 16px); and in the accent test, the --sidebar line and the two navy rail pairs in the contrast list, swapped for the white sidebar's pairs. In 'the shell', the band test becomes 'no navy band: the PageHeader title is text-page on the page, and AppShell has no bg-ink', and the rail test becomes 'white sidebar, selected soft blue, icons 18px at 1.75'. The wordmark and Masthead line-art tests stay. In tests/e2e/r2-parent-look.spec.ts, the band locator becomes the page header (the <header> holding the h1), with the comments to match. The 140px cap, the below and overlap checks, and the chips-below check stay. tests/holdout/R1.spec.ts (title 22/24 → 24/28) and tests/holdout/R3.spec.ts (the same band locator change; its 130px cap stays) are holdouts, which lanes can't edit. List the exact lines that fail in the report, and a lead adds those edits to this PR before it queues.",
+        "Reopen 1 (Rigg's holdout, plan/holdouts/P1.spec.ts 'page headers and sidebar are readable in light and dark'): in dark mode, the selected page-header tab (Masthead.jsx's 'border-primary text-primary') is 3.47:1 on the dark page, under AA's 4.5:1. That's on /admin/families, /admin/assignments, /admin/content, /admin/schedule, /parent/learning and /parent/sessions. Fix it with a token that has a dark value (for example text-brand, whose dark value is brand-300, or a dark: variant to it), not a one-off color, so the selected tab's text is ≥ 4.5:1 in dark. Light mode stays as it is (#1F5EFF on the light page), and white on a primary button stays ≥ 4.5:1 in both. Every other text-primary in the shell on the dark page gets the same check. That holdout, the P1 spec and the whole browser suite pass.",
         "Tests: tests/e2e/p1-app-shell.spec.ts, as Vienne and as a parent at 1280×800, checks that the sidebar's computed background is white with a right border, that the selected item's background is soft blue with blue text, the count badge after its label, that the Account control (name starts with 'Account') shows the person's name, that there's no navy element behind the h1, that the h1 is 28px and 700, the first stat card's white background and tinted icon square, and #1F5EFF on a primary button. Its @phone test checks the light phone nav and no sideways scroll. Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
       ],
       "hints": [
         "Javaris approved the mockup 2026-11-27 (via OSA): 'hurry'. Runs in parallel with A1, which doesn't touch globals.css or src/ui/components/.",
         "The 700 comes from the tokens' --font-weight, so the 'no font-bold' class rules in r1/r2/r3-design.test.ts keep holding. Screens keep their token classes (rounded-md, rounded-lg), so the new radii reach them without editing pages.",
         "The mockup's Today content (greeting, This week, Your day) is demo data for the look. Today keeps its own layout and words.",
-        "The landing page has its own --landing-* tokens, so it doesn't change."
+        "The landing page has its own --landing-* tokens, so it doesn't change.",
+        "Reopen 1: only src/ui/components/shell/ and src/app/globals.css. Display.jsx and the rest of src/ui/components/ui/ are P2b's now, so they're out of P1's touches."
       ]
     },
     {

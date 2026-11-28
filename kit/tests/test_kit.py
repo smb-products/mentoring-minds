@@ -619,6 +619,15 @@ class Kit(unittest.TestCase):
         (self.tmp / "broken.json").write_text("{")
         self.assertIn("not a features file", self.kit("plan.py", "lint", str(self.tmp / "broken.json")).stdout)
 
+    def test_set_and_reopen_refuse_an_unknown_id(self):
+        for args in (("reopen", "--help"), ("set", "NOPE", "ready"), ("reopen", "NOPE")):
+            r = self.kit("plan.py", *args)
+            self.assertEqual(r.returncode, 2, args)
+            self.assertIn("no feature", r.stderr)
+        path = self.repo / ".git" / "avel" / "state.json"
+        st = json.loads(path.read_text()) if path.exists() else {"features": {}}
+        self.assertFalse({"--help", "NOPE"} & set(st.get("features", {})))
+
     def test_lint_allows_a_leads_small_fix_entry_within_limits(self):
         fs = {"features": [
             {"id": "OK", "status": "review", "checks": ["it works"], "touches": ["kit/x.py", "src/app/api/y/route.ts"]},
