@@ -1865,7 +1865,7 @@
     },
     {
       "id": "S36",
-      "title": "Open sign-up (server): new parents are ACTIVE, addMyChildren, FAMILY_JOINED, sign-up and family limits",
+      "title": "Open sign-up (server): addMyChildren, FAMILY_JOINED, sign-up and family limits (the ACTIVE switch is J2's)",
       "spec": "plan/specs/S36.md; tests/integration/s36-open-signup.test.ts (new)",
       "deps": [],
       "held": "zero",
@@ -1887,7 +1887,7 @@
         "plan/reports/S36.md"
       ],
       "checks": [
-        "As plan/specs/S36.md §1: email sign-up (createAccount) and Google sign-up both make an ACTIVE parent. UserStatus keeps PREVIEW for old rows. The one migration (open_signup) only adds the default and SignupAttempt, and drift is green. Guards don't change.",
+        "As plan/specs/S36.md §1, but without the switch: the User.status default and createAccount stay PREVIEW here, and J2 makes them ACTIVE (it lands with the Add your child step, so there's never a new parent with no code form). The one migration only adds SignupAttempt, and drift is green. Guards don't change.",
         "As §2, addMyChildren for a parent with no children: each child becomes a student on that parent (lastName '', math, the school year from Settings.timezone) and is returned through the parent screens' student DTO. A PREVIEW parent becomes ACTIVE. Each admin gets one FAMILY_JOINED alert after the commit, titled 'New family joined: <parent name>' with the body '<n> child(ren) added. They signed up without an invite code.' (no child's name in the title, body or push). A second call, or a call from a parent who already has children, is CONFLICT ('Your children are already on your account. Message Vienne to add another.') and adds nothing. Two calls at once add one set (the parent's row is locked FOR UPDATE).",
         "Wrong input is INVALID with a plain message that never echoes it: no children, 7 children (MAX_CHILDREN_AT_SIGNUP 6), an empty or 41-character name, a control character, and grade −1, 7 or 2.5. A PAUSED parent is FORBIDDEN, a signed-out caller is UNAUTHENTICATED, and Vienne is refused. Nothing is stored in any of these cases.",
         "With a code, nothing changes: redeemInvite behaves as before (the s5 and s5b tests stay green), and booking still makes a REQUESTED session that Vienne answers. requestInvite stays the same except its alert title, which becomes 'Question from <name>' (§5).",
@@ -1895,11 +1895,11 @@
         "Uploads (Javaris, 2026-11-27): MAX_UPLOADS_PER_DAY in src/lib/storage.ts goes from 200 to 80 (two full tests, with room for a retake). It counts only parents' uploads, and Vienne's stay uncounted, as today. A parent's 81st file in 24 hours gets the existing 'That’s the most files for today…' message and reserves nothing. In tests/integration/s17-file-cleanup.test.ts (lines 124–126), the assertion MAX_UPLOADS_PER_DAY ≥ 200 becomes ≥ 80, with the comment 'two of the book's longest tests (40 questions, one photo each at most)'. The rest of that file and the S17 holdout use the constant and stay as they are. A lead adds the DEPLOY Limits row: MAX_UPLOADS_PER_DAY (80), per parent per 24 h, Vienne uncapped.",
         "An ACTIVE parent with no children gets an ok, empty answer from every parent read the screens make before a child exists (Home's family read, notifications, messages), not an error.",
         "p-sec: addMyChildren is guarded and in the permission and wrong-input sweeps. The five new constants, and MAX_UPLOADS_PER_DAY's new value, are in the limits list, ipHash stays in SECRET_KEYS, and SignupAttempt is never returned. docs/DEPLOY.md → Limits lists the new constants, replacing its 'No limit in the app yet' lines for sign-up, messages and session requests. Lanes can't write docs/, so list the exact rows in the report and a lead adds them to this PR before it queues.",
-        "Tests that expected PREVIEW after sign-up change, and only these lines: tests/integration/s14-signup-password.test.ts line 70 ('PREVIEW' becomes 'ACTIVE'), here; and tests/e2e/auth.spec.ts line 62, the same, which a lead edits on this PR (it's locked). Every test that makes a PREVIEW parent on purpose stays as it is and passes. List in the report any holdout that asserts PREVIEW after sign-up, for a lead to edit.",
-        "The migration goes on production (Javaris, docs/DEPLOY.md → Releasing) before the build that needs it: name it in the report. D5's guard fails that build until he does."
+        "Tests that expected PREVIEW after sign-up don't change in S36: the switch to ACTIVE, and those test lines, move to J2. The L2 'Question from' lines and s30's COVERED are lead edits on this PR (done on #187).",
+        "The migration (it only adds SignupAttempt) goes on production (Javaris) before the build that needs it: name it in the report."
       ],
       "hints": [
-        "Zero's spec, plan/specs/S36.md, approved by Javaris's decision of 2026-11-27 (via OSA). Held for Zero. Runs in parallel with J3.",
+        "Zero's spec, plan/specs/S36.md, approved by Javaris's decision of 2026-11-27 (via OSA). Held for Zero. Runs in parallel with J3. Split 2026-11-27 (Zero and Axis): the ACTIVE switch moved to J2, so S36 is safe to ship alone.",
         "J2 builds the UI on this contract: createAccount, and families.addMyChildren({ children: [{ firstName, grade }] }) → { students }. Keep those names.",
         "Spec 'For Javaris' notes (storage per account, real data in production) go to OSA; they don't change this ticket."
       ]
@@ -1922,19 +1922,27 @@
         "src/ui/api/live-hooks.js",
         "tests/e2e/j2-open-signup.spec.ts",
         "tests/e2e/a1-auth-screens.spec.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "src/app/(auth)/sign-in/actions.ts",
+        "tests/integration/s14-signup-password.test.ts",
+        "tests/e2e/w2-families-invites.spec.ts",
         "plan/reports/J2.md"
       ],
       "checks": [
+        "The switch (from S36, plan/specs/S36.md §1): a migration sets User.status's default to ACTIVE, with no row changed and PREVIEW kept for old rows, and createAccount creates ACTIVE. Google sign-up gets the default. In tests/integration/s14-signup-password.test.ts, line 70's 'PREVIEW' becomes 'ACTIVE', and nothing else. The migration goes on production (Javaris) before the build: name it in the report.",
         "Sign-up (Create account mode on /sign-in, also opened directly by /sign-in?mode=new) has 'Your name', 'Email', 'Password' and an optional 'Invite code (optional)' field, with the hint 'Have a code from Vienne? Enter it to join your family.' createAccount takes no code (S36). When the field is filled, J2 calls the existing redeemInvite right after the account is created and the parent is signed in, so code entry keeps its own limits and messages. An invalid code shows 'That code isn’t valid. Check it with Vienne.' on the Add your child step, where the code form sits. The sign-in side keeps 'Create an account', and its 'No code yet? Request an invite' line becomes 'Questions? Message Vienne' linking to /#request-invite. Every name the tests read stays: 'Create account', 'Your name', 'Email', 'Password', 'Sign in' and 'Already have an account?'.",
         "A signed-in parent with no children (a new email or Google sign-up, or an old PREVIEW row) sees an 'Add your child' step before the app, in A1's split layout (AuthScreen), as the forced new-password screen does. It has one or more rows of 'Child’s first name' and 'Grade' (a select: K, 1–6), 'Add another child' up to MAX_CHILDREN_AT_SIGNUP, and 'Continue', which calls S36's addMyChildren and then shows the app (Home, with the children in the switcher). Below it, under 'Have an invite code?', is the existing InviteCodeForm, unchanged ('Enter your invite code', 'Invite code', 'Unlock' and its messages): redeeming a code there links Vienne's family and shows the app.",
         "Gates: an ACTIVE parent never sees an invite-code gate or a 'Enter your invite code to unlock this' notice anywhere. Old PREVIEW rows keep today's locked view, with the Add your child step on top (they have no children). PAUSED stays as it is. Don't edit any screen under src/ui/pages (P2a and P2b own them): with new parents ACTIVE, the PREVIEW gates there never show for them.",
-        "Tests: tests/e2e/j2-open-signup.spec.ts, on a production build, signs up with no code, adds two children (K and 4), lands on Home with both in the switcher, books a session request and sees it waiting on Vienne. It signs up with a valid code and lands in Vienne's family. It checks an invalid code's message. It checks that Vienne's alerts show 'New family joined: <name>' with '2 children added. They signed up without an invite code.', and no child's name. And its @phone test checks the step has no sideways scroll. tests/e2e/auth.spec.ts line 62 (ACTIVE) is a lead edit on S36's PR, not a J2 touch. Lead-authorized edit, and only this one: in tests/e2e/a1-auth-screens.spec.ts, the Request an invite link check becomes the 'Questions? Message Vienne' link to /#request-invite. Holdouts that fail (W2.spec.ts expects ['PREVIEW', 0] after sign-up) are listed in the report for a lead to edit. The whole browser suite passes.",
+        "Tests: tests/e2e/j2-open-signup.spec.ts, on a production build, signs up with no code, adds two children (K and 4), lands on Home with both in the switcher, books a session request and sees it waiting on Vienne. It signs up with a valid code and lands in Vienne's family. It checks an invalid code's message. It checks that Vienne's alerts show 'New family joined: <name>' with '2 children added. They signed up without an invite code.', and no child's name. And its @phone test checks the step has no sideways scroll. In tests/e2e/w2-families-invites.spec.ts (lead-authorized), the walk becomes sign up, then the Add your child step's 'Have an invite code?' form; its 'Enter your invite code' and 'Invite code' lines keep working there. tests/e2e/auth.spec.ts line 62 (ACTIVE) and the W2 holdout's ['PREVIEW', 0] → ['ACTIVE', 0] are lead edits on this PR. Lead-authorized edit, and only this one: in tests/e2e/a1-auth-screens.spec.ts, the Request an invite link check becomes the 'Questions? Message Vienne' link to /#request-invite. Holdouts that fail (W2.spec.ts expects ['PREVIEW', 0] after sign-up) are listed in the report for a lead to edit. The whole browser suite passes.",
         "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone), then asks a lead to queue it."
       ],
       "hints": [
+        "Held for Zero: it carries S36's switch to ACTIVE (schema, migration, createAccount), so the switch and the Add your child step land together.",
         "Javaris decided 2026-11-27 (via OSA). After S36 (the server contract) and A1 (SignInForm, AuthScreen).",
         "The step keeps InviteCodeForm as is, so the tests that read 'Enter your invite code', 'Invite code' and 'Unlock' keep passing."
-      ]
+      ],
+      "held": "zero"
     },
     {
       "id": "J3",
