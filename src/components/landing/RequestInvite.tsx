@@ -27,7 +27,8 @@ function Field({ label, className = '', children }: { label: string; className?:
  * L2: the landing page's "Request an invite" form, for signed-out visitors. It reaches Vienne's alerts
  * (src/server/requests.ts → requestInvite); she makes the code and replies from her own email.
  * `website` is a honeypot: off-screen and hidden from screen readers, so only a bot fills it.
- * L4 restyled it for Landing C's dark "Ready to get started?" panel; the fields, labels and messages are L2's.
+ * L4 restyled it for Landing C's dark panel, and J3 named it "Questions? Message Vienne" once sign-up opened.
+ * The fields, labels and messages are L2's.
  */
 export function RequestInvite() {
   const [sending, setSending] = useState(false);
@@ -68,7 +69,7 @@ export function RequestInvite() {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate aria-label="Request an invite" className="relative grid gap-3.5 sm:grid-cols-2">
+    <form onSubmit={onSubmit} noValidate aria-label="Questions? Message Vienne" className="relative grid gap-3.5 sm:grid-cols-2">
       <Field label="Parent name">{(id) => <input id={id} name="parentName" autoComplete="name" maxLength={80} required className={control} />}</Field>
       <Field label="Email">
         {(id) => <input id={id} name="email" type="email" inputMode="email" autoComplete="email" maxLength={254} required className={control} />}
@@ -106,7 +107,7 @@ export function RequestInvite() {
           disabled={sending}
           className="inline-flex w-full items-center justify-center rounded-[12px] bg-landing-accent px-[26px] py-3.5 font-semibold text-landing-paper hover:bg-landing-accent-hover disabled:opacity-70 sm:w-auto"
         >
-          {sending ? 'Sending…' : 'Send request'}
+          {sending ? 'Sending…' : 'Send message'}
         </button>
         <p role="alert" className="text-[14px] font-medium text-landing-night-error empty:hidden">
           {error ?? ''}

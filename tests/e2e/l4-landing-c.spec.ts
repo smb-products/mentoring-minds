@@ -12,7 +12,7 @@ freshData();
 
 const HEADLINE = 'Math tutoring that builds real confidence';
 const SUBHEAD = 'One-on-one and small-group sessions with Vienne Elliott, with F.A.S.T. test prep for Florida students.';
-const SECTIONS = ['Ways to learn with Vienne', 'Know exactly how your child is doing', 'Simple pricing', 'Getting started takes three steps', 'Ready to get started?'];
+const SECTIONS = ['Ways to learn with Vienne', 'Know exactly how your child is doing', 'Simple pricing', 'Getting started takes three steps', 'Questions? Message Vienne'];
 const TRUST = ['Grades K–6', 'Florida B.E.S.T. standards', 'F.A.S.T. test prep', 'Step Up For Students accepted'];
 const SERVICES: [string, string][] = [
   ['1-on-1 Tutoring', 'Individual support for students who need extra help in a subject.'],
@@ -28,9 +28,9 @@ const APP_LINES = [
   'Message Vienne directly, plus video sessions when needed',
 ];
 const STEPS: [string, string][] = [
-  ['Request an invite', 'Tell Vienne about your child. She replies with an invite code.'],
-  ['Create your account', 'Sign up in a minute with your code.'],
-  ['Book your first session', 'Then follow homework and progress in the app.'],
+  ['Create your account', 'Sign up with your email or Google.'],
+  ['Add your child', 'Their first name and grade.'],
+  ['Book your first session', 'Pick a time, and Vienne confirms it.'],
 ];
 const THANKS = 'Thanks. Vienne will email you soon.';
 
@@ -56,11 +56,11 @@ test.describe('signed out', () => {
     await expect(nav.getByRole('link', { name: 'Services' })).toHaveAttribute('href', '#services');
     await expect(nav.getByRole('link', { name: 'Rates' })).toHaveAttribute('href', '#rates');
     await expect(nav.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/sign-in');
-    await expect(nav.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '#request-invite');
+    await expect(nav.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '/sign-in?mode=new');
 
     await nav.getByRole('link', { name: 'Get started' }).click();
-    await expect(page).toHaveURL(/#request-invite$/);
-    await expect(page.getByRole('heading', { level: 2, name: 'Ready to get started?' })).toBeInViewport();
+    await expect(page).toHaveURL(/\/sign-in\?mode=new$/);
+    await page.goto('/');
     await nav.getByRole('link', { name: 'Sign in', exact: true }).click();
     await expect(page).toHaveURL(/\/sign-in$/);
   });
@@ -96,16 +96,15 @@ test.describe('signed out', () => {
     expect(await css(mark, 'background-image')).toMatch(/linear-gradient/);
     await expect(hero.locator('h1 + p')).toHaveText(SUBHEAD);
 
-    const invite = hero.getByRole('link', { name: 'Request an invite' });
+    const invite = hero.getByRole('link', { name: 'Get started' });
     const rates = hero.getByRole('link', { name: '$50 per hour · See rates' });
-    await expect(invite).toHaveAttribute('href', '#request-invite');
+    await expect(invite).toHaveAttribute('href', '/sign-in?mode=new');
     await expect(rates).toHaveAttribute('href', '#rates');
     await rates.click();
     await expect(page).toHaveURL(/#rates$/);
     await expect(region(page, 'Simple pricing')).toBeInViewport();
     await invite.click();
-    await expect(page).toHaveURL(/#request-invite$/);
-    await expect(page.locator('#request-invite').getByRole('form', { name: 'Request an invite' })).toBeInViewport();
+    await expect(page).toHaveURL(/\/sign-in\?mode=new$/);
   });
 
   test('the only gradients are the graph-paper hero and the highlight', async ({ page }) => {
@@ -210,28 +209,28 @@ test.describe('signed out', () => {
     expect(readFileSync(path.join(process.cwd(), 'src/components/landing/Landing.tsx'), 'utf8')).toMatch(/\{\/\* About Vienne[^*]*\*\/\}/);
   });
 
-  test('the dark panel holds L2’s form: it sends, shows L2’s message, and Have a code links to sign-in', async ({ page, db }) => {
+  test('the dark panel holds L2’s form: it sends, shows L2’s message, and Ready to start links to sign-up', async ({ page, db }) => {
     await page.goto('/');
     const panel = page.locator('section#request-invite');
-    await expect(panel.getByRole('heading', { level: 2 })).toHaveText('Ready to get started?');
+    await expect(panel.getByRole('heading', { level: 2 })).toHaveText('Questions? Message Vienne');
     await expect(panel).toContainText('Send a request and Vienne will reply personally.');
-    await expect(panel).toContainText('Have a code? Create your account');
-    await expect(panel.getByRole('link', { name: 'Create your account' })).toHaveAttribute('href', '/sign-in');
+    await expect(panel).toContainText('Ready to start? Create your account');
+    await expect(panel.getByRole('link', { name: 'Create your account' })).toHaveAttribute('href', '/sign-in?mode=new');
     expect(await css(panel.locator('div').first(), 'background-color')).toBe('rgb(16, 24, 40)');
 
-    const form = panel.getByRole('form', { name: 'Request an invite' });
+    const form = panel.getByRole('form', { name: 'Questions? Message Vienne' });
     await expect(form.locator('input[name=website]')).toHaveAttribute('tabindex', '-1');
     await form.getByLabel('Parent name').fill('Lena Park');
     await form.getByLabel('Email').fill('lena.park@example.com');
     await form.getByLabel(/Child.s grade \(K–6\)/).selectOption({ label: 'Grade 3' });
     await form.getByLabel('Message').fill('Help with fractions, please.');
-    await form.getByRole('button', { name: 'Send request' }).click();
+    await form.getByRole('button', { name: 'Send message' }).click();
     await expect(panel.getByRole('status')).toHaveText(THANKS);
     await expect(form).toHaveCount(0);
     await expect.poll(() => db.inviteRequest.count({ where: { email: 'lena.park@example.com' } })).toBe(1);
 
     await panel.getByRole('link', { name: 'Create your account' }).click();
-    await expect(page).toHaveURL(/\/sign-in$/);
+    await expect(page).toHaveURL(/\/sign-in\?mode=new$/);
   });
 
   test('the footer: Privacy and Sign in work, and the copyright line', async ({ page }) => {
@@ -280,7 +279,7 @@ test.describe('signed out', () => {
     const heroLinks = hero.getByRole('link');
     await expect(heroLinks).toHaveCount(2);
     for (let i = 0; i < 2; i++) expect(await fullWidth(heroLinks.nth(i))).toBe(true);
-    const send = page.getByRole('form', { name: 'Request an invite' }).getByRole('button', { name: 'Send request' });
+    const send = page.getByRole('form', { name: 'Questions? Message Vienne' }).getByRole('button', { name: 'Send message' });
     expect(await fullWidth(send)).toBe(true);
     expect((await box(send)).width).toBeGreaterThan(vw - 120);
 
