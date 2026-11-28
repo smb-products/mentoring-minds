@@ -28,7 +28,7 @@ enum Role {
 }
 
 enum UserStatus {
-  PREVIEW // signed up, no invite code yet: can look, can't open or book
+  PREVIEW // signed up, no child or invite code yet: can look, can't open or book. J2 makes new sign-ups ACTIVE
   ACTIVE
   PAUSED
 }
@@ -713,6 +713,18 @@ model InviteAttempt {
   @@index([createdAt])
   @@index([ipHash, createdAt])
   @@index([requestId])
+}
+
+/// S36: one email sign-up (createAccount) that passed the form check, for SIGNUPS_PER_IP_PER_HOUR and
+/// SIGNUPS_PER_HOUR. No name or email. The daily job deletes it after a day.
+model SignupAttempt {
+  id        String   @id @default(cuid())
+  /// sha256(ip + ':' + INVITE_PEPPER), as on InviteRequest. Never the IP itself.
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+  @@index([createdAt])
 }
 
 /// PWA push (phase 2). One row per device that allowed notifications.

@@ -23,6 +23,8 @@ const HOLDS_SLOT = ['REQUESTED', 'CONFIRMED'] as const;
 const MATH = 'sub_math';
 /** One tutor, one calendar: every booking write takes this lock, so two requests can't take the same time. */
 const CALENDAR_LOCK = 4_202_611;
+/** S36: a family's session requests still waiting for Vienne (REQUESTED, in the future). Vienne's own bookings don't count. */
+const OPEN_REQUESTS_PER_FAMILY = 5;
 
 type Tx = Prisma.TransactionClient;
 
@@ -233,6 +235,12 @@ export const requestSession = action(async (input: { studentId: string; mode?: M
   const student = found(await db.student.findFirst({ where: { id: v.studentId, status: 'ACTIVE' } }), 'Student');
 
   const session = await withCalendar(async (tx) => {
+    if (user.role !== 'ADMIN') {
+      // S36: one request at a time per family, so taps at once can't both take the last slot.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`request:${student.parentId}`}))`;
+      const waiting = await tx.session.count({ where: { student: { parentId: student.parentId }, status: 'REQUESTED', startsAt: { gt: new Date() }, requestedBy: { role: 'PARENT' } } });
+      need(waiting < OPEN_REQUESTS_PER_FAMILY, `You have ${OPEN_REQUESTS_PER_FAMILY} requests waiting for Vienne. Wait for her answer, or message her.`, 'LIMIT');
+    }
     const place = await placeFields(v, tx);
     const cal = await calendar(tx, { from: start, to: end });
     need(offersMode(cal.availability, start, v.durationMin, place.mode, settings.timezone, settings.slotStepMin), place.mode === 'VIDEO' ? 'Vienne doesn’t offer video calls at that time' : 'Vienne isn’t available at that time');

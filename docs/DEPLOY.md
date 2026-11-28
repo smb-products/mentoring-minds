@@ -226,12 +226,16 @@ What stops guessing and runaway costs. Each is a named constant, and `tests/inte
 | `REQUESTS_PER_HOUR` (20) | `src/server/requests.ts` | Invite requests from everyone in an hour, counted the same way. At the limit, requests pause for the hour, and Vienne gets one alert. |
 | `DUPLICATE_EMAIL_HOURS` (24) | `src/server/requests.ts` | A second request from the same email within this time is answered the same way, but nothing is stored and Vienne isn't told again. Arrives with L2. |
 | `REQUEST_KEEP_DAYS` (90) | `src/server/requests.ts`, mirrored in `src/lib/jobs.ts` | The daily job deletes invite requests, and their alerts, after this many days. Arrives with L2. |
+| `SIGNUPS_PER_IP_PER_HOUR` (5) | `src/app/(auth)/sign-in/actions.ts` | Email sign-ups from one visitor's IP (stored only as a hash, `SignupAttempt`, kept a day) in an hour. Every sign-up that passes the form counts, a taken email included. Google sign-up isn't counted. Arrives with S36. |
+| `SIGNUPS_PER_HOUR` (30) | `src/app/(auth)/sign-in/actions.ts` | Email sign-ups from everyone in an hour. At the limit, sign-up pauses for the hour, and Vienne gets one alert. Arrives with S36. |
+| `MAX_CHILDREN_AT_SIGNUP` (6) | `src/server/families.ts` | Children a parent can add at sign-up (`addMyChildren`). More go through Vienne. Arrives with S36. |
+| `OPEN_REQUESTS_PER_FAMILY` (5) | `src/server/scheduling.ts` | A family's session requests still waiting for Vienne (REQUESTED, in the future). Confirmed or past ones, and Vienne's own bookings, don't count. Arrives with S36. |
+| `MESSAGES_PER_DAY` (50) | `src/server/messages.ts` | Messages a parent can send in 24 hours. Vienne is never limited. Arrives with S36. |
+| `MAX_UPLOADS_PER_DAY` (80) | `src/lib/storage.ts` | Uploads per parent per 24 h: two of the book's longest tests, with room for a retake. Vienne is uncapped. |
 
 No limit in the app yet, and what covers it:
 
-- **Sign-up** (`createAccount` in `src/app/(auth)/sign-in/actions.ts`): covered by a Vercel Firewall rate-limit rule on `/sign-in` (Hardening later). A new account is a locked preview that sees teasers only until Vienne's code.
 - **Sign-in by IP**: the lockout is per account, so one address can try a password across many emails. Covered by a Vercel Firewall rate-limit rule on `/sign-in` and `/api/auth/*` (Hardening later). Google sign-in is throttled by Google.
-- **Messages, session requests and uploads** from an active family: only families Vienne gave a code can send them, and abandoned uploads are removed by the daily clean-up. Hardening later, if one is ever abused.
 
 ## Dependency notes
 

@@ -446,6 +446,15 @@ const REQUESTS_PER_HOUR = constant('src/server/requests.ts', 'REQUESTS_PER_HOUR'
 const DUPLICATE_EMAIL_HOURS = constant('src/server/requests.ts', 'DUPLICATE_EMAIL_HOURS');
 const REQUEST_KEEP_DAYS = constant('src/server/requests.ts', 'REQUEST_KEEP_DAYS');
 const REQUEST_LIMITS = ['REQUESTS_PER_IP_PER_HOUR', 'REQUESTS_PER_HOUR', 'DUPLICATE_EMAIL_HOURS', 'REQUEST_KEEP_DAYS'];
+/** S36's limits (open sign-up), each reached in tests/integration/s36-open-signup.test.ts, with where it lives. */
+const OPEN_SIGNUP_LIMITS: Record<string, string> = {
+  SIGNUPS_PER_IP_PER_HOUR: 'src/app/(auth)/sign-in/actions.ts',
+  SIGNUPS_PER_HOUR: 'src/app/(auth)/sign-in/actions.ts',
+  MAX_CHILDREN_AT_SIGNUP: 'src/server/families.ts',
+  OPEN_REQUESTS_PER_FAMILY: 'src/server/scheduling.ts',
+  MESSAGES_PER_DAY: 'src/server/messages.ts',
+  MAX_UPLOADS_PER_DAY: 'src/lib/storage.ts',
+};
 
 let visitors = 0;
 /** An invite request from the landing page (L2). Here there's no request, so every call shares the missing-IP bucket. */
@@ -565,7 +574,29 @@ describe('limits: each named constant is reached', () => {
     for (const name of ['MAX_FAILED_LOGINS', 'MAX_FAILURES', 'GLOBAL_REDEEM_FAILURES_PER_HOUR', 'MAX_BYTES', ...REQUEST_LIMITS]) expect(limits, name).toContain(`\`${name}\``);
     // The invite-request rows name the same values as src/server/requests.ts.
     for (const name of REQUEST_LIMITS) expect(limits, name).toContain(`\`${name}\` (${constant('src/server/requests.ts', name)})`);
-    for (const open of ['Sign-up', 'Sign-in by IP']) expect(limits, open).toMatch(new RegExp(`\\*\\*${open}[^\\n]*(Vercel Firewall|Hardening later)`));
+    // S36: sign-up, messages and session requests have limits now, each listed with its value.
+    for (const [name, file] of Object.entries(OPEN_SIGNUP_LIMITS)) expect(limits, name).toContain(`\`${name}\` (${constant(file, name)})`);
+    expect(limits).not.toMatch(/\*\*(Sign-up|Messages, session requests)/);
+    for (const open of ['Sign-in by IP']) expect(limits, open).toMatch(new RegExp(`\\*\\*${open}[^\\n]*(Vercel Firewall|Hardening later)`));
+  });
+
+  it('S36: the open sign-up limits are named constants with the approved values', () => {
+    expect(Object.fromEntries(Object.entries(OPEN_SIGNUP_LIMITS).map(([name, file]) => [name, constant(file, name)]))).toEqual({
+      SIGNUPS_PER_IP_PER_HOUR: 5,
+      SIGNUPS_PER_HOUR: 30,
+      MAX_CHILDREN_AT_SIGNUP: 6,
+      OPEN_REQUESTS_PER_FAMILY: 5,
+      MESSAGES_PER_DAY: 50,
+      MAX_UPLOADS_PER_DAY: 80,
+    });
+  });
+
+  it('S36: SignupAttempt is never returned: no endpoint reads it, and sign-up answers only an error or nothing', () => {
+    for (const m of MODULES) expect(read(`${SERVER}/${m}.ts`), m).not.toMatch(/signupAttempt|SignupAttempt/);
+    const src = read('src/app/(auth)/sign-in/actions.ts');
+    expect(src.match(/tx\.signupAttempt\.\w+\(/g)?.sort()).toEqual(['tx.signupAttempt.count(', 'tx.signupAttempt.count(', 'tx.signupAttempt.create(']);
+    expect(src).toMatch(/export async function createAccount\(_: FormState, form: FormData\): Promise<FormState>/);
+    expect(SECRET_KEYS).toContain('ipHash');
   });
 });
 

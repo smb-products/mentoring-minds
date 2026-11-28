@@ -8,8 +8,9 @@ import { db } from './db';
 import { MAX_PASSWORD, refreshToken, secureLinkedAccount } from './auth-rules';
 
 /**
- * One sign-in screen: Google, or email + password. New accounts start as PREVIEW
- * (they can look around, locked) until they enter Vienne's invite code.
+ * One sign-in screen: Google, or email + password. New accounts start as PREVIEW (locked) until
+ * they add their children (families.addMyChildren, S36) or enter Vienne's invite code. J2 makes
+ * new accounts ACTIVE at sign-up.
  * Kids never have their own login: they use the parent's account.
  */
 // Any length is checked (and counted toward the lockout); the 8-character minimum applies when a password is set.
