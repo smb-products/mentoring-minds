@@ -48,7 +48,7 @@ function ParentHome() {
         actions={<Button variant="primary" icon={CalendarPlus} onClick={() => setRequesting(true)}>Request a session</Button>}
       />
 
-      {/* On the gray page, below the band. Stars stay beside the homework, not in the stats. */}
+      {/* On the light page, below the page header. Stars stay beside the homework, not in the stats. */}
       <ChildSwitcher className="mb-4" />
       <Figures
         className="mb-5"
@@ -102,7 +102,7 @@ function ParentHome() {
                 <Place session={next} forParent className="text-body" />
               </div>
               <div className="mt-3 flex items-center gap-2.5">
-                <Avatar name="Vienne Elliott" tone="ink" size="sm" />
+                <Avatar name="Vienne Elliott" tone="brand" size="sm" />
                 <span className="text-small text-muted-foreground">{next.mode === 'VIDEO' ? `Video call, 1-on-1. Join opens ${data.joinOpensMin ?? 15} minutes before.` : 'With Vienne. Tap for details or to change it.'}</span>
               </div>
             </div>
@@ -166,7 +166,7 @@ function ParentHome() {
           {data.lastSessionNote ? (
             <div className="px-4 py-4 @3xl/page:px-5">
               <div className="flex items-center gap-3">
-                <Avatar name="Vienne Elliott" tone="ink" size="md" />
+                <Avatar name="Vienne Elliott" tone="brand" size="md" />
                 <div>
                   <p className="text-body font-medium">Vienne Elliott</p>
                   <p className="flex items-center gap-1.5 text-small text-muted-foreground">
@@ -197,7 +197,7 @@ function ParentHome() {
         >
           <div className="grid gap-x-8 gap-y-3 px-4 py-4 @3xl/page:grid-cols-2 @3xl/page:px-5">
             {data.latestReport.ratings.slice(0, 4).map((r) => (
-              <div key={r.id} className="flex items-center justify-between gap-3">
+              <div key={r.id} className="flex min-w-0 items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-2">
                   <span className={cn('size-2 shrink-0 rounded-xs', subjectBg(areaColor(r.area)))} aria-hidden />
                   <span className="truncate text-body font-medium">{r.skill.name}</span>
