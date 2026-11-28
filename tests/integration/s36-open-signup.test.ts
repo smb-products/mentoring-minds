@@ -1,6 +1,7 @@
 /**
- * S36 (plan/specs/S36.md): open sign-up, the server side. New parents are ACTIVE, add their children
- * themselves (families.addMyChildren), and Vienne hears once per family (FAMILY_JOINED). Sign-ups,
+ * S36 (plan/specs/S36.md): open sign-up, the server side. Parents add their children themselves
+ * (families.addMyChildren, which makes a PREVIEW parent ACTIVE; J2 makes sign-up ACTIVE), and Vienne
+ * hears once per family (FAMILY_JOINED). Sign-ups,
  * waiting session requests and messages each have a limit. Real server actions against Postgres;
  * the IP is mocked (lib/client-ip reads the request's headers, it isn't a guard) and web-push is a fake,
  * so the test reads the exact payload Vienne's phone gets.
@@ -70,8 +71,8 @@ const form = (fields: Record<string, string>) => {
 let n = 0;
 const signUp = (email = `s36.signup.${(n += 1)}@example.com`) => createAccount(undefined, form({ name: 'New Parent', email, password: 'a-good-password' }));
 
-/** A parent who signed up without a code: ACTIVE (the column default), no children. */
-const newParent = (name = `S36 Parent ${(n += 1)}`) => db.user.create({ data: { email: `s36.parent.${(n += 1)}@example.com`, name, role: 'PARENT' } });
+/** A parent who signed up without a code, as J2 will make them: ACTIVE, no children. */
+const newParent = (name = `S36 Parent ${(n += 1)}`) => db.user.create({ data: { email: `s36.parent.${(n += 1)}@example.com`, name, role: 'PARENT', status: 'ACTIVE' } });
 
 const adminIds = async () => (await db.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } })).map((a) => a.id);
 
@@ -95,27 +96,27 @@ beforeEach(async () => {
   ip.current = null;
 });
 
-/* ── §1. New accounts are ACTIVE ─────────────────────────── */
+/* ── §1. Sign-up status: PREVIEW until J2 (the switch to ACTIVE moved to J2, CHANGES 2026-11-27) ── */
 
-describe('S36 §1: new accounts are ACTIVE', () => {
-  it('email sign-up (createAccount) makes an ACTIVE parent', async () => {
+describe('S36 §1: sign-up stays PREVIEW until J2 turns it ACTIVE', () => {
+  it('email sign-up (createAccount) still makes a PREVIEW parent', async () => {
     const email = 's36.email@example.com';
     expect(await signUp(email)).toBeUndefined();
-    expect(await db.user.findUniqueOrThrow({ where: { email } })).toMatchObject({ role: 'PARENT', status: 'ACTIVE', name: 'New Parent' });
+    expect(await db.user.findUniqueOrThrow({ where: { email } })).toMatchObject({ role: 'PARENT', status: 'PREVIEW', name: 'New Parent' });
   });
 
-  it('Google sign-up (the adapter, the column default) makes an ACTIVE parent, and isn’t counted', async () => {
+  it('Google sign-up (the adapter, the column default) makes a PREVIEW parent, and isn’t counted', async () => {
     await vi.importActual<typeof import('@/lib/auth')>('@/lib/auth');
     const createUser = authConfig.current?.adapter.createUser;
     expect(createUser, 'the adapter in lib/auth.ts').toBeTypeOf('function');
     const made = await createUser!({ id: 'ignored', email: 's36.google@example.com', name: 'Google Parent', emailVerified: new Date(), image: null });
-    expect(await db.user.findUniqueOrThrow({ where: { id: made.id } })).toMatchObject({ role: 'PARENT', status: 'ACTIVE' });
+    expect(await db.user.findUniqueOrThrow({ where: { id: made.id } })).toMatchObject({ role: 'PARENT', status: 'PREVIEW' });
     expect(await db.signupAttempt.count()).toBe(0);
   });
 
-  it('UserStatus keeps PREVIEW, and the one migration only adds the default and SignupAttempt', () => {
+  it('UserStatus keeps PREVIEW as the default, and the one migration only adds SignupAttempt', () => {
     expect(read('prisma/schema.prisma')).toMatch(/enum UserStatus \{\s*PREVIEW[^\n]*\n\s*ACTIVE\s*\n\s*PAUSED\s*\}/);
-    expect(read('prisma/schema.prisma')).toMatch(/status\s+UserStatus @default\(ACTIVE\)/);
+    expect(read('prisma/schema.prisma')).toMatch(/status\s+UserStatus @default\(PREVIEW\)/);
     const dirs = readdirSync(path.join(ROOT, 'prisma/migrations')).filter((d) => d.endsWith('_open_signup'));
     expect(dirs).toHaveLength(1);
     const statements = read(`prisma/migrations/${dirs[0]}/migration.sql`)
@@ -123,7 +124,6 @@ describe('S36 §1: new accounts are ACTIVE', () => {
       .map((s) => s.replace(/--[^\n]*\n/g, '').trim())
       .filter(Boolean);
     expect(statements.map((s) => s.split('(')[0].replace(/\s+/g, ' ').trim())).toEqual([
-      `ALTER TABLE "User" ALTER COLUMN "status" SET DEFAULT 'ACTIVE'`,
       'CREATE TABLE "SignupAttempt"',
       'CREATE INDEX "SignupAttempt_ipHash_createdAt_idx" ON "SignupAttempt"',
       'CREATE INDEX "SignupAttempt_createdAt_idx" ON "SignupAttempt"',
@@ -442,8 +442,8 @@ describe('S36: uploads per parent per day (Javaris, 2026-11-27)', () => {
   const fill = (uploadedById: string, count: number) =>
     db.fileAsset.createMany({ data: Array.from({ length: count }, (_, i) => ({ storageKey: `files/s36-${uploadedById}-${i}-${Date.now()}.jpg`, filename: 'w.jpg', mimeType: 'image/jpeg', sizeBytes: 100, uploadedById })) });
 
-  it('is 40: a parent’s 41st file in 24 hours gets the plain message and reserves nothing; Vienne stays uncounted', async () => {
-    expect(MAX_UPLOADS_PER_DAY).toBe(40);
+  it('is 80 (Javaris, #181): a parent’s 81st file in 24 hours gets the plain message and reserves nothing; Vienne stays uncounted', async () => {
+    expect(MAX_UPLOADS_PER_DAY).toBe(80);
     const parent = await newParent();
     await fill(parent.id, MAX_UPLOADS_PER_DAY);
     as(parent.id);

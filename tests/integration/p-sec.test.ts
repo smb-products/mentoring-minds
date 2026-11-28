@@ -587,7 +587,7 @@ describe('limits: each named constant is reached', () => {
       MAX_CHILDREN_AT_SIGNUP: 6,
       OPEN_REQUESTS_PER_FAMILY: 5,
       MESSAGES_PER_DAY: 50,
-      MAX_UPLOADS_PER_DAY: 40,
+      MAX_UPLOADS_PER_DAY: 80,
     });
   });
 

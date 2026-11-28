@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "User" ALTER COLUMN "status" SET DEFAULT 'ACTIVE';
-
 -- CreateTable
 CREATE TABLE "SignupAttempt" (
     "id" TEXT NOT NULL,

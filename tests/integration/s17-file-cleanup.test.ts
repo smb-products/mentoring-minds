@@ -122,8 +122,8 @@ describe('uploads per parent per day', () => {
   const reserve = () => content.createUpload({ filename: 'work.jpg', mimeType: 'image/jpeg', sizeBytes: 100 });
 
   it('covers at least one full answer sheet', () => {
-    // the book's longest test has 40 questions, one photo each at most
-    expect(MAX_UPLOADS_PER_DAY).toBeGreaterThanOrEqual(40);
+    // two of the book's longest tests (40 questions, one photo each at most)
+    expect(MAX_UPLOADS_PER_DAY).toBeGreaterThanOrEqual(80);
   });
 
   it(`a parent can reserve ${MAX_UPLOADS_PER_DAY} in 24 hours; one more gets a plain message and reserves nothing`, async () => {
