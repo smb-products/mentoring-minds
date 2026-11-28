@@ -3,6 +3,18 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: the switch to ACTIVE moves from S36 to J2
+
+- **S36** ships without the switch: the default and createAccount stay PREVIEW, and its migration only adds
+  `SignupAttempt`. Everything else in it (addMyChildren, FAMILY_JOINED, the limits, uploads at 80, "Question from")
+  is safe on its own, so Javaris can migrate it right away.
+- **J2** takes the switch (the default-ACTIVE migration, createAccount ACTIVE, s14 line 70) and becomes **held for
+  Zero**. It's the PR that removes the code-only path, so the switch and the Add your child step land together.
+  `w2-families-invites.spec.ts`, `auth.spec.ts` line 62 and the W2 holdout change with it, as lead edits on J2's PR
+  (builders can't edit w* specs or holdouts).
+- Why: with S36 alone, a new ACTIVE parent had no code form and no way to add a child (Zero's review of #187).
+  Same behaviour Javaris approved, with a safer order. By Zero and Axis.
+
 ## 2026-11-27: P2a and P2b no longer wait on P1's reopen
 
 - **P2a, P2b:** deps `P1` removed. P1's tokens and components are on main (#178), and its reopen touches only the
