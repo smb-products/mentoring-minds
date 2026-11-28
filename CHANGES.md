@@ -7,13 +7,13 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 
 - **docs/DEPLOY.md → Limits:** S36's six limits are added (uploads at 80). The "Sign-up" and "Messages, session
   requests and uploads" bullets under "No limit in the app yet" are removed, because those limits now exist.
-- **tests/e2e/auth.spec.ts:** a new sign-up is ACTIVE (line 62, and the test's title).
 - **"Question from <name>":** the L2 alert's new title (S36 §5) replaces "Invite request from" in
   `tests/integration/l2-request-invite.test.ts` (lines 80, 94, 103, 105), `tests/e2e/l2-request-invite.spec.ts` (line 45)
   and holdout `tests/holdout/L2.test.ts` (line 65). Lines 359–362 build their own rows and stay.
 - **tests/integration/s30-joined-alert.test.ts:** `FAMILY_JOINED` joins `COVERED`, with one test that makes a family
   through `addMyChildren` and checks the alert names no child.
-- **S36 amend accepted:** checks 2, 4 and 9 should have listed these files. Why: S36 (open sign-up, approved by
+- **S36 amend accepted:** checks 2 and 4 should have listed these files. The switch to ACTIVE at sign-up (and so
+  `auth.spec.ts` line 62 and s14 line 70) moves to J2 (Zero's proposal). Why: S36 (open sign-up, approved by
   Javaris). Lead edits on #187. By Axis.
 
 ## 2026-11-27: open sign-up, no invite code needed (S36, J2, J3)

@@ -47,7 +47,7 @@ test.describe('sign-in', () => {
     await expect(page).toHaveURL(/\/sign-in$/);
   });
 
-  test('a new parent can create an account and starts as an active account (S36)', async ({ page, db }) => {
+  test('a new parent can create an account and starts as a preview account', async ({ page, db }) => {
     await page.goto('/sign-in');
     await page.getByRole('button', { name: 'Create an account' }).click();
     await page.getByLabel('Your name').fill('Rosa Diaz');
@@ -59,7 +59,7 @@ test.describe('sign-in', () => {
     await page.getByRole('button', { name: 'Create account' }).click();
     await page.waitForURL('**/parent/home');
     const rosa = await db.user.findUniqueOrThrow({ where: { email: 'rosa.diaz@example.com' } });
-    expect(rosa).toMatchObject({ role: 'PARENT', status: 'ACTIVE', name: 'Rosa Diaz' });
+    expect(rosa).toMatchObject({ role: 'PARENT', status: 'PREVIEW', name: 'Rosa Diaz' });
     expect(rosa.passwordHash).not.toContain('rosa-password-1');
   });
 
