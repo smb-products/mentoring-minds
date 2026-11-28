@@ -40,9 +40,13 @@ class LaneStop(Exception):
     """This host can't run lanes (a login is missing). Stop, tell OSA, don't burn an attempt."""
 
 
-# Login failures only: a feature's own words (authentication, credentials, OAuth) must never stop a lane.
+# Login, billing and usage-limit failures only: a feature's own words (authentication, credentials, OAuth) must
+# never stop a lane. The billing and limit errors can land mid-run, after real work, so the run isn't $0 (P2a and
+# P2b, 2026-11-27): they still don't count as an attempt (RULES.md, Stuck means stop).
 AUTH_RE = re.compile(r"not logged in|please run /login|invalid api key|oauth token (has )?expired|"
-                     r"OAuth App access restrictions|bad credentials|HTTP 401|gh auth login", re.I)
+                     r"OAuth App access restrictions|bad credentials|HTTP 401|gh auth login|"
+                     r"can.t use your claude subscription|payment is past due|usage limit reached|"
+                     r"hit your (usage )?limit|credit balance is too low", re.I)
 
 
 def auth_failure(res):
