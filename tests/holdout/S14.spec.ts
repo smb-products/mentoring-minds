@@ -1,7 +1,6 @@
 /** S14 holdouts: on the real sign-up form, an over-long password is explained and makes no account; the longest one keeps working. */
 import type { Page } from '@playwright/test';
 import { expect, freshData, test } from '../e2e/support/fixtures';
-import { openAccount } from '../e2e/support/ui';
 
 freshData();
 
@@ -36,7 +35,8 @@ test('exactly 200 characters: signs up, signs out and signs in again; one charac
   expect(password).toHaveLength(200);
   await signUp(page, email, password);
   await page.waitForURL('**/parent/home');
-  await (await openAccount(page)).getByRole('button', { name: 'Sign out' }).click();
+  // No children yet, so the Add your child step shows (J2): sign out with its own button.
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await page.waitForURL('**/sign-in');
   await signIn(page, email, `${password}x`);
   await expect(page.locator('form p[role=alert]')).toContainText('That email and password don’t match');

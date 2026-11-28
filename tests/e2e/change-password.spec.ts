@@ -16,7 +16,9 @@ type Db = ReturnType<typeof e2eDb>;
 async function newParent(db: Db, password: string, mustChangePassword: boolean) {
   const email = `pw-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
   await db.user.create({
-    data: { name: 'Rosa Diaz', email, role: 'PARENT', status: 'ACTIVE', passwordHash: await bcrypt.hash(password, 10), mustChangePassword },
+    data: { name: 'Rosa Diaz', email, role: 'PARENT', status: 'ACTIVE', passwordHash: await bcrypt.hash(password, 10), mustChangePassword,
+      // A child, so the Add your child step (J2) doesn't come before the app.
+      students: { create: { firstName: 'Pablo', lastName: '', grade: 4 } } },
   });
   return email;
 }

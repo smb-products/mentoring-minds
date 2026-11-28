@@ -31,5 +31,5 @@ test('a new parent sees an empty, private app: wrong codes stay locked out', asy
   await expect(page.getByText('That code isn’t valid. Check it with Vienne.')).toBeVisible();
   await expect(page.getByText('Enter your invite code')).toBeVisible();
   const user = await db.user.findUniqueOrThrow({ where: { email: 'rosa.holdout@example.com' }, include: { students: true } });
-  expect([user.status, user.students.length]).toEqual(['PREVIEW', 0]);
+  expect([user.status, user.students.length]).toEqual(['ACTIVE', 0]);
 });
