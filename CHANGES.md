@@ -3,6 +3,11 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: P2a and P2b no longer wait on P1's reopen
+
+- **P2a, P2b:** deps `P1` removed. P1's tokens and components are on main (#178), and its reopen touches only the
+  shell and globals.css, so the two passes don't need to wait for it. No check changes. By Axis.
+
 ## 2026-11-27: P1 reopened for the dark-mode tab; kit refuses unknown ids
 
 - **P1, new check (reopen 1):** in dark mode the selected page-header tab must reach AA (≥ 4.5:1) through a token
