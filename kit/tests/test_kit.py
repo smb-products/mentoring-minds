@@ -293,7 +293,7 @@ class Kit(unittest.TestCase):
         panes, keys = self.tmp / "panes", self.tmp / "keys.log"
         panes.mkdir()
         idle, busy, asking = "some output\n❯ \n", "✻ Working… (esc to interrupt)\n❯ \n", "Do you want to proceed?\n❯ 1. Yes\n"
-        for seat, pane in (("axis", idle), ("zero", idle), ("atlas", busy), ("osa", idle)):
+        for seat, pane in (("axis", idle), ("zero", idle), ("atlas", busy), ("osa", busy)):
             (panes / seat).write_text(pane)
         with open(self.repo / "kit" / "project.env", "a") as fh:
             fh.write("WATCH_WAKE_MIN=0\n")  # wake on the first pass; the real default waits a minute
@@ -307,7 +307,7 @@ class Kit(unittest.TestCase):
         for _ in range(2):
             self.kit("watch.py", "--seats", env=env)
         self.assertEqual(typed(), ["t-axis send-keys -t t-axis -l New message from OSA: run kit/msg.py inbox axis and act on it."])
-        # zero has only an FYI, atlas is working, and osa isn't a lead or ops seat: none are typed into.
+        # zero has only an FYI, and atlas and osa are working: none are typed into.
         (panes / "atlas").write_text(asking)
         self.kit("watch.py", "--seats", env=env)
         self.assertEqual(len(typed()), 1, "typed into a permission prompt")
@@ -690,6 +690,41 @@ class Kit(unittest.TestCase):
         self.assertNotIn("I:", r.stdout)
         self.assertIn("J: touches prisma/", r.stdout)
         self.assertIn("K: \"held\" is set but no touch is in PROTECT_MERGE", r.stdout)
+
+    def test_an_idle_seat_is_woken_not_reported_frozen(self):
+        (self.tmp / "bin" / "tmux").write_text(FAKE_SEAT_TMUX)
+        (self.tmp / "bin" / "tmux").chmod(0o755)
+        panes, keys = self.tmp / "panes", self.tmp / "keys.log"
+        panes.mkdir()
+        for seat in ("axis", "zero", "atlas"):
+            (panes / seat).write_text("✻ Working… (esc to interrupt)\n❯ \n")
+        (panes / "osa").write_text("✻ Cooked for 2m · done 9:46 PM\n❯ \x1b[2mcarry on\x1b[0m\n")  # a dimmed suggestion
+        with open(self.repo / "kit" / "project.env", "a") as fh:
+            fh.write("WATCH_WAKE_MIN=0\n")
+        self.kit("msg.py", "send", "osa", "lane soap stuck", env={"AVEL_AGENT": "guard"})
+        # Every seat's transcript is an hour old. One pass, then a second with the wake an hour back.
+        code = textwrap.dedent("""\
+            import sys; sys.path.insert(0, 'kit'); import watch
+            watch.transcript_age = lambda seat: 3600
+            memo = {"sent": {}, "unsent": {}}
+            watch.seats(memo)
+            if sys.argv[1] == "later":
+                for k in memo["sent"]:
+                    memo["sent"][k] -= 3600
+                watch.seats(memo)
+            """)
+        env = {**self.env, "PANES": str(panes), "KEYS_LOG": str(keys)}
+        run([sys.executable, "-c", code, "now"], self.repo, env)
+        typed = [l for l in keys.read_text().splitlines() if " -l " in l]
+        self.assertEqual(typed, ["t-osa send-keys -t t-osa -l New message from guard: run kit/msg.py inbox osa and act on it."])
+        self.assertNotIn("frozen", self.kit("msg.py", "inbox", "atlas").stdout)  # idle, so woken instead
+        run([sys.executable, "-c", code, "later"], self.repo, env)
+        self.assertIn("osa: idle at its prompt with 1 unread messages, 60 min after the guard woke it",
+                      self.kit("msg.py", "inbox", "atlas").stdout)
+        (panes / "osa").write_text("✻ Working… (esc to interrupt)\n❯ \n")
+        run([sys.executable, "-c", code, "now"], self.repo, env)
+        self.assertIn("osa: no transcript write for 60 min with 1 unread messages. Seat may be frozen",
+                      self.kit("msg.py", "inbox", "atlas").stdout)  # looks busy but writes nothing: frozen
 
     def test_fyi_messages_never_make_a_seat_look_frozen(self):
         self.kit("msg.py", "send", "atlas", "FYI #2 is queued", env={"AVEL_AGENT": "axis"})

@@ -2,7 +2,7 @@
 """kit/watch.py: one pass of the guard's alerts. Reads plan state and lane state files, not screen text.
 
   watch.py --lanes    a lane idle WATCH_IDLE_MIN (5) with ready work → OSA
-  watch.py --seats    a lead or ops seat with an unread message that asks for something (not FYI), the oldest
+  watch.py --seats    a lead, ops or osa seat with an unread message that asks for something (not FYI), the oldest
                       WATCH_WAKE_MIN (1) old → type "New message from …: run kit/msg.py inbox <seat>" into it,
                       once per newest message, only while the seat is idle with an empty input box
                       a held PR green and waiting WATCH_HELD_MIN (10) → a message to the lead who merges it: a
@@ -10,7 +10,9 @@
                       merge its own), else the feature's `held` in plan/features.json, else HELD_OWNER (zero).
                       Drafts are skipped (not ready yet), and so are PRs already in the merge queue.
                       a seat with an unsent prompt for WATCH_UNSENT_MIN (5), or no transcript write for
-                      WATCH_STALE_MIN (30) with unread inbox (FYI messages don't count) → OSA (osa's own → ops)
+                      WATCH_STALE_MIN (30) with unread inbox (FYI messages don't count) → OSA (osa's own → ops).
+                      A seat idle at its prompt isn't frozen: the wake above handles it, and it's reported only
+                      if it's still idle with that inbox WATCH_STALE_MIN after the wake.
 
 Each alert fires once per episode (state in .git/avel/watch.json). Seat checks need the seats' tmux
 sessions on this machine, so the guard on a MIOSA workspace skips them; on the laptop run
@@ -120,7 +122,8 @@ WAKE_TEXT = "New message from "
 
 
 def wake(memo, seat, all_msgs):
-    """Type one line into a lead or ops seat that has work in its inbox, as the guard does for idle lanes."""
+    """Type one line into a lead, ops or osa seat that has work in its inbox, as the guard does for idle lanes.
+    Typing never lands on someone's draft: idle_box() needs an empty input box (a dimmed suggestion is empty)."""
     if unsent(seat).startswith(WAKE_TEXT):  # our line is in the box but its Enter didn't register: press it again
         tmux("send-keys", "-t", f"{P}-{seat}", "Enter")
         return
@@ -143,10 +146,8 @@ def seats(memo):
     if not here:
         return
     all_msgs = msg.read_all()
-    wakeable = set(words(ENV.get("LEADS", "")) + words(ENV.get("OPS", "")))
     for seat in here:
-        if seat in wakeable:
-            wake(memo, seat, all_msgs)
+        wake(memo, seat, all_msgs)
         to = "ops" if seat == "osa" else "osa"
         text = unsent(seat)
         first = memo["unsent"].get(seat)
@@ -159,11 +160,20 @@ def seats(memo):
             memo["unsent"][seat] = {"text": text, "at": int(time.time())}
         else:
             memo["unsent"].pop(seat, None)
-        age, n = transcript_age(seat), unread(seat, all_msgs)
-        if age is not None and age >= minutes("WATCH_STALE_MIN", 30) and n:
+        age, todo = transcript_age(seat), waiting(seat, all_msgs)
+        stale = minutes("WATCH_STALE_MIN", 30)
+        if age is None or age < stale or not todo:
+            continue
+        if not idle_box(seat):
             once(memo, f"stale:{seat}:{int(time.time() - age)}", to,
-                 f"{seat}: no transcript write for {int(age // 60)} min with {n} unread messages. Seat may be frozen: "
-                 "restart it and re-brief from its inbox.")
+                 f"{seat}: no transcript write for {int(age // 60)} min with {len(todo)} unread messages. Seat may be "
+                 "frozen: restart it and re-brief from its inbox.")
+            continue
+        woke = memo["sent"].get(f"wake:{seat}:{todo[-1]['id']}")  # idle, not frozen: wake() typed into it
+        if woke and time.time() - woke >= stale:
+            once(memo, f"woken:{seat}:{woke}", to,
+                 f"{seat}: idle at its prompt with {len(todo)} unread messages, {int((time.time() - woke) // 60)} min "
+                 "after the guard woke it. Look at its pane.")
     held(memo)
 
 
