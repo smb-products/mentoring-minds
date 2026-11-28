@@ -23,7 +23,7 @@ function ParentMessages() {
           className="h-full"
           header={
             <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3 @3xl/page:px-6">
-              <Avatar name="Vienne Elliott" tone="ink" size="md" />
+              <Avatar name="Vienne Elliott" tone="brand" size="md" />
               <div>
                 <p className="text-heading">Vienne Elliott</p>
                 <p className="text-small text-muted-foreground">Tutor, Mentoring Minds</p>

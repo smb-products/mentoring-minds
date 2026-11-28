@@ -53,7 +53,7 @@ export function Thread({ conversationId, className, header }) {
                 )}
                 <li className={cn('flex flex-col', mine ? 'items-end' : 'items-start', grouped && '-mt-1')}>
                   {!grouped && !mine && <span className="mb-1 px-1 text-caption text-muted-foreground">{m.sender.name}</span>}
-                  <div className={cn('max-w-[min(34rem,85%)] whitespace-pre-wrap rounded-lg px-3.5 py-2.5 text-body', mine ? 'rounded-br-xs bg-ink text-ink-foreground' : 'rounded-bl-xs bg-muted text-foreground')}>
+                  <div className={cn('max-w-[min(34rem,85%)] whitespace-pre-wrap rounded-lg px-3.5 py-2.5 text-body', mine ? 'rounded-br-xs bg-brand-soft text-brand-soft-foreground' : 'rounded-bl-xs bg-muted text-foreground')}>
                     {m.body}
                   </div>
                   <span className="mt-1 px-1 text-caption font-normal text-subtle-foreground">{fmtTime(m.createdAt)}</span>

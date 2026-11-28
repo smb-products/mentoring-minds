@@ -53,7 +53,7 @@ function ParentProgress() {
         ]}
       />
 
-      <div className="grid items-start gap-6 @4xl/page:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 @4xl/page:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Section
           title={report ? `Report for ${fmtDate(report.periodStart)} – ${fmtDateYear(report.periodEnd)}` : 'Latest report'}
           description={report ? `Shared ${fmtDate(report.publishedAt)}` : null}

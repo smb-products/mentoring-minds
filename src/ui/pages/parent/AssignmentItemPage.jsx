@@ -49,7 +49,7 @@ function AssignmentItem({ params }) {
       <PageHeader back={{ href: '/parent/learning', label: 'Learning' }} title={a.title} subtitle={`For ${kid.firstName}. ${fmtDue(a.dueAt)}.`} />
       <div className="mb-5"><StatusBadge status={w.status} /></div>
 
-      <div className="grid items-start gap-6 @4xl/page:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 @4xl/page:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <div className="space-y-6">
           {w.status === 'RETURNED' && w.feedback && (
             <div className="rounded-lg border border-serious/40 bg-serious-soft px-4 py-3 text-body text-serious-soft-foreground">
