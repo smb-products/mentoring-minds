@@ -216,6 +216,15 @@ class Kit(unittest.TestCase):
         self.assertEqual(self.kit("lane.py", "--agent", "soap", "--once").returncode, 0)  # back on main: claims
         self.assertEqual(run(["git", "log", "-1", "--format=%s", "main"], self.repo).stdout.strip(), "newer")
 
+    def test_billing_or_usage_limit_mid_run_stops_the_lane_without_using_an_attempt(self):
+        for text in ("Claude Code can't use your Claude subscription, usually because a payment is past due",
+                     "Claude AI usage limit reached, resets 9pm"):
+            run(["rm", "-f", ".git/avel/state.json"], self.repo)
+            r = self.kit("lane.py", "--agent", "soap", "--once", env={"FAKE_ERR_TEXT": text})  # cost $0.50: mid-run
+            self.assertEqual(r.returncode, 3, text + r.stdout + r.stderr)
+            st = json.loads(run(["cat", ".git/avel/state.json"], self.repo).stdout)["features"]["A"]
+            self.assertEqual((st["status"], st["attempts"]), ("ready", 0), text)
+
     def test_a_features_own_auth_words_never_stop_the_lane(self):
         r = self.kit("lane.py", "--agent", "soap", "--once",
                      env={"FAKE_ERR_TEXT": "authentication: OAuth credentials step left; ran out of turns"})
