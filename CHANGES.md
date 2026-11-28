@@ -15,6 +15,28 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **S36 amend accepted:** checks 2 and 4 should have listed these files. The switch to ACTIVE at sign-up (and so
   `auth.spec.ts` line 62 and s14 line 70) moves to J2 (Zero's proposal). Why: S36 (open sign-up, approved by
   Javaris). Lead edits on #187. By Axis.
+## 2026-11-27: P2a and P2b no longer wait on P1's reopen
+
+- **P2a, P2b:** deps `P1` removed. P1's tokens and components are on main (#178), and its reopen touches only the
+  shell and globals.css, so the two passes don't need to wait for it. No check changes. By Axis.
+
+## 2026-11-27: P1 reopened for the dark-mode tab; kit refuses unknown ids
+
+- **P1, new check (reopen 1):** in dark mode the selected page-header tab must reach AA (≥ 4.5:1) through a token
+  with a dark value, with light mode unchanged. Its touches drop `src/ui/components/ui/` (P2b owns `Display.jsx`).
+  Why: Rigg's P1 holdout (#183) measured 3.47:1. It's docs/DESIGN.md's own rule (AA holds in dark), so no new
+  approval is needed.
+- **Kit:** `kit/plan.py set` and `reopen` refuse an id that isn't in `plan/features.json`. `reopen --help` had made
+  a feature called "--help", which has since been removed from the lane state. By Axis.
+
+## 2026-11-27: S36 uploads are 80 a day for parents, not 40
+
+- **S36, check 6:** `MAX_UPLOADS_PER_DAY` is 80 for parents (two full tests of photos, with room for a retake), not
+  the 40 in the open sign-up entry below. Vienne stays uncounted. s17's assertion becomes ≥ 80. Why: one long test
+  needs up to 40 photos. Approved by Javaris (via OSA).
+- **Correction to the open sign-up entry below:** its "Uploads" bullet landed in the middle of the "What" bullet.
+  The sentence after it ("The landing page's steps, its Get started links and the "Questions? Message Vienne"
+  form follow. Approved by Javaris (via OSA).") belongs to "What", not to "Uploads". Both were approved by Javaris.
 
 ## 2026-11-27: open sign-up, no invite code needed (S36, J2, J3)
 
