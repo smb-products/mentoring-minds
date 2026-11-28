@@ -1805,9 +1805,7 @@
       "id": "P2a",
       "title": "Per-screen pass: parent screens' cards, badges and buttons match P1",
       "spec": "tests/p2a-design.test.ts (new)",
-      "deps": [
-        "P1"
-      ],
+      "deps": [],
       "touches": [
         "src/ui/pages/parent/",
         "src/ui/components/learning/",
@@ -1832,16 +1830,15 @@
         "Split from P2 (OSA, 2026-11-27). It runs in parallel with P2b, with no shared touches. Don't edit a file outside these touches: a needed change elsewhere goes in the report.",
         "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
         "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead.",
-        "Display.jsx (Figures, Avatar) belongs to P2b for OSA's nits. Don't edit it here."
+        "Display.jsx (Figures, Avatar) belongs to P2b for OSA's nits. Don't edit it here.",
+        "P1 merged (f5abbf1) with the tokens and shared components this builds on. Its reopen (dark-mode tab, shell and globals.css only) shares no touches with this ticket, so it doesn't wait for it."
       ]
     },
     {
       "id": "P2b",
       "title": "Per-screen pass: admin screens' cards, badges and buttons match P1",
       "spec": "tests/p2b-design.test.ts (new)",
-      "deps": [
-        "P1"
-      ],
+      "deps": [],
       "touches": [
         "src/ui/pages/admin/",
         "src/ui/components/ui/Display.jsx",
@@ -1862,7 +1859,8 @@
       "hints": [
         "Split from P2 (OSA, 2026-11-27). It runs in parallel with P2a, with no shared touches. Don't edit a file outside these touches: a needed change elsewhere goes in the report.",
         "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
-        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead."
+        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead.",
+        "P1 merged (f5abbf1) with the tokens and shared components this builds on. Its reopen (dark-mode tab, shell and globals.css only) shares no touches with this ticket, so it doesn't wait for it."
       ]
     },
     {
