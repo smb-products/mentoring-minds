@@ -62,7 +62,7 @@ it('Ana, Grace and a preview parent get only the thank-you, and only Vienne read
   }
   as('u_admin');
   const feed = JSON.stringify(await listForUser());
-  expect(feed.match(/Invite request from Quill Stranger/g)).toHaveLength(1);
+  expect(feed.match(/Question from Quill Stranger/g)).toHaveLength(1);
   expect(feed).not.toMatch(/ipHash|inviteRequestId/);
 });
 

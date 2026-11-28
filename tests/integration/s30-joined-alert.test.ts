@@ -26,7 +26,7 @@ freshDemo();
 
 const VIENNE = 'https://fcm.googleapis.com/fcm/send/s30-vienne';
 /** Types the tests below make with parentId and no studentId. A new family-only type must be added here and exercised. */
-const COVERED = ['INVITE_REDEEMED', 'MESSAGE_RECEIVED'];
+const COVERED = ['INVITE_REDEEMED', 'MESSAGE_RECEIVED', 'FAMILY_JOINED'];
 /** Family-only types whose body is the family's own words (accepted in CHANGES, 2026-11-26). */
 const OWN_WORDS = ['MESSAGE_RECEIVED'];
 
@@ -159,6 +159,17 @@ describe('S30: a message alert’s title names only the parent', () => {
     expect(alert.body).toBe('Mateo has a game Thursday');
     const [push] = await pushes(1);
     expect(push.title).toBe(alert.title);
+  });
+});
+
+describe('S30: the open sign-up alert (S36) names no child', () => {
+  it('FAMILY_JOINED counts the children and names none of them', async () => {
+    const parent = await db.user.create({ data: { email: 's30.open@example.com', name: 'Oriel Grant', role: 'PARENT' } });
+    remember(parent.id, ['Pim']);
+    as(parent.id);
+    ok(await families.addMyChildren({ children: [{ firstName: 'Pim', grade: 2 }] }));
+    const alert = await db.notification.findFirstOrThrow({ where: { userId: 'u_admin', type: 'FAMILY_JOINED', parentId: parent.id } });
+    expect(`${alert.title} ${alert.body}`).not.toMatch(/\bPim\b/);
   });
 });
 

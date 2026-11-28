@@ -42,7 +42,7 @@ test('a signed-out visitor sends a request, and Vienne finds it in her alerts', 
   try {
     await vienne.page.goto('/admin/today');
     const alerts = await openAlerts(vienne.page);
-    const alert = alerts.getByText('Invite request from Marisol Ortega');
+    const alert = alerts.getByText('Question from Marisol Ortega');
     await expect(alert).toBeVisible();
     await expect(alerts).toContainText('marisol.ortega@example.com');
     await expect(alerts).toContainText('My son needs help with fractions.');
