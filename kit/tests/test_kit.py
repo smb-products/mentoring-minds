@@ -31,7 +31,7 @@ if [ "$AVEL_KIND" = check ]; then  # holdouts already on main pass: nothing to c
   echo '{"type":"result","subtype":"success","is_error":false,"session_id":"s-c","total_cost_usd":0.1}'; exit 0
 fi
 mkdir -p plan/reports src && echo "$AVEL_FEATURE" > "src/$AVEL_FEATURE.txt"
-printf 'status: done\\n' > "plan/reports/$AVEL_FEATURE.md"
+printf 'status: %s\\n' "${FAKE_REPORT_STATUS:-done}" > "plan/reports/$AVEL_FEATURE.md"
 git add -A && git commit -qm "feat $AVEL_FEATURE" && git push -q -u origin "$AVEL_BRANCH"
 echo '{"type":"result","subtype":"success","is_error":false,"session_id":"s-1","total_cost_usd":0.42}'
 """
@@ -752,6 +752,16 @@ class Kit(unittest.TestCase):
         outs = [self.kit("hooks/stuck.py", inp=p).stdout for _ in range(3)]
         self.assertEqual(outs[:2], ["", ""])
         self.assertIn("same failure 3 times", outs[2])
+
+    def test_a_blocked_run_with_a_pr_waits_in_review_without_another_attempt(self):
+        r = self.kit("lane.py", "--agent", "soap", "--once", env={"FAKE_REPORT_STATUS": "blocked (waiting for OSA's screenshot)"})
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        st = json.loads((self.repo / ".git" / "avel" / "state.json").read_text())["features"]["A"]
+        self.assertEqual((st["status"], st.get("pr"), st["attempts"]), ("review", 7, 1))
+        gh_log = self.tmp / "gh.log"
+        log = gh_log.read_text() if gh_log.exists() else ""
+        self.assertNotIn("merge", log)  # a lead queues it after the screenshot
+        self.assertNotIn("A", self.kit("plan.py", "claim", "--agent", "fantem").stdout.split())
 
     def test_done_check_blocks_twice_then_stops(self):
         (self.repo / "plan" / "reports").mkdir()

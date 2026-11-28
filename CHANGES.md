@@ -8,6 +8,23 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
 - **tests/r3-design.test.ts line 159:** Today's selected weekday label is `text-primary-foreground` on the accent
   (was `text-ink-muted` on navy). The assertion that it's a `text-caption` (500) label stays. Why: P2b nit 3
   (OSA's review, under Javaris's polish approval). P2b's amend is accepted. A lead edit on #191, by Axis.
+## 2026-11-28: J2 amends and lead edits (open sign-up in the app)
+- **J2 check 3:** an old PREVIEW row gets the Add your child step as a card at the top of its locked view, not
+  A1's split layout. Why: the split layout over the locked shell adds a second `<h1>` and breaks the R1, A1, L1
+  and S10 holdouts that read that shell. Check 4 ("keeps today's locked view, with the step on top") is unchanged.
+  Amend from #194; approved by Axis.
+- **J2 touches** add `tests/integration/s36-open-signup.test.ts` and `tests/e2e/change-password.spec.ts`. Why:
+  S36 pinned the state before the switch (PREVIEW), and change-password signs in a parent with no children, who
+  now gets the step. Amend from #194; approved by Axis.
+- **Lead edits on #194 (Zero):**
+  - `tests/e2e/auth.spec.ts:62` expects `'ACTIVE'`.
+  - `tests/holdout/W2.spec.ts` expects `['ACTIVE', 0]`.
+  - `tests/holdout/S14.spec.ts` signs out with the step's own 'Sign out' button.
+  - `tests/e2e/change-password.spec.ts` gives its parent a demo child (Pablo, grade 4).
+  - `tests/integration/s36-open-signup.test.ts` §1 expects ACTIVE.
+
+  Why: new sign-ups are ACTIVE (Javaris, 2026-11-27, via OSA). J2 check 5 now lists these edits instead of the
+  w2-families-invites edit, which wasn't needed (that spec passes unchanged). Approved by Zero and Axis.
 
 ## 2026-11-27: S36 lead edits (limits table, sign-up status, "Question from")
 
