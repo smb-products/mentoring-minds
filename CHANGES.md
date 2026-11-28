@@ -3,6 +3,11 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: r3-design follows P2b's selected day
+
+- **tests/r3-design.test.ts line 159:** Today's selected weekday label is `text-primary-foreground` on the accent
+  (was `text-ink-muted` on navy). The assertion that it's a `text-caption` (500) label stays. Why: P2b nit 3
+  (OSA's review, under Javaris's polish approval). P2b's amend is accepted. A lead edit on #191, by Axis.
 ## 2026-11-28: J2 amends and lead edits (open sign-up in the app)
 - **J2 check 3:** an old PREVIEW row gets the Add your child step as a card at the top of its locked view, not
   A1's split layout. Why: the split layout over the locked shell adds a second `<h1>` and breaks the R1, A1, L1

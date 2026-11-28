@@ -71,9 +71,9 @@ function WeeklyHours() {
         {WEEKDAYS.map((wd) => (
           <div key={wd} className="flex items-center gap-2 py-[3px]">
             <span className="w-8 text-caption text-muted-foreground">{DAY_NAMES[wd].slice(0, 3)}</span>
-            <span className="relative h-3.5 flex-1 rounded-sm bg-muted">
+            <span className="relative h-3.5 flex-1 rounded-xs bg-muted">
               {rows.filter((r) => r.weekday === wd).map((r, i) => (
-                <span key={i} className="absolute inset-y-0 rounded-sm bg-primary" style={{ left: `${((r.startMin - 480) / 720) * 100}%`, width: `${((r.endMin - r.startMin) / 720) * 100}%` }} />
+                <span key={i} className="absolute inset-y-0 rounded-xs bg-primary" style={{ left: `${((r.startMin - 480) / 720) * 100}%`, width: `${((r.endMin - r.startMin) / 720) * 100}%` }} />
               ))}
             </span>
           </div>
@@ -182,7 +182,7 @@ function FastWindows() {
       action={dirty && <Button size="sm" variant="primary" disabled={saving} onClick={async () => show(await save({ fastWindows: rows.map((r) => ({ window: r.window, schoolYear: r.schoolYear, startsAt: new Date(`${r.start}T00:00`).toISOString(), endsAt: new Date(`${r.end}T23:59`).toISOString() })) }), 'Testing dates saved')}>Save dates</Button>}
     >
       {rows.map((r, i) => (
-        <div key={r.window} className="grid grid-cols-[4rem_1fr_1fr] items-end gap-3 px-4 py-3 @3xl/page:px-5">
+        <div key={r.window} className="grid grid-cols-[4rem_minmax(0,1fr)_minmax(0,1fr)] items-end gap-3 px-4 py-3 @3xl/page:px-5">
           <p className="pb-2.5 text-heading">{r.window}</p>
           <Field label="Starts">{(id) => <Input id={id} type="date" value={r.start} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, start: e.target.value } : x)))} />}</Field>
           <Field label="Ends">{(id) => <Input id={id} type="date" value={r.end} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, end: e.target.value } : x)))} />}</Field>

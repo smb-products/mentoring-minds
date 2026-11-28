@@ -195,8 +195,7 @@ function UpNext({ session: s, later, now, onOpen, onSelect, onAdd }) {
   const live = new Date(s.startsAt) <= now && new Date(s.endsAt) > now;
   return (
     <section className="relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-card">
-      <span className={cn('absolute inset-y-0 left-0 w-1', sessionBg(s))} aria-hidden />
-      <div className="flex flex-1 flex-col gap-5 p-5 pl-6 @3xl/page:flex-row @3xl/page:items-center @3xl/page:p-6 @3xl/page:pl-7">
+      <div className="flex flex-1 flex-col gap-5 p-5 @3xl/page:flex-row @3xl/page:items-center @3xl/page:p-6">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-small font-medium text-muted-foreground">Up next</span>
@@ -259,16 +258,16 @@ function WeekGlance({ week, weekStart, now, onOpen }) {
           const today = sameDay(d, now);
           const past = d < startOfDay(now);
           return (
-            <li key={d.toISOString()} className={cn('flex min-w-0 flex-col items-center rounded-md px-1 pb-2 pt-1.5', today && 'bg-ink')}>
-              <span className={cn('text-caption', today ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtDateWith(d, { weekday: 'narrow' })}</span>
-              <span className={cn('tabular text-heading', today ? 'text-ink-foreground' : past ? 'text-subtle-foreground' : 'text-foreground')}>{dayOfMonth(d)}</span>
+            <li key={d.toISOString()} className={cn('flex min-w-0 flex-col items-center rounded-md px-1 pb-2 pt-1.5', today && 'bg-primary text-primary-foreground')}>
+              <span className={cn('text-caption', today ? 'text-primary-foreground' : 'text-muted-foreground')}>{fmtDateWith(d, { weekday: 'narrow' })}</span>
+              <span className={cn('tabular text-heading', today ? 'text-primary-foreground' : past ? 'text-subtle-foreground' : 'text-foreground')}>{dayOfMonth(d)}</span>
               <span className="mt-2 flex flex-col items-center gap-1" role="img" aria-label={`${list.length} sessions`}>
-                {list.length === 0 && <span className={cn('h-1 w-3 rounded-xs', today ? 'bg-ink-foreground/30' : 'bg-border')} />}
+                {list.length === 0 && <span className={cn('h-1 w-3 rounded-xs', today ? 'bg-primary-foreground/40' : 'bg-border')} />}
                 {list.slice(0, 4).map((s) => (
                   <span
                     key={s.id}
                     title={`${fmtTime(s.startsAt)} ${s.student.firstName}${s.mode === 'VIDEO' ? ', video' : ''}`}
-                    className={cn('h-2.5 w-6 rounded-sm', s.status === 'REQUESTED' ? 'border-[1.5px] border-dashed border-warning' : sessionBg(s), past && 'opacity-45')}
+                    className={cn('h-2.5 w-6 rounded-xs', s.status === 'REQUESTED' ? 'border-[1.5px] border-dashed border-warning' : sessionBg(s), today && 'ring-1 ring-primary-foreground', past && 'opacity-45')}
                   />
                 ))}
               </span>

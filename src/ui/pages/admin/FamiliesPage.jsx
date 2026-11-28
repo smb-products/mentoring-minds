@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BookX, CalendarPlus, Copy, KeyRound, MessageSquare, Plus, Search, Ticket, Trash2, UsersRound } from 'lucide-react';
+import { BookX, CalendarPlus, Clock, Copy, GraduationCap, KeyRound, MessageSquare, Plus, Search, Ticket, Trash2, Users, UsersRound } from 'lucide-react';
 import { api, useAction, useQuery } from '../../api';
 import { Button } from '../../components/ui/Button';
 import { Avatar, Empty, Figures, LevelBadge, PageHeader, Section, StatusBadge } from '../../components/ui/Display';
@@ -43,10 +43,10 @@ export default function FamiliesPage() {
       <Figures
         className="mb-5"
         items={[
-          { label: 'Active families', value: families.filter((f) => f.status === 'ACTIVE').length, note: `${families.filter((f) => f.nextSession).length} with a session booked` },
-          { label: 'Students', value: families.reduce((n, f) => n + f.students.length, 0), note: 'Kindergarten to grade 6' },
-          { label: 'Open invite codes', value: activeInvites, onClick: () => setTab('invites'), note: 'Single use, 14 days' },
-          { label: 'Waiting for a code', value: families.filter((f) => f.status === 'PREVIEW').length, highlight: families.some((f) => f.status === 'PREVIEW'), note: families.filter((f) => f.status === 'PREVIEW').map((f) => f.name.split(' ')[0]).join(', ') || 'None' },
+          { label: 'Active families', value: families.filter((f) => f.status === 'ACTIVE').length, icon: Users, note: `${families.filter((f) => f.nextSession).length} with a session booked` },
+          { label: 'Students', value: families.reduce((n, f) => n + f.students.length, 0), icon: GraduationCap, note: 'Kindergarten to grade 6' },
+          { label: 'Open invite codes', value: activeInvites, icon: KeyRound, onClick: () => setTab('invites'), note: 'Single use, 14 days' },
+          { label: 'Waiting for a code', value: families.filter((f) => f.status === 'PREVIEW').length, icon: Clock, highlight: families.some((f) => f.status === 'PREVIEW'), note: families.filter((f) => f.status === 'PREVIEW').map((f) => f.name.split(' ')[0]).join(', ') || 'None' },
         ]}
       />
 
@@ -76,7 +76,7 @@ export default function FamiliesPage() {
             {shown.map((f) => (
               <div key={f.id} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && setOpenFamily(f.id)} onClick={() => setOpenFamily(f.id)} className="group flex cursor-pointer flex-col rounded-lg border border-border bg-card text-left shadow-card transition-colors hover:border-input">
                 <div className="flex items-start gap-3 px-4 pb-3 pt-4">
-                  <Avatar name={f.name} size="lg" tone="ink" />
+                  <Avatar name={f.name} size="lg" tone="brand" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-heading group-hover:underline group-hover:decoration-border group-hover:underline-offset-4">{f.name}</p>
                     <p className="truncate text-small text-muted-foreground">{f.phone || f.email}</p>
