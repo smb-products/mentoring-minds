@@ -54,9 +54,9 @@ const APP_LINES: [string, string][] = [
 const WAYS_TO_PAY = ['Cash', 'Zelle', 'Cash App', 'Apple Pay'];
 
 const STEPS: [string, string][] = [
-  ['Request an invite', 'Tell Vienne about your child. She replies with an invite code.'],
-  ['Create your account', 'Sign up in a minute with your code.'],
-  ['Book your first session', 'Then follow homework and progress in the app.'],
+  ['Create your account', 'Sign up with your email or Google.'],
+  ['Add your child', 'Their first name and grade.'],
+  ['Book your first session', 'Pick a time, and Vienne confirms it.'],
 ];
 
 /** The two patterns Landing C allows, both CSS gradients: the graph-paper hero and the highlight. */
@@ -66,6 +66,9 @@ const GRAPH_PAPER: CSSProperties = {
   backgroundSize: '32px 32px',
 };
 const HIGHLIGHT: CSSProperties = { backgroundImage: 'linear-gradient(transparent 62%, var(--landing-highlight) 62%)' };
+
+/** J3: sign-up is open. Get started opens the sign-in page in Create account mode (J2). */
+const SIGN_UP = '/sign-in?mode=new';
 
 const container = 'mx-auto w-full max-w-[1160px] px-6';
 const primaryButton =
@@ -95,9 +98,9 @@ function LandingHeader() {
         <a href="#services" className="text-landing-muted hover:text-landing-ink max-[480px]:hidden">Services</a>
         <a href="#rates" className="text-landing-muted hover:text-landing-ink max-[480px]:hidden">Rates</a>
         <Link href="/sign-in" className="text-landing-muted hover:text-landing-ink">Sign in</Link>
-        <a href="#request-invite" className="rounded-[10px] bg-landing-accent px-[18px] py-2.5 font-semibold text-landing-paper hover:bg-landing-accent-hover max-[480px]:hidden">
+        <Link href={SIGN_UP} className="rounded-[10px] bg-landing-accent px-[18px] py-2.5 font-semibold text-landing-paper hover:bg-landing-accent-hover max-[480px]:hidden">
           Get started
-        </a>
+        </Link>
       </nav>
     </header>
   );
@@ -171,7 +174,7 @@ export function Landing() {
               One-on-one and small-group sessions with Vienne Elliott, with F.A.S.T. test prep for Florida students.
             </p>
             <div className="mt-[34px] flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
-              <a href="#request-invite" className={primaryButton}>Request an invite</a>
+              <Link href={SIGN_UP} className={primaryButton}>Get started</Link>
               <a href="#rates" className={secondaryButton}>$50 per hour · See rates</a>
             </div>
           </div>
@@ -275,11 +278,11 @@ export function Landing() {
         <section id="request-invite" aria-labelledby="request-invite-title" className="scroll-mt-6 px-4 py-24">
           <div className="mx-auto flex max-w-[1128px] flex-wrap gap-12 rounded-[32px] bg-landing-night p-[clamp(32px,6vw,64px)] text-landing-paper">
             <div className="min-w-0 flex-[1_1_300px]">
-              <SectionTitle id="request-invite-title" onDark>Ready to get started?</SectionTitle>
+              <SectionTitle id="request-invite-title" onDark>Questions? Message Vienne</SectionTitle>
               <p className="mt-3.5 text-[17px] text-landing-night-text">Send a request and Vienne will reply personally.</p>
               <p className="mt-[22px] text-[15px] text-landing-night-muted">
-                Have a code?{' '}
-                <Link href="/sign-in" className="text-landing-night-link underline underline-offset-4 hover:no-underline">
+                Ready to start?{' '}
+                <Link href={SIGN_UP} className="text-landing-night-link underline underline-offset-4 hover:no-underline">
                   Create your account
                 </Link>
               </p>

@@ -15,7 +15,7 @@ const SERVICES: [string, string][] = [
   ['In-Home Tutoring', 'For special circumstances.'],
   ['Online Tutoring', 'For special circumstances.'],
 ];
-const SECTIONS = ['Ways to learn with Vienne', 'Know exactly how your child is doing', 'Simple pricing', 'Getting started takes three steps', 'Ready to get started?'];
+const SECTIONS = ['Ways to learn with Vienne', 'Know exactly how your child is doing', 'Simple pricing', 'Getting started takes three steps', 'Questions? Message Vienne'];
 
 const noSidewaysScroll = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 
@@ -30,12 +30,11 @@ test.describe('signed out', () => {
 
     const hero = page.locator('main section').first();
     const header = page.locator('header').first();
-    await expect(hero.getByRole('link', { name: 'Request an invite' })).toHaveAttribute('href', '#request-invite');
+    await expect(hero.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '/sign-in?mode=new');
     await expect(header.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/sign-in');
 
-    await hero.getByRole('link', { name: 'Request an invite' }).click();
-    await expect(page).toHaveURL(/#request-invite$/);
-    await expect(page.locator('#request-invite').getByRole('heading', { name: 'Ready to get started?' })).toBeInViewport();
+    await hero.getByRole('link', { name: 'Get started' }).click();
+    await expect(page).toHaveURL(/\/sign-in\?mode=new$/);
 
     await page.goto('/');
     await header.getByRole('link', { name: 'Sign in', exact: true }).click();
@@ -64,8 +63,8 @@ test.describe('signed out', () => {
     await expect(rates).toContainText(/in person or online/i);
 
     const invite = page.locator('section#request-invite');
-    await expect(invite).toContainText('Have a code? Create your account');
-    await expect(invite.getByRole('link', { name: 'Create your account' })).toHaveAttribute('href', '/sign-in');
+    await expect(invite).toContainText('Ready to start? Create your account');
+    await expect(invite.getByRole('link', { name: 'Create your account' })).toHaveAttribute('href', '/sign-in?mode=new');
   });
 
   test('no bio or contact details: the only images are the logo and the 4 service photos (L5)', async ({ page }) => {

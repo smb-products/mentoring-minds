@@ -3,6 +3,14 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: L2, L3, L4 holdouts follow J3's landing words
+
+- **tests/holdout/L2.spec.ts, L4.spec.ts:** the form is "Questions? Message Vienne" and its button is "Send message".
+- **tests/holdout/L3.spec.ts:** the hero's "Get started" goes to `/sign-in?mode=new`, then the test returns to `/`
+  for Sign in. That replaces the old "Request an invite" link that scrolled to the form.
+- **J3 amend accepted:** check 5 also allows the panel heading swap ("Ready to get started?" → "Questions? Message
+  Vienne") in the L1, L3 and L4 specs, because check 3 changes that heading.
+- Why: J3 (open sign-up, approved by Javaris). Lead edits on #186, because lanes can't write holdouts. By Axis.
 ## 2026-11-28: J2 amends and lead edits (open sign-up in the app)
 - **J2 check 3:** an old PREVIEW row gets the Add your child step as a card at the top of its locked view, not
   A1's split layout. Why: the split layout over the locked shell adds a second `<h1>` and breaks the R1, A1, L1

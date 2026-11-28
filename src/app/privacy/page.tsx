@@ -14,13 +14,13 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: 'What the app stores',
     body: (
       <ul className="list-disc space-y-1.5 pl-5">
-        <li>Your account: your name, email and phone number. If you sign in with Google, Google shares only your name and email.</li>
+        <li>Your account: signing up asks for your name and email, and your children’s first names and grades. You can add a phone number. If you sign in with Google, Google shares only your name and email.</li>
         <li>Your children’s first names and grades.</li>
         <li>Sessions, and Vienne’s notes about them.</li>
         <li>Homework, and the photos of it you send.</li>
         <li>Messages between you and Vienne.</li>
         <li>FAST scores.</li>
-        <li>Invite requests: your name, email, phone, your child’s grade and your message when you ask for an invite, plus a scrambled (hashed) form of your internet address, used only to stop spam. Both are deleted after 90 days.</li>
+        <li>Messages from the “Questions? Message Vienne” form: your name, email, phone, your child’s grade and your message, plus a scrambled (hashed) form of your internet address, used only to stop spam. Both are deleted after 90 days.</li>
       </ul>
     ),
   },

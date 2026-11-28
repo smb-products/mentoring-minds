@@ -41,7 +41,7 @@ test.describe('signed out', () => {
     const heading = await box(h1);
     expect(heading.x + heading.width).toBeGreaterThan(vw / 2 + 150);
 
-    await expect(hero.getByRole('link', { name: 'Request an invite' })).toHaveAttribute('href', '#request-invite');
+    await expect(hero.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '/sign-in?mode=new');
     await expect(hero.getByRole('link', { name: '$50 per hour · See rates' })).toHaveAttribute('href', '#rates');
     // The page title keeps K-6: only the hero's text changed.
     await expect(page).toHaveTitle('Mentoring Minds Academy: math tutoring K-6');
@@ -127,7 +127,7 @@ test.describe('signed out', () => {
 
     const vw = await viewportWidth(page);
     // At most about 1160px wide, with gutters: every section's title sits inside a centered 1160px column.
-    for (const name of ['Ways to learn with Vienne', 'Know exactly how your child is doing', 'Simple pricing', 'Getting started takes three steps', 'Ready to get started?']) {
+    for (const name of ['Ways to learn with Vienne', 'Know exactly how your child is doing', 'Simple pricing', 'Getting started takes three steps', 'Questions? Message Vienne']) {
       const heading = await box(page.getByRole('heading', { level: 2, name }));
       expect(heading.x, name).toBeGreaterThanOrEqual((vw - 1160) / 2 + 20);
     }
@@ -137,10 +137,10 @@ test.describe('signed out', () => {
     expect(photos).toEqual(['one-on-one', 'small-groups', 'in-home', 'online']);
   });
 
-  test('the Request an invite form and the footer are still there', async ({ page }) => {
+  test('the Questions? Message Vienne form and the footer are still there', async ({ page }) => {
     await page.goto('/');
     const invite = page.locator('section#request-invite');
-    await expect(invite.getByRole('heading', { name: 'Ready to get started?' })).toBeVisible();
+    await expect(invite.getByRole('heading', { name: 'Questions? Message Vienne' })).toBeVisible();
     await expect(invite.locator('form')).toHaveCount(1);
     const footer = page.locator('footer');
     await expect(footer.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy');

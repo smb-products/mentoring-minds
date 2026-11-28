@@ -12,7 +12,7 @@ freshData();
 const THANKS = 'Thanks. Vienne will email you soon.';
 const LIMITED = 'You’ve sent a few requests already. Vienne will reply by email; try again later if you need to.';
 
-const form = (page: Page) => page.getByRole('form', { name: 'Request an invite' });
+const form = (page: Page) => page.getByRole('form', { name: 'Questions? Message Vienne' });
 
 async function fillForm(page: Page, v: { name: string; email: string; phone?: string; grade: string; message: string }) {
   const f = form(page);
@@ -28,7 +28,7 @@ test.describe.configure({ mode: 'serial' });
 test('a signed-out visitor sends a request, and Vienne finds it in her alerts', async ({ page, db, browser }) => {
   await page.goto('/#request-invite');
   await fillForm(page, { name: 'Marisol Ortega', email: 'Marisol.Ortega@Example.com', phone: '305 555 0142', grade: 'Grade 2', message: 'My son needs help with fractions.' });
-  await form(page).getByRole('button', { name: 'Send request' }).click();
+  await form(page).getByRole('button', { name: 'Send message' }).click();
   await expect(page.locator('#request-invite').getByText(THANKS)).toBeVisible();
   await expect(form(page)).toHaveCount(0);
 
@@ -55,11 +55,11 @@ test('a signed-out visitor sends a request, and Vienne finds it in her alerts', 
 test('wrong input shows the plain message and sends nothing', async ({ page, db }) => {
   const before = await db.inviteRequest.count();
   await page.goto('/#request-invite');
-  await form(page).getByRole('button', { name: 'Send request' }).click();
+  await form(page).getByRole('button', { name: 'Send message' }).click();
   await expect(form(page).getByRole('alert')).toHaveText('Add the parent’s name');
 
   await fillForm(page, { name: 'Dana Ruiz', email: 'not-an-email', grade: 'Kindergarten', message: '' });
-  await form(page).getByRole('button', { name: 'Send request' }).click();
+  await form(page).getByRole('button', { name: 'Send message' }).click();
   await expect(form(page).getByRole('alert')).toHaveText('Check the email address');
   expect(await db.inviteRequest.count()).toBe(before);
 });
@@ -71,7 +71,7 @@ test('when requests are paused for the hour, the form says so', async ({ page, d
   try {
     await page.goto('/#request-invite');
     await fillForm(page, { name: 'Dana Ruiz', email: 'dana.ruiz@example.com', grade: 'Grade 4', message: 'Hello' });
-    await form(page).getByRole('button', { name: 'Send request' }).click();
+    await form(page).getByRole('button', { name: 'Send message' }).click();
     await expect(form(page).getByRole('alert')).toHaveText(LIMITED);
     expect(await db.inviteRequest.count({ where: { email: 'dana.ruiz@example.com' } })).toBe(0);
   } finally {
@@ -98,5 +98,5 @@ test('@phone the form: 16px inputs on phones, and the honeypot is hidden from pe
   // Not reached with the keyboard: tabbing from Message goes to the button.
   await f.getByLabel('Message').focus();
   await page.keyboard.press('Tab');
-  await expect(f.getByRole('button', { name: 'Send request' })).toBeFocused();
+  await expect(f.getByRole('button', { name: 'Send message' })).toBeFocused();
 });
