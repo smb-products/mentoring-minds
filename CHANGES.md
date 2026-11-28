@@ -10,7 +10,8 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   is safe on its own, so Javaris can migrate it right away.
 - **J2** takes the switch (the default-ACTIVE migration, createAccount ACTIVE, s14 line 70) and becomes **held for
   Zero**. It's the PR that removes the code-only path, so the switch and the Add your child step land together.
-  `w2-families-invites.spec.ts`, `auth.spec.ts` line 62 and the W2 holdout change with it.
+  `w2-families-invites.spec.ts`, `auth.spec.ts` line 62 and the W2 holdout change with it, as lead edits on J2's PR
+  (builders can't edit w* specs or holdouts).
 - Why: with S36 alone, a new ACTIVE parent had no code form and no way to add a child (Zero's review of #187).
   Same behaviour Javaris approved, with a safer order. By Zero and Axis.
 
