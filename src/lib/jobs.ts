@@ -100,6 +100,8 @@ export async function cleanUp(now = new Date()) {
   const oldFailures = await db.redeemFailure.deleteMany({ where: { at: { lt: new Date(now.getTime() - 86400000) } } });
   // L2: repeat invite requests count toward the hourly limits; after a day they're only clutter too.
   await db.inviteAttempt.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 86400000) } } });
+  // S36: sign-ups count toward the hourly limits; after a day they're only clutter too.
+  await db.signupAttempt.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 86400000) } } });
   await deleteOldInviteRequests(now);
   return { purgedResources: purged.count, abandonedUploads: abandoned, redeemFailures: oldFailures.count };
 }
