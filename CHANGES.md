@@ -3,6 +3,15 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: S36 uploads are 80 a day for parents, not 40
+
+- **S36, check 6:** `MAX_UPLOADS_PER_DAY` is 80 for parents (two full tests of photos, with room for a retake), not
+  the 40 in the open sign-up entry below. Vienne stays uncounted. s17's assertion becomes ≥ 80. Why: one long test
+  needs up to 40 photos. Approved by Javaris (via OSA).
+- **Correction to the open sign-up entry below:** its "Uploads" bullet landed in the middle of the "What" bullet.
+  The sentence after it ("The landing page's steps, its Get started links and the "Questions? Message Vienne"
+  form follow. Approved by Javaris (via OSA).") belongs to "What", not to "Uploads". Both were approved by Javaris.
+
 ## 2026-11-27: open sign-up, no invite code needed (S36, J2, J3)
 
 - **What:** new parents are ACTIVE at sign-up (email or Google) and add their own children (first name and grade
