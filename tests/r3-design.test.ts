@@ -156,7 +156,7 @@ describe('weights (OSA’s R1 taste review)', () => {
     expect(schedule).toMatch(/<div className="ml-auto flex items-center gap-4 text-caption text-muted-foreground">/);
     expect(schedule).toMatch(/\/>Open hours<\/span>/);
     expect(schedule).toMatch(/cn\('text-caption', today \? 'text-brand-soft-foreground' : 'text-muted-foreground'\)\}>\{fmtWeekday\(d\)\}/);
-    expect(read(ADMIN('TodayPage'))).toMatch(/cn\('text-caption', today \? 'text-ink-muted' : 'text-muted-foreground'\)\}>\{fmtDateWith/);
+    expect(read(ADMIN('TodayPage'))).toMatch(/cn\('text-caption', today \? 'text-primary-foreground' : 'text-muted-foreground'\)\}>\{fmtDateWith/); // P2b nit 3: the selected day is the accent, not navy
     // text-caption carries weight 500 by default.
     expect(read('src/app/globals.css')).toMatch(/--text-caption--font-weight: 500/);
   });

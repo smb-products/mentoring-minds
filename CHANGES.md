@@ -3,6 +3,12 @@
 Any change to `docs/WIRING.md`, `docs/CONTRACT.md`, a locked test or a check in `plan/features.json` that alters
 behaviour: date, feature id, what changed, why, who approved. Newest first. Add entries; never edit others.
 
+## 2026-11-27: r3-design follows P2b's selected day
+
+- **tests/r3-design.test.ts line 159:** Today's selected weekday label is `text-primary-foreground` on the accent
+  (was `text-ink-muted` on navy). The assertion that it's a `text-caption` (500) label stays. Why: P2b nit 3
+  (OSA's review, under Javaris's polish approval). P2b's amend is accepted. A lead edit on #191, by Axis.
+
 ## 2026-11-27: P2b gets OSA's five P1 review nits
 
 - **P2b, new check 2:** stat sublines wrap to 2 lines (no ellipsis), Families' stat cards get their own icons,
