@@ -1752,7 +1752,6 @@
       "touches": [
         "src/app/globals.css",
         "src/ui/components/shell/",
-        "src/ui/components/ui/",
         "tests/r1-design.test.ts",
         "tests/e2e/r2-parent-look.spec.ts",
         "tests/e2e/p1-app-shell.spec.ts",
@@ -1764,13 +1763,15 @@
         "No navy band: Masthead's PageHeader puts the back link, the title (text-page), the subtitle and the actions (on the right) on the light page. Tabs sit under it, and nothing overlaps it. Nothing in the shell uses bg-ink, text-ink-foreground or the band utility, which stays defined so nothing breaks. Figures (Display.jsx) become white cards (1px border, 16px corners), each with a 40px tinted icon square in order blue, amber, green, violet, keeping role=region 'Key numbers' and the 'needs attention' cue. Button, Badge and Card in src/ui/components/ui pick up the new radii and accent through tokens. Screens under src/ui/pages don't change in P1 (that's P2).",
         "Only the look changes: no wording, layout order, role or name changes anywhere. The parent and admin browser suites, auth.spec.ts and the S8–S10 nav holdouts pass unchanged. Dark mode keeps working.",
         "Lead-authorized test edits, and only these. In tests/r1-design.test.ts: in 'tokens', the type-scale sizes for page (24 phone, 28 desktop) plus the two 700 font-weight lines; the radii test (10px and 16px); and in the accent test, the --sidebar line and the two navy rail pairs in the contrast list, swapped for the white sidebar's pairs. In 'the shell', the band test becomes 'no navy band: the PageHeader title is text-page on the page, and AppShell has no bg-ink', and the rail test becomes 'white sidebar, selected soft blue, icons 18px at 1.75'. The wordmark and Masthead line-art tests stay. In tests/e2e/r2-parent-look.spec.ts, the band locator becomes the page header (the <header> holding the h1), with the comments to match. The 140px cap, the below and overlap checks, and the chips-below check stay. tests/holdout/R1.spec.ts (title 22/24 → 24/28) and tests/holdout/R3.spec.ts (the same band locator change; its 130px cap stays) are holdouts, which lanes can't edit. List the exact lines that fail in the report, and a lead adds those edits to this PR before it queues.",
+        "Reopen 1 (Rigg's holdout, plan/holdouts/P1.spec.ts 'page headers and sidebar are readable in light and dark'): in dark mode, the selected page-header tab (Masthead.jsx's 'border-primary text-primary') is 3.47:1 on the dark page, under AA's 4.5:1. That's on /admin/families, /admin/assignments, /admin/content, /admin/schedule, /parent/learning and /parent/sessions. Fix it with a token that has a dark value (for example text-brand, whose dark value is brand-300, or a dark: variant to it), not a one-off color, so the selected tab's text is ≥ 4.5:1 in dark. Light mode stays as it is (#1F5EFF on the light page), and white on a primary button stays ≥ 4.5:1 in both. Every other text-primary in the shell on the dark page gets the same check. That holdout, the P1 spec and the whole browser suite pass.",
         "Tests: tests/e2e/p1-app-shell.spec.ts, as Vienne and as a parent at 1280×800, checks that the sidebar's computed background is white with a right border, that the selected item's background is soft blue with blue text, the count badge after its label, that the Account control (name starts with 'Account') shows the person's name, that there's no navy element behind the h1, that the h1 is 28px and 700, the first stat card's white background and tinted icon square, and #1F5EFF on a primary button. Its @phone test checks the light phone nav and no sideways scroll. Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone, light and dark), then asks a lead to queue it."
       ],
       "hints": [
         "Javaris approved the mockup 2026-11-27 (via OSA): 'hurry'. Runs in parallel with A1, which doesn't touch globals.css or src/ui/components/.",
         "The 700 comes from the tokens' --font-weight, so the 'no font-bold' class rules in r1/r2/r3-design.test.ts keep holding. Screens keep their token classes (rounded-md, rounded-lg), so the new radii reach them without editing pages.",
         "The mockup's Today content (greeting, This week, Your day) is demo data for the look. Today keeps its own layout and words.",
-        "The landing page has its own --landing-* tokens, so it doesn't change."
+        "The landing page has its own --landing-* tokens, so it doesn't change.",
+        "Reopen 1: only src/ui/components/shell/ and src/app/globals.css. Display.jsx and the rest of src/ui/components/ui/ are P2b's now, so they're out of P1's touches."
       ]
     },
     {
@@ -1804,9 +1805,7 @@
       "id": "P2a",
       "title": "Per-screen pass: parent screens' cards, badges and buttons match P1",
       "spec": "tests/p2a-design.test.ts (new)",
-      "deps": [
-        "P1"
-      ],
+      "deps": [],
       "touches": [
         "src/ui/pages/parent/",
         "src/ui/components/learning/",
@@ -1831,16 +1830,15 @@
         "Split from P2 (OSA, 2026-11-27). It runs in parallel with P2b, with no shared touches. Don't edit a file outside these touches: a needed change elsewhere goes in the report.",
         "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
         "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead.",
-        "Display.jsx (Figures, Avatar) belongs to P2b for OSA's nits. Don't edit it here."
+        "Display.jsx (Figures, Avatar) belongs to P2b for OSA's nits. Don't edit it here.",
+        "P1 merged (f5abbf1) with the tokens and shared components this builds on. Its reopen (dark-mode tab, shell and globals.css only) shares no touches with this ticket, so it doesn't wait for it."
       ]
     },
     {
       "id": "P2b",
       "title": "Per-screen pass: admin screens' cards, badges and buttons match P1",
       "spec": "tests/p2b-design.test.ts (new)",
-      "deps": [
-        "P1"
-      ],
+      "deps": [],
       "touches": [
         "src/ui/pages/admin/",
         "src/ui/components/ui/Display.jsx",
@@ -1861,7 +1859,119 @@
       "hints": [
         "Split from P2 (OSA, 2026-11-27). It runs in parallel with P2a, with no shared touches. Don't edit a file outside these touches: a needed change elsewhere goes in the report.",
         "After P1, which sets the tokens and the shared components. Most screens change little or nothing, because they use the token classes.",
-        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead."
+        "If a screen needs a layout change to match, it's out of scope: list it in the report for OSA instead.",
+        "P1 merged (f5abbf1) with the tokens and shared components this builds on. Its reopen (dark-mode tab, shell and globals.css only) shares no touches with this ticket, so it doesn't wait for it."
+      ]
+    },
+    {
+      "id": "S36",
+      "title": "Open sign-up (server): addMyChildren, FAMILY_JOINED, sign-up and family limits (the ACTIVE switch is J2's)",
+      "spec": "plan/specs/S36.md; tests/integration/s36-open-signup.test.ts (new)",
+      "deps": [],
+      "held": "zero",
+      "touches": [
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "src/app/(auth)/sign-in/actions.ts",
+        "src/lib/auth.ts",
+        "src/lib/jobs.ts",
+        "src/server/families.ts",
+        "src/server/scheduling.ts",
+        "src/server/messages.ts",
+        "src/server/requests.ts",
+        "src/lib/storage.ts",
+        "tests/integration/s17-file-cleanup.test.ts",
+        "tests/integration/s36-open-signup.test.ts",
+        "tests/integration/p-sec.test.ts",
+        "tests/integration/s14-signup-password.test.ts",
+        "plan/reports/S36.md"
+      ],
+      "checks": [
+        "As plan/specs/S36.md §1, but without the switch: the User.status default and createAccount stay PREVIEW here, and J2 makes them ACTIVE (it lands with the Add your child step, so there's never a new parent with no code form). The one migration only adds SignupAttempt, and drift is green. Guards don't change.",
+        "As §2, addMyChildren for a parent with no children: each child becomes a student on that parent (lastName '', math, the school year from Settings.timezone) and is returned through the parent screens' student DTO. A PREVIEW parent becomes ACTIVE. Each admin gets one FAMILY_JOINED alert after the commit, titled 'New family joined: <parent name>' with the body '<n> child(ren) added. They signed up without an invite code.' (no child's name in the title, body or push). A second call, or a call from a parent who already has children, is CONFLICT ('Your children are already on your account. Message Vienne to add another.') and adds nothing. Two calls at once add one set (the parent's row is locked FOR UPDATE).",
+        "Wrong input is INVALID with a plain message that never echoes it: no children, 7 children (MAX_CHILDREN_AT_SIGNUP 6), an empty or 41-character name, a control character, and grade −1, 7 or 2.5. A PAUSED parent is FORBIDDEN, a signed-out caller is UNAUTHENTICATED, and Vienne is refused. Nothing is stored in any of these cases.",
+        "With a code, nothing changes: redeemInvite behaves as before (the s5 and s5b tests stay green), and booking still makes a REQUESTED session that Vienne answers. requestInvite stays the same except its alert title, which becomes 'Question from <name>' (§5).",
+        "Limits (§3), each a named constant: SIGNUPS_PER_IP_PER_HOUR 5 (another IP still gets through); SIGNUPS_PER_HOUR 30, with one alert to Vienne per hour; OPEN_REQUESTS_PER_FAMILY 5 (confirmed or past requests don't count); MESSAGES_PER_DAY 50 (Vienne is never limited). Two requests or two messages at once on the last slot store one. SignupAttempt stores only the hashed IP, under pg_advisory_xact_lock(7_300_530_003), and the daily job deletes attempts older than a day, and nothing else. Google sign-up isn't counted.",
+        "Uploads (Javaris, 2026-11-27): MAX_UPLOADS_PER_DAY in src/lib/storage.ts goes from 200 to 80 (two full tests, with room for a retake). It counts only parents' uploads, and Vienne's stay uncounted, as today. A parent's 81st file in 24 hours gets the existing 'That’s the most files for today…' message and reserves nothing. In tests/integration/s17-file-cleanup.test.ts (lines 124–126), the assertion MAX_UPLOADS_PER_DAY ≥ 200 becomes ≥ 80, with the comment 'two of the book's longest tests (40 questions, one photo each at most)'. The rest of that file and the S17 holdout use the constant and stay as they are. A lead adds the DEPLOY Limits row: MAX_UPLOADS_PER_DAY (80), per parent per 24 h, Vienne uncapped.",
+        "An ACTIVE parent with no children gets an ok, empty answer from every parent read the screens make before a child exists (Home's family read, notifications, messages), not an error.",
+        "p-sec: addMyChildren is guarded and in the permission and wrong-input sweeps. The five new constants, and MAX_UPLOADS_PER_DAY's new value, are in the limits list, ipHash stays in SECRET_KEYS, and SignupAttempt is never returned. docs/DEPLOY.md → Limits lists the new constants, replacing its 'No limit in the app yet' lines for sign-up, messages and session requests. Lanes can't write docs/, so list the exact rows in the report and a lead adds them to this PR before it queues.",
+        "Tests that expected PREVIEW after sign-up don't change in S36: the switch to ACTIVE, and those test lines, move to J2. The L2 'Question from' lines and s30's COVERED are lead edits on this PR (done on #187).",
+        "The migration (it only adds SignupAttempt) goes on production (Javaris) before the build that needs it: name it in the report."
+      ],
+      "hints": [
+        "Zero's spec, plan/specs/S36.md, approved by Javaris's decision of 2026-11-27 (via OSA). Held for Zero. Runs in parallel with J3. Split 2026-11-27 (Zero and Axis): the ACTIVE switch moved to J2, so S36 is safe to ship alone.",
+        "J2 builds the UI on this contract: createAccount, and families.addMyChildren({ children: [{ firstName, grade }] }) → { students }. Keep those names.",
+        "Spec 'For Javaris' notes (storage per account, real data in production) go to OSA; they don't change this ticket."
+      ]
+    },
+    {
+      "id": "J2",
+      "title": "Open sign-up (app): optional code at sign-up, an 'Add your child' step, sign-up links",
+      "spec": "tests/e2e/j2-open-signup.spec.ts (new)",
+      "deps": [
+        "S36",
+        "A1"
+      ],
+      "touches": [
+        "src/app/(auth)/sign-in/SignInForm.tsx",
+        "src/app/(auth)/sign-in/page.tsx",
+        "src/components/auth/",
+        "src/components/family/AddChildrenForm.tsx",
+        "src/ui/AppRoot.jsx",
+        "src/ui/api/live.js",
+        "src/ui/api/live-hooks.js",
+        "tests/e2e/j2-open-signup.spec.ts",
+        "tests/e2e/a1-auth-screens.spec.ts",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "src/app/(auth)/sign-in/actions.ts",
+        "tests/integration/s14-signup-password.test.ts",
+        "plan/reports/J2.md"
+      ],
+      "checks": [
+        "The switch (from S36, plan/specs/S36.md §1): a migration sets User.status's default to ACTIVE, with no row changed and PREVIEW kept for old rows, and createAccount creates ACTIVE. Google sign-up gets the default. In tests/integration/s14-signup-password.test.ts, line 70's 'PREVIEW' becomes 'ACTIVE', and nothing else. The migration goes on production (Javaris) before the build: name it in the report.",
+        "Sign-up (Create account mode on /sign-in, also opened directly by /sign-in?mode=new) has 'Your name', 'Email', 'Password' and an optional 'Invite code (optional)' field, with the hint 'Have a code from Vienne? Enter it to join your family.' createAccount takes no code (S36). When the field is filled, J2 calls the existing redeemInvite right after the account is created and the parent is signed in, so code entry keeps its own limits and messages. An invalid code shows 'That code isn’t valid. Check it with Vienne.' on the Add your child step, where the code form sits. The sign-in side keeps 'Create an account', and its 'No code yet? Request an invite' line becomes 'Questions? Message Vienne' linking to /#request-invite. Every name the tests read stays: 'Create account', 'Your name', 'Email', 'Password', 'Sign in' and 'Already have an account?'.",
+        "A signed-in parent with no children (a new email or Google sign-up, or an old PREVIEW row) sees an 'Add your child' step before the app, in A1's split layout (AuthScreen), as the forced new-password screen does. It has one or more rows of 'Child’s first name' and 'Grade' (a select: K, 1–6), 'Add another child' up to MAX_CHILDREN_AT_SIGNUP, and 'Continue', which calls S36's addMyChildren and then shows the app (Home, with the children in the switcher). Below it, under 'Have an invite code?', is the existing InviteCodeForm, unchanged ('Enter your invite code', 'Invite code', 'Unlock' and its messages): redeeming a code there links Vienne's family and shows the app.",
+        "Gates: an ACTIVE parent never sees an invite-code gate or a 'Enter your invite code to unlock this' notice anywhere. Old PREVIEW rows keep today's locked view, with the Add your child step on top (they have no children). PAUSED stays as it is. Don't edit any screen under src/ui/pages (P2a and P2b own them): with new parents ACTIVE, the PREVIEW gates there never show for them.",
+        "Tests: tests/e2e/j2-open-signup.spec.ts, on a production build, signs up with no code, adds two children (K and 4), lands on Home with both in the switcher, books a session request and sees it waiting on Vienne. It signs up with a valid code and lands in Vienne's family. It checks an invalid code's message. It checks that Vienne's alerts show 'New family joined: <name>' with '2 children added. They signed up without an invite code.', and no child's name. And its @phone test checks the step has no sideways scroll. tests/e2e/w2-families-invites.spec.ts (a locked w* acceptance spec: its walk goes through the Add your child step's 'Have an invite code?' form), tests/e2e/auth.spec.ts line 62 (ACTIVE) and the W2 holdout's ['PREVIEW', 0] → ['ACTIVE', 0] are lead edits on this PR. List their failing lines in the report. Lead-authorized edit, and only this one: in tests/e2e/a1-auth-screens.spec.ts, the Request an invite link check becomes the 'Questions? Message Vienne' link to /#request-invite. Holdouts that fail (W2.spec.ts expects ['PREVIEW', 0] after sign-up) are listed in the report for a lead to edit. The whole browser suite passes.",
+        "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone), then asks a lead to queue it."
+      ],
+      "hints": [
+        "Held for Zero: it carries S36's switch to ACTIVE (schema, migration, createAccount), so the switch and the Add your child step land together.",
+        "Javaris decided 2026-11-27 (via OSA). After S36 (the server contract) and A1 (SignInForm, AuthScreen).",
+        "The step keeps InviteCodeForm as is, so the tests that read 'Enter your invite code', 'Invite code' and 'Unlock' keep passing."
+      ],
+      "held": "zero"
+    },
+    {
+      "id": "J3",
+      "title": "Open sign-up (landing): How it works, Get started to sign-up, 'Questions? Message Vienne'",
+      "spec": "tests/e2e/j3-landing-signup.spec.ts (new)",
+      "deps": [
+        "L5"
+      ],
+      "touches": [
+        "src/components/landing/",
+        "src/app/privacy/page.tsx",
+        "tests/e2e/j3-landing-signup.spec.ts",
+        "tests/e2e/l1-landing.spec.ts",
+        "tests/e2e/l2-request-invite.spec.ts",
+        "tests/e2e/l3-landing-polish.spec.ts",
+        "tests/e2e/l4-landing-c.spec.ts",
+        "tests/e2e/l5-service-photos.spec.ts",
+        "plan/reports/J3.md"
+      ],
+      "checks": [
+        "'Getting started takes three steps' reads, in order: 1 'Create your account' ('Sign up with your email or Google.'), 2 'Add your child' ('Their first name and grade.'), and 3 'Book your first session' ('Pick a time, and Vienne confirms it.').",
+        "The header's 'Get started' and the hero's primary button (now 'Get started', not 'Request an invite') link to /sign-in?mode=new. The hero's '$50 per hour · See rates' stays.",
+        "The dark panel's form becomes 'Questions? Message Vienne': its heading reads that, the form's accessible name is 'Questions? Message Vienne', and the button reads 'Send message'. The fields, labels, honeypot, the success message 'Thanks. Vienne will email you soon.', the error messages and the requestInvite call don't change. It keeps id #request-invite. 'Have a code? Create your account' becomes 'Ready to start? Create your account', linking to /sign-in?mode=new. Don't touch L2's server files. Nothing else on the page changes.",
+        "/privacy: the 'What the app stores' account line now says that signing up asks for a parent's name and email and their children's first names and grades. The invite-request line calls it the 'Questions? Message Vienne' form, and the rest of the page doesn't change. (Zero's S36 note.)",
+        "Tests: tests/e2e/j3-landing-signup.spec.ts, signed out on a production build, checks the three steps, that both Get started links go to /sign-in?mode=new (and open Create account mode once J2 is in, otherwise just /sign-in), that the form is named 'Questions? Message Vienne', and that it sends and shows the success message. Lead-authorized edits in the L1–L5 specs, only where they read the old hero button, the steps, the form's name ('Request an invite'), its button ('Send request') or the 'Have a code?' line: swap each for the new words. List every edit in the report. Holdouts that fail (L1–L4, which read these names) are listed in the report, with the failing lines, for a lead to edit. The whole browser suite passes.",
+        "Before it queues: end the run with status: blocked and 'waiting for OSA's screenshot' in the report. OSA screenshots the PR (desktop and phone), then asks a lead to queue it."
+      ],
+      "hints": [
+        "Javaris decided 2026-11-27 (via OSA). Landing only, so it runs in parallel with S36.",
+        "/sign-in?mode=new opens Create account mode once J2 merges. Until then it's just the sign-in page, which is fine."
       ]
     }
   ]

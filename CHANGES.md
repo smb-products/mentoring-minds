@@ -9,6 +9,64 @@ behaviour: date, feature id, what changed, why, who approved. Newest first. Add 
   (was `text-ink-muted` on navy). The assertion that it's a `text-caption` (500) label stays. Why: P2b nit 3
   (OSA's review, under Javaris's polish approval). P2b's amend is accepted. A lead edit on #191, by Axis.
 
+## 2026-11-27: the switch to ACTIVE moves from S36 to J2
+
+- **S36** ships without the switch: the default and createAccount stay PREVIEW, and its migration only adds
+  `SignupAttempt`. Everything else in it (addMyChildren, FAMILY_JOINED, the limits, uploads at 80, "Question from")
+  is safe on its own, so Javaris can migrate it right away.
+- **J2** takes the switch (the default-ACTIVE migration, createAccount ACTIVE, s14 line 70) and becomes **held for
+  Zero**. It's the PR that removes the code-only path, so the switch and the Add your child step land together.
+  `w2-families-invites.spec.ts`, `auth.spec.ts` line 62 and the W2 holdout change with it, as lead edits on J2's PR
+  (builders can't edit w* specs or holdouts).
+- Why: with S36 alone, a new ACTIVE parent had no code form and no way to add a child (Zero's review of #187).
+  Same behaviour Javaris approved, with a safer order. By Zero and Axis.
+
+## 2026-11-27: P2a and P2b no longer wait on P1's reopen
+
+- **P2a, P2b:** deps `P1` removed. P1's tokens and components are on main (#178), and its reopen touches only the
+  shell and globals.css, so the two passes don't need to wait for it. No check changes. By Axis.
+
+## 2026-11-27: P1 reopened for the dark-mode tab; kit refuses unknown ids
+
+- **P1, new check (reopen 1):** in dark mode the selected page-header tab must reach AA (≥ 4.5:1) through a token
+  with a dark value, with light mode unchanged. Its touches drop `src/ui/components/ui/` (P2b owns `Display.jsx`).
+  Why: Rigg's P1 holdout (#183) measured 3.47:1. It's docs/DESIGN.md's own rule (AA holds in dark), so no new
+  approval is needed.
+- **Kit:** `kit/plan.py set` and `reopen` refuse an id that isn't in `plan/features.json`. `reopen --help` had made
+  a feature called "--help", which has since been removed from the lane state. By Axis.
+
+## 2026-11-27: S36 uploads are 80 a day for parents, not 40
+
+- **S36, check 6:** `MAX_UPLOADS_PER_DAY` is 80 for parents (two full tests of photos, with room for a retake), not
+  the 40 in the open sign-up entry below. Vienne stays uncounted. s17's assertion becomes ≥ 80. Why: one long test
+  needs up to 40 photos. Approved by Javaris (via OSA).
+- **Correction to the open sign-up entry below:** its "Uploads" bullet landed in the middle of the "What" bullet.
+  The sentence after it ("The landing page's steps, its Get started links and the "Questions? Message Vienne"
+  form follow. Approved by Javaris (via OSA).") belongs to "What", not to "Uploads". Both were approved by Javaris.
+
+## 2026-11-27: open sign-up, no invite code needed (S36, J2, J3)
+
+- **What:** new parents are ACTIVE at sign-up (email or Google) and add their own children (first name and grade
+  K–6). The invite code is optional: entered, it links them to the family Vienne made. Vienne is told "New
+  family joined: <parent>, <n> children", with no child names. Booking stays a request Vienne confirms or
+  declines, and she can still pause a family. New limits: `SIGNUPS_PER_IP_PER_HOUR` (5), `SIGNUPS_PER_HOUR` (30),
+  `MAX_CHILDREN_AT_SIGNUP` (6), `OPEN_REQUESTS_PER_FAMILY` (5) and `MESSAGES_PER_DAY` (50), because any stranger can
+  now act as a family (Zero's spec, `plan/specs/S36.md`).
+- **Uploads:** a parent can upload at most 40 files a day (`MAX_UPLOADS_PER_DAY` was 200). Vienne isn't counted.
+  Javaris took OSA's recommendation (2026-11-27).
+  The landing page's steps, its Get started links and the "Questions? Message Vienne" form follow.
+  Approved by Javaris (via OSA).
+- **Tickets:** S36 (server, migration and limits, held for Zero, from his spec), J2 (sign-up and the Add your
+  child step), J3 (landing and the privacy line). S36 and J3 run in parallel, and J2 follows S36 and A1.
+- **PREVIEW stays for old rows only.** The UserStatus default becomes ACTIVE, and the migration changes no
+  existing row. The server's PREVIEW checks, and the locked view old PREVIEW rows see, stay as they are. A new
+  parent never sees an invite-code gate, so the gates go for everyone who signs up from now on, without rewriting
+  the many locked tests that use the seeded preview parents. An old PREVIEW parent gets the Add your child step,
+  which makes them ACTIVE.
+- **Locked tests that change (only as the tickets' checks list):** a new sign-up expects ACTIVE (`auth.spec.ts`
+  line 62, `s14-signup-password.test.ts` line 70, holdout `W2.spec.ts`). The landing specs and holdouts swap in the new words
+  (steps, Get started, the form's name and button). A1's spec swaps the Request an invite link for "Questions?
+  Message Vienne". A lead makes the holdout edits on the ticket's PR.
 ## 2026-11-27: P2b gets OSA's five P1 review nits
 
 - **P2b, new check 2:** stat sublines wrap to 2 lines (no ellipsis), Families' stat cards get their own icons,

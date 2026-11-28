@@ -228,6 +228,17 @@ in `public/landing/services/`.
 - Alt text describes the scene, never a name or a place.
 - These are the only photos in the app or on the page. Anything else stays photo-free.
 
+### Open sign-up (J2, J3)
+
+Javaris decided on 2026-11-27 that no invite code is needed to join.
+- **Landing:** "How it works" reads 1 Create your account, 2 Add your child, 3 Book your first session. The header's
+  and the hero's **Get started** go to `/sign-in?mode=new`. The dark panel's form becomes **"Questions? Message
+  Vienne"** (same fields, "Send message"), with "Ready to start? Create your account" under it.
+- **Sign-up:** an optional "Invite code (optional)" field. A parent with no children sees an **Add your child**
+  step in the auth layout (first name and grade, one or more rows) with the existing invite-code form under "Have an
+  invite code?".
+- New parents are ACTIVE, so they never see an invite-code gate. The PREVIEW lock remains only for old rows.
+
 ## Privacy page (L1)
 
 `/privacy` is plain language, with no legal boilerplate. It's linked from the landing footer and sign-in, and
