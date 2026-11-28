@@ -9,11 +9,12 @@ export const metadata: Metadata = { title: 'Sign in' };
 
 /** The single sign-in screen: Google (once its keys are set), or email and password (sign in or create an account). */
 export default async function SignInPage({ searchParams }: PageProps<'/sign-in'>) {
-  const { error } = await searchParams;
+  const { error, mode } = await searchParams;
   const problem = signInProblem(error);
   return (
     <AuthScreen>
-      <SignInForm google={googleEnabled} problem={problem} />
+      {/* /sign-in?mode=new (the landing page's Get started) opens Create account mode. */}
+      <SignInForm google={googleEnabled} problem={problem} initialMode={mode === 'new' ? 'new' : 'in'} />
       <p className="mt-7 text-small">
         <Link href="/privacy" className="text-subtle-foreground underline-offset-4 hover:text-foreground hover:underline">Privacy</Link>
       </p>

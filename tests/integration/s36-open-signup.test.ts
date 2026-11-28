@@ -96,27 +96,34 @@ beforeEach(async () => {
   ip.current = null;
 });
 
-/* ── §1. Sign-up status: PREVIEW until J2 (the switch to ACTIVE moved to J2, CHANGES 2026-11-27) ── */
+/* ── §1. Sign-up status: ACTIVE since J2 (the switch moved to J2, CHANGES 2026-11-27) ── */
 
-describe('S36 §1: sign-up stays PREVIEW until J2 turns it ACTIVE', () => {
-  it('email sign-up (createAccount) still makes a PREVIEW parent', async () => {
+describe('S36 §1: sign-up makes an ACTIVE parent (J2’s switch)', () => {
+  it('email sign-up (createAccount) makes an ACTIVE parent', async () => {
     const email = 's36.email@example.com';
     expect(await signUp(email)).toBeUndefined();
-    expect(await db.user.findUniqueOrThrow({ where: { email } })).toMatchObject({ role: 'PARENT', status: 'PREVIEW', name: 'New Parent' });
+    expect(await db.user.findUniqueOrThrow({ where: { email } })).toMatchObject({ role: 'PARENT', status: 'ACTIVE', name: 'New Parent' });
   });
 
-  it('Google sign-up (the adapter, the column default) makes a PREVIEW parent, and isn’t counted', async () => {
+  it('Google sign-up (the adapter, the column default) makes an ACTIVE parent, and isn’t counted', async () => {
     await vi.importActual<typeof import('@/lib/auth')>('@/lib/auth');
     const createUser = authConfig.current?.adapter.createUser;
     expect(createUser, 'the adapter in lib/auth.ts').toBeTypeOf('function');
     const made = await createUser!({ id: 'ignored', email: 's36.google@example.com', name: 'Google Parent', emailVerified: new Date(), image: null });
-    expect(await db.user.findUniqueOrThrow({ where: { id: made.id } })).toMatchObject({ role: 'PARENT', status: 'PREVIEW' });
+    expect(await db.user.findUniqueOrThrow({ where: { id: made.id } })).toMatchObject({ role: 'PARENT', status: 'ACTIVE' });
     expect(await db.signupAttempt.count()).toBe(0);
   });
 
-  it('UserStatus keeps PREVIEW as the default, and the one migration only adds SignupAttempt', () => {
+  it('J2’s migration only sets the default to ACTIVE: no row changes, and PREVIEW stays for old rows', () => {
     expect(read('prisma/schema.prisma')).toMatch(/enum UserStatus \{\s*PREVIEW[^\n]*\n\s*ACTIVE\s*\n\s*PAUSED\s*\}/);
-    expect(read('prisma/schema.prisma')).toMatch(/status\s+UserStatus @default\(PREVIEW\)/);
+    expect(read('prisma/schema.prisma')).toMatch(/status\s+UserStatus @default\(ACTIVE\)/);
+    const j2 = readdirSync(path.join(ROOT, 'prisma/migrations')).filter((d) => d.endsWith('_signup_active'));
+    expect(j2).toHaveLength(1);
+    const sql = read(`prisma/migrations/${j2[0]}/migration.sql`).replace(/--[^\n]*\n/g, '').trim();
+    expect(sql).toBe(`ALTER TABLE "User" ALTER COLUMN "status" SET DEFAULT 'ACTIVE';`);
+  });
+
+  it('S36’s one migration only adds SignupAttempt', () => {
     const dirs = readdirSync(path.join(ROOT, 'prisma/migrations')).filter((d) => d.endsWith('_open_signup'));
     expect(dirs).toHaveLength(1);
     const statements = read(`prisma/migrations/${dirs[0]}/migration.sql`)

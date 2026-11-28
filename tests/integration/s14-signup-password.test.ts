@@ -67,7 +67,7 @@ describe('S14: one MAX_PASSWORD for sign-up, sign-in and changePassword', () => 
     const password = 'y'.repeat(MAX_PASSWORD);
     expect(await createAccount(undefined, form({ name: 'Max Length', email, password }))).toBeUndefined();
     const user = await db.user.findUniqueOrThrow({ where: { email } });
-    expect(user).toMatchObject({ role: 'PARENT', status: 'PREVIEW' });
+    expect(user).toMatchObject({ role: 'PARENT', status: 'ACTIVE' });
     expect(await bcrypt.compare(password, user.passwordHash!)).toBe(true);
     const signIn = await authorize();
     expect(await signIn({ email, password })).toMatchObject({ email });
