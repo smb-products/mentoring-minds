@@ -62,7 +62,7 @@ export default function SchedulePage() {
           <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-1 rounded-xs bg-chart-2" />Video call</span>
           <span className="hidden items-center gap-1.5 @3xl/page:flex"><span className="h-3 w-4 rounded-xs border-[1.5px] border-dashed border-warning" />Requested</span>
           <button type="button" role="switch" aria-checked={showCancelled} onClick={() => setShowCancelled(!showCancelled)} className="flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3 text-small font-medium text-foreground transition-colors hover:bg-accent @max-3xl/app:h-10">
-            <span className={cn('relative h-4 w-7 rounded-sm transition-colors', showCancelled ? 'bg-primary' : 'bg-input')}>
+            <span className={cn('relative h-4 w-7 rounded-xs transition-colors', showCancelled ? 'bg-primary' : 'bg-input')}>
               <span className={cn('absolute top-0.5 size-3 rounded-xs bg-card transition-[left]', showCancelled ? 'left-3.5' : 'left-0.5')} />
             </span>
             Show cancelled
@@ -116,7 +116,7 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
   const top = (h) => (h - START_H) * HOUR_PX;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-card">
+    <section className="overflow-hidden rounded-lg border border-border bg-card shadow-card">
       <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] border-b border-border/80">
         <div />
         {days.map((d) => {
@@ -196,7 +196,7 @@ function HourGrid({ days, sessions, availability, timeOff, onSelect, onAdd }) {
           })}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -214,10 +214,10 @@ function DayAgenda({ days, sessions, timeOff, availability, onSelect }) {
           const sel = sameDay(d, day);
           const n = sessions.filter((s) => sameDay(s.startsAt, d) && !['CANCELLED', 'DECLINED'].includes(s.status)).length;
           return (
-            <button key={d.toISOString()} type="button" role="tab" aria-selected={sel} onClick={() => setDay(d)} className={cn('flex w-14 shrink-0 flex-col items-center rounded-md py-2', sel ? 'bg-ink text-ink-foreground' : 'border border-border bg-card text-foreground')}>
-              <span className={cn('text-caption', sel ? 'text-ink-muted' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
+            <button key={d.toISOString()} type="button" role="tab" aria-selected={sel} onClick={() => setDay(d)} className={cn('flex w-14 shrink-0 flex-col items-center rounded-md py-2', sel ? 'bg-primary text-primary-foreground' : 'border border-border bg-card text-foreground')}>
+              <span className={cn('text-caption', sel ? 'text-primary-foreground' : 'text-muted-foreground')}>{fmtWeekday(d)}</span>
               <span className="tabular text-title">{dayOfMonth(d)}</span>
-              <span className={cn('mt-0.5 h-1.5 w-1.5 rounded-full', n ? (sel ? 'bg-ink-foreground' : 'bg-primary') : 'bg-transparent')} />
+              <span className={cn('mt-0.5 h-1.5 w-1.5 rounded-full', n ? (sel ? 'bg-primary-foreground' : 'bg-primary') : 'bg-transparent')} />
             </button>
           );
         })}

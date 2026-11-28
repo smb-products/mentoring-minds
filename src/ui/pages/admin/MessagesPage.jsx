@@ -86,7 +86,7 @@ export default function AdminMessagesPage({ params = {} }) {
   return (
     <>
       <PageHeader title="Messages" subtitle="One conversation per family." />
-      <div className="grid h-[calc(100dvh-13rem)] min-h-[30rem] grid-cols-[18rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-card shadow-card @5xl/page:grid-cols-[21rem_minmax(0,1fr)]">
+      <section className="grid h-[calc(100dvh-13rem)] min-h-[30rem] grid-cols-[18rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-card shadow-card @5xl/page:grid-cols-[21rem_minmax(0,1fr)]">
         <div className="min-h-0 overflow-y-auto border-r border-border">{inbox}</div>
         {active ? (
           <Thread key={active.id} conversationId={active.id} header={threadHeader} className="h-full" />
@@ -95,7 +95,7 @@ export default function AdminMessagesPage({ params = {} }) {
             {gone || <Empty icon={MessagesSquare} title="Choose a conversation">Messages from each family stay in one thread.</Empty>}
           </div>
         )}
-      </div>
+      </section>
     </>
   );
 }

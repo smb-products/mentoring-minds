@@ -3,15 +3,10 @@ import { cn } from '../../lib/cn';
 import { initials } from './initials';
 
 /* ── Avatar ── tone is Student.avatarColor ('brand' | 'reward' | 'good') or 'ink'/'neutral'/'sidebar'.
-   Round, in quiet tints: gold is only for stars, and status colors only for status. */
-const AVATAR_TONES = {
-  brand: 'bg-brand-soft text-brand-soft-foreground',
-  reward: 'bg-badge text-badge-foreground',
-  good: 'bg-badge text-badge-foreground',
-  ink: 'bg-ink text-ink-foreground',
-  neutral: 'bg-badge text-badge-foreground',
-  sidebar: 'bg-sidebar-primary text-sidebar-primary-foreground',
-};
+   Round and soft (App polish): every tone is the soft blue tint with blue initials, like the sidebar's.
+   Never a filled navy. Gold is only for stars, and status colors only for status. */
+const AVATAR_SOFT = 'bg-brand-soft text-primary dark:text-brand-soft-foreground';
+const AVATAR_TONES = { brand: AVATAR_SOFT, reward: AVATAR_SOFT, good: AVATAR_SOFT, ink: AVATAR_SOFT, neutral: AVATAR_SOFT, sidebar: AVATAR_SOFT };
 const AVATAR_SIZES = { xs: 'size-6 text-caption', sm: 'size-8 text-caption', md: 'size-10 text-small', lg: 'size-12 text-body' };
 
 export function Avatar({ name, tone = 'neutral', size = 'sm', className }) {
@@ -119,8 +114,8 @@ export function AreaBars({ areas, className, empty = 'No book work checked yet.'
               <span className="flex min-w-0 items-center gap-2 text-body font-medium" title={a.fullName}><span className={cn('size-2.5 shrink-0 rounded-xs', subjectBg(areaColor(a)))} aria-hidden />{a.name}</span>
               <span className="tabular shrink-0 text-small font-medium text-muted-foreground">{a.right} of {a.total}</span>
             </div>
-            <div className="mt-1.5 h-2 overflow-hidden rounded-sm bg-muted" role="img" aria-label={`${a.name}: ${a.right} of ${a.total} right`}>
-              <div className="h-full rounded-sm bg-primary" style={{ width: `${Math.max(pct, 4)}%` }} />
+            <div className="mt-1.5 h-2 overflow-hidden rounded-xs bg-muted" role="img" aria-label={`${a.name}: ${a.right} of ${a.total} right`}>
+              <div className="h-full rounded-xs bg-primary" style={{ width: `${Math.max(pct, 4)}%` }} />
             </div>
           </li>
         );
@@ -196,7 +191,8 @@ export function Empty({ icon: Icon, title, children, action, className }) {
 }
 
 /* ── Figures ── key numbers on the light page, below the header (App polish): one white card per number,
-   each with a 40px tinted icon square in a fixed order of tints. Items without an icon get a plain chart one. */
+   each with a 40px tinted icon square in a fixed order of tints. Items without an icon get a plain chart one.
+   The note wraps and reads in full, with no ellipsis. */
 const FIGURE_TINTS = ['bg-tile-blue text-tile-blue-foreground', 'bg-tile-amber text-tile-amber-foreground', 'bg-tile-green text-tile-green-foreground', 'bg-tile-violet text-tile-violet-foreground'];
 
 export function Figures({ items, className }) {
@@ -230,7 +226,7 @@ export function Figures({ items, className }) {
                   </>
                 )}
               </span>
-              {item.note && <span className="mt-1.5 line-clamp-2 block text-caption font-normal text-subtle-foreground @3xl/page:truncate">{item.note}</span>}
+              {item.note && <span data-figure-note className="mt-1.5 block text-pretty text-caption font-normal text-subtle-foreground">{item.note}</span>}
             </span>
           </Comp>
         );

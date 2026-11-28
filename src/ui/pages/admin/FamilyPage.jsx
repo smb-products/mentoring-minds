@@ -65,7 +65,7 @@ export default function FamilyPage({ params }) {
         </div>
         {tempPw && (
           <p className="mt-3 text-body text-muted-foreground">
-            Temporary password <span className="tabular select-all rounded-md bg-ink px-1.5 py-0.5 font-semibold text-ink-foreground">{tempPw}</span>. Pass it on to {p.name.split(' ')[0]}; they choose a new one when they sign in.
+            Temporary password <span className="tabular select-all rounded-md bg-brand-soft px-1.5 py-0.5 font-semibold text-brand-soft-foreground">{tempPw}</span>. Pass it on to {p.name.split(' ')[0]}; they choose a new one when they sign in.
           </p>
         )}
       </div>
