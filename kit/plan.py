@@ -381,6 +381,10 @@ def main(a):
             ids = (claim_check if arg(a, "--role", "build") == "check" else claim_build)(arg(a, "--agent", "lane"))
         print(" ".join(ids))
         return 0 if ids else 1
+    if cmd in ("set", "reopen") and len(a) >= 2 and a[1] not in {f.get("id") for f in features()}:
+        # A typo or a flag ("reopen --help") must not create a feature in the lane state.
+        print(f"{cmd}: no feature {a[1]!r} in plan/features.json (pull main if it's new)", file=sys.stderr)
+        return 2
     if cmd == "set" and len(a) >= 3:
         hbranch = os.environ.get("AVEL_BRANCH") if a[2] == "checking" else None
         set_status(a[1], a[2], pr=arg(a, "--pr"), cost=arg(a, "--cost"),
