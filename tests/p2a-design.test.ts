@@ -82,4 +82,16 @@ describe('P2a: the parent screens match App polish', () => {
     expect(home).toMatch(/<div key=\{r\.id\} className="flex min-w-0 items-center justify-between gap-3">/);
     expect(home).toMatch(/<SkillMeter rating=\{r\.rating\} \/>/);
   });
+
+  it('page grids start from one shrinkable column (grid-cols-1 is minmax(0,1fr)), so a long row never widens a card', () => {
+    // An implicit `auto` column sizes to its widest row's text (truncated titles included) and pushed Home's
+    // cards to 424px on a 390px phone. Every layout grid on the parent screens names its phone column.
+    for (const f of OWNED.filter((p) => p.startsWith('src/ui/pages/parent/'))) {
+      const grids = [...stripComments(read(f)).matchAll(/className=\{?[`'"]([^`'"]*\bgrid\b[^`'"]*\bgrid-cols-[^`'"]*)[`'"]/g)].map((m) => m[1]);
+      for (const g of grids) expect(g, `${f}: ${g}`).toMatch(/(^|\s)grid-cols-\d/);
+    }
+    const home = stripComments(read('src/ui/pages/parent/HomePage.jsx'));
+    expect(home).toMatch(/grid grid-cols-1 gap-x-8 gap-y-3 px-4 py-4 @3xl\/page:grid-cols-2/);
+    expect(home).toMatch(/grid grid-cols-1 items-start gap-5 @4xl\/page:grid-cols-2/);
+  });
 });

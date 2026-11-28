@@ -85,7 +85,7 @@ function ParentHome() {
         </section>
       )}
 
-      <div className="mb-5 grid gap-5 @4xl/page:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+      <div className="mb-5 grid grid-cols-1 gap-5 @4xl/page:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
         {next ? (
           <button type="button" onClick={() => setSelected(next)} className={cn(CARD, 'group relative flex items-stretch gap-4 overflow-hidden p-4 text-left transition-colors hover:bg-accent/50 @3xl/page:gap-5 @3xl/page:p-5')}>
             <div className="tabular flex w-[4.75rem] shrink-0 flex-col items-center justify-center rounded-md bg-secondary py-2.5 text-brand-soft-foreground">
@@ -137,7 +137,7 @@ function ParentHome() {
         </nav>
       </div>
 
-      <div className="grid items-start gap-5 @4xl/page:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-5 @4xl/page:grid-cols-2">
         <Section title="To do" action={data.todo.length > 0 && <Link href="/parent/learning" className="text-small hit-area font-medium text-brand hover:underline">See all</Link>}>
           {data.todo.length === 0 ? (
             <Empty icon={ClipboardCheck} title="All done">New homework from Vienne shows up here.</Empty>
@@ -195,7 +195,7 @@ function ParentHome() {
           description={`From Vienne’s report, shared ${fmtDate(data.latestReport.publishedAt)}`}
           action={<Link href="/parent/progress" className="text-small hit-area font-medium text-brand hover:underline">Full report</Link>}
         >
-          <div className="grid gap-x-8 gap-y-3 px-4 py-4 @3xl/page:grid-cols-2 @3xl/page:px-5">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-3 px-4 py-4 @3xl/page:grid-cols-2 @3xl/page:px-5">
             {data.latestReport.ratings.slice(0, 4).map((r) => (
               <div key={r.id} className="flex min-w-0 items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-2">
