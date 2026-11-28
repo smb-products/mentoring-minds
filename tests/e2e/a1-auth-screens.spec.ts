@@ -141,7 +141,7 @@ test('the form: visible labels, the Show toggle, the Forgot line and Request an 
 
   await expect(page.getByText(FORGOT, { exact: true })).toBeVisible();
   await expect(page.getByText(/^New family with an invite code\?/)).toBeVisible();
-  await expect(page.getByText(/^No code yet\?/)).toBeVisible();
+  await expect(page.getByText(/^Questions\? Message Vienne$/)).toBeVisible();
   await expect(page.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy');
 
   // Create account mode keeps its names, with a visible label for each field.
@@ -153,7 +153,7 @@ test('the form: visible labels, the Show toggle, the Forgot line and Request an 
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Create an account' })).toBeVisible();
 
-  const invite = page.getByRole('link', { name: 'Request an invite' });
+  const invite = page.getByRole('link', { name: 'Questions? Message Vienne' });
   await expect(invite).toHaveAttribute('href', '/#request-invite');
   await invite.click();
   await expect(page).toHaveURL(/\/#request-invite$/);

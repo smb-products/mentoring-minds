@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useId, useState } from 'react';
+import { useActionState, useEffect, useId, useState } from 'react';
 import { AuthHeading } from '@/components/auth/AuthScreen';
+import { keepSignupCode as keepCode } from '@/components/auth/signup-code';
 import { createAccount, signInWithGoogle, signInWithPassword } from './actions';
 
 const input = 'h-12 w-full rounded-[12px] border border-input/70 bg-card px-3.5 text-field text-foreground';
@@ -10,8 +11,8 @@ const label = 'block text-body font-medium text-foreground';
 const button = 'flex h-12 w-full items-center justify-center rounded-[12px] text-body font-semibold';
 const link = 'font-semibold text-brand underline-offset-4 hover:underline';
 
-export function SignInForm({ google, problem }: { google: boolean; problem?: string }) {
-  const [mode, setMode] = useState<'in' | 'new'>('in');
+export function SignInForm({ google, problem, initialMode = 'in' }: { google: boolean; problem?: string; initialMode?: 'in' | 'new' }) {
+  const [mode, setMode] = useState<'in' | 'new'>(initialMode);
   const [inState, inAction, inPending] = useActionState(signInWithPassword, undefined);
   const [newState, newAction, newPending] = useActionState(createAccount, undefined);
   const state = mode === 'in' ? inState : newState;
@@ -19,14 +20,20 @@ export function SignInForm({ google, problem }: { google: boolean; problem?: str
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  // Never sent to createAccount (it takes no code, S36): kept for the Add your child step.
+  const [code, setCode] = useState('');
   const id = useId();
+  // The account wasn't made: drop the kept code, so it isn't redeemed after some other sign-in.
+  useEffect(() => {
+    if (newState?.error) keepCode('');
+  }, [newState]);
 
   return (
     <div>
       {mode === 'in' ? (
         <AuthHeading title="Sign in" lede="Families and Vienne sign in here." />
       ) : (
-        <AuthHeading title="Create your account" lede="For families with an invite code from Vienne." />
+        <AuthHeading title="Create your account" lede="For families. An invite code from Vienne is optional." />
       )}
       {problem && (
         <p role="alert" className="mb-5 rounded-md bg-critical-soft px-4 py-3 text-body font-medium text-critical-soft-foreground">
@@ -43,7 +50,7 @@ export function SignInForm({ google, problem }: { google: boolean; problem?: str
       <div className="my-[22px] flex items-center gap-3 text-small text-subtle-foreground"><span className="h-px flex-1 bg-border" />or with email<span className="h-px flex-1 bg-border" /></div>
       </>)}
 
-      <form action={mode === 'in' ? inAction : newAction} className="space-y-4">
+      <form action={mode === 'in' ? inAction : newAction} onSubmit={() => keepCode(mode === 'new' ? code.trim() : '')} className="space-y-4">
         {mode === 'new' && (
           <div className="space-y-1.5">
             <label htmlFor={`${id}-name`} className={label}>Your name</label>
@@ -78,6 +85,22 @@ export function SignInForm({ google, problem }: { google: boolean; problem?: str
             minLength={mode === 'new' ? 8 : 1}
           />
         </div>
+        {mode === 'new' && (
+          <div className="space-y-1.5">
+            <label htmlFor={`${id}-code`} className={label}>Invite code (optional)</label>
+            <input
+              id={`${id}-code`}
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              aria-describedby={`${id}-code-hint`}
+              className={`${input} tabular font-semibold tracking-wider`}
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+            />
+            <p id={`${id}-code-hint`} className="text-small text-muted-foreground">Have a code from Vienne? Enter it to join your family.</p>
+          </div>
+        )}
         {state?.error && <p role="alert" className="text-body font-medium text-critical">{state.error}</p>}
         <button type="submit" disabled={inPending || newPending} className={`${button} bg-primary text-primary-foreground hover:bg-primary-hover disabled:opacity-60`}>
           {mode === 'in' ? 'Sign in' : 'Create account'}
@@ -95,7 +118,7 @@ export function SignInForm({ google, problem }: { google: boolean; problem?: str
               <button type="button" onClick={() => setMode('new')} className={link}>Create an account</button>
             </p>
             <p>
-              No code yet? <Link href="/#request-invite" className={link}>Request an invite</Link>
+              <Link href="/#request-invite" className={link}>Questions? Message Vienne</Link>
             </p>
           </>
         ) : (

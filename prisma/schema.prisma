@@ -28,7 +28,7 @@ enum Role {
 }
 
 enum UserStatus {
-  PREVIEW // signed up, no child or invite code yet: can look, can't open or book. J2 makes new sign-ups ACTIVE
+  PREVIEW // old rows only (before J2): signed up, no child or invite code yet: can look, can't open or book. New sign-ups are ACTIVE
   ACTIVE
   PAUSED
 }
@@ -157,7 +157,7 @@ model User {
   image              String?
   passwordHash       String? // null for Google-only users
   role               Role       @default(PARENT)
-  status             UserStatus @default(PREVIEW)
+  status             UserStatus @default(ACTIVE)
   textSize           TextSize   @default(NORMAL)
   /// Password sign-in lockout: 5 wrong passwords lock the account for 15 minutes.
   failedLogins       Int        @default(0)

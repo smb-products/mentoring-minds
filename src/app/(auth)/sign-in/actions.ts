@@ -78,8 +78,9 @@ async function countSignup(): Promise<string | null> {
   return outcome.limited ? TOO_MANY : null;
 }
 
-/** New parents start as PREVIEW until they add their children (families.addMyChildren, S36) or enter Vienne's
- * invite code. J2 makes them ACTIVE at sign-up, with the Add your child step (the switch moved there, CHANGES). */
+/** New parents are ACTIVE at sign-up (J2, S36 §1). With no children yet, the app shows the Add your child step
+ * first (families.addMyChildren), with Vienne's optional invite code under it. Google sign-up gets the same
+ * status from the column default. Takes no code: the form redeems one itself once the parent is signed in. */
 export async function createAccount(_: FormState, form: FormData): Promise<FormState> {
   const parsed = createSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -88,7 +89,7 @@ export async function createAccount(_: FormState, form: FormData): Promise<FormS
   if (limited) return { error: limited };
   const email = parsed.data.email.toLowerCase();
   if (await db.user.findUnique({ where: { email } })) return { error: 'There’s already an account with that email. Sign in instead.' };
-  await db.user.create({ data: { name: parsed.data.name, email, passwordHash: await bcrypt.hash(parsed.data.password, 12), role: 'PARENT', status: 'PREVIEW' } });
+  await db.user.create({ data: { name: parsed.data.name, email, passwordHash: await bcrypt.hash(parsed.data.password, 12), role: 'PARENT', status: 'ACTIVE' } });
   try {
     await signIn('credentials', { email, password: parsed.data.password, redirectTo: '/parent/home' });
   } catch (e) {
