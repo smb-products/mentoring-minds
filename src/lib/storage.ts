@@ -24,11 +24,11 @@ export const ALLOWED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'ima
 export type AllowedType = (typeof ALLOWED_TYPES)[number];
 export const MAX_BYTES = 25 * 1024 * 1024;
 /**
- * Uploads a parent can reserve in 24 hours (Vienne has no cap). One answer sheet can take
- * up to 200 photos (submitAnswerSheet), so a family can always hand in a full sheet in a day;
- * the book's tests are 40 questions, so this leaves room for several sheets and retakes.
+ * Uploads a parent can reserve in 24 hours (Vienne has no cap). Javaris, 2026-11-27 (S36): with open
+ * sign-up any account gets this allowance, so it's 80: two of the book's longest tests (40 questions, one photo
+ * each at most), with room for a retake (Javaris, via OSA, #181).
  */
-export const MAX_UPLOADS_PER_DAY = 200;
+export const MAX_UPLOADS_PER_DAY = 80;
 
 export const usingBlob = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 

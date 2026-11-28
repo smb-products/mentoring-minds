@@ -77,7 +77,7 @@ describe('a request, signed out', () => {
     const got = await alerts();
     expect(got.map((a) => a.userId).sort()).toEqual(admins.map((a) => a.id).sort());
     for (const a of got) {
-      expect(a).toMatchObject({ audience: 'ADMIN', inviteRequestId: rows[0].id, href: '/admin/families', title: 'Invite request from Marisol Ortega' });
+      expect(a).toMatchObject({ audience: 'ADMIN', inviteRequestId: rows[0].id, href: '/admin/families', title: 'Question from Marisol Ortega' });
       for (const part of ['Grade 2', 'marisol.ortega@example.com', '(305) 555-0142', 'My son needs help with fractions.', 'Weekday afternoons work best.']) expect(a.body).toContain(part);
     }
   });
@@ -91,7 +91,7 @@ describe('a request, signed out', () => {
     const row = await db.inviteRequest.findFirstOrThrow();
     await vi.waitFor(() => expect(sendNotification).toHaveBeenCalledTimes(1));
     const payload = JSON.parse(sendNotification.mock.calls[0][1]) as Record<string, string>;
-    expect(payload).toEqual({ title: 'Invite request from Marisol Ortega', body: '', href: '/admin/families', tag: `INVITE_REQUEST:${row.id}` });
+    expect(payload).toEqual({ title: 'Question from Marisol Ortega', body: '', href: '/admin/families', tag: `INVITE_REQUEST:${row.id}` });
   });
 
   it('a parent gets no alert, and can’t see Vienne’s (permissions)', async () => {
@@ -100,9 +100,9 @@ describe('a request, signed out', () => {
     expect(await db.notification.count({ where: { type: 'INVITE_REQUEST', userId: { in: parents.map((p) => p.id) } } })).toBe(0);
     as('u_ana');
     const feed = ok(await notifications.listForUser()) as unknown;
-    expect(JSON.stringify(feed)).not.toContain('Invite request from');
+    expect(JSON.stringify(feed)).not.toContain('Question from');
     as('u_admin');
-    expect(JSON.stringify(ok(await notifications.listForUser()))).toContain('Invite request from Marisol Ortega');
+    expect(JSON.stringify(ok(await notifications.listForUser()))).toContain('Question from Marisol Ortega');
   });
 
   it('works the same for a signed-in caller, and a kindergartner without a phone or message reads cleanly', async () => {
