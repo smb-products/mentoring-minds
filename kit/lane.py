@@ -323,6 +323,11 @@ def build_one(agent, fid):
         sh(["git", "worktree", "remove", "--force", str(wt)], cwd=ROOT)
         return "review"
     why = res.get("subtype") or status or "no report"
+    if status.startswith("blocked") and pr:
+        # Finished, but held for a lead's step (OSA's screenshot, a lead's test edit): it waits in review, not back in
+        # ready, where the next claim would count an attempt and go stuck (S36, J3, P1, P2a, P2b, 2026-11-27).
+        plan.set_status(fid, "review", pr=pr, cost=cost, session=sid, note=f"blocked: {status[:200]}")
+        return "hold"
     if status.startswith("stuck") or status.startswith("stopped"):
         plan.set_status(fid, "stuck", cost=cost, session=sid, note=why)
         msg.send("osa", f"{fid}: {status}. Report: {report} on {branch}.", agent)
