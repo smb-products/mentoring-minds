@@ -47,7 +47,7 @@ export function PageHeader({ title, subtitle, actions, back, tabs, children }) {
                 onClick={() => tabs.onChange(tab.value)}
                 className={cn(
                   '-mb-px flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-body font-medium transition-colors',
-                  selected ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
+                  selected ? 'border-primary text-primary dark:text-brand' : 'border-transparent text-muted-foreground hover:text-foreground',
                 )}
               >
                 {tab.label}
