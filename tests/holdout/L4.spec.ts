@@ -31,7 +31,7 @@ test('the sample card is labelled, names nobody in the data, and stays the same 
 test('the empty form says what to add, and the trap field is out of reach of keyboard and screen reader', async ({ page, db }) => {
   const before = await db.inviteRequest.count();
   await page.goto('/#request-invite');
-  const form = page.getByRole('form', { name: 'Request an invite' });
+  const form = page.getByRole('form', { name: 'Questions? Message Vienne' });
   await expect(form.getByRole('textbox')).toHaveCount(4); // name, email, phone, message
   await expect(form.getByRole('textbox', { name: /website/i })).toHaveCount(0);
   await expect(form.locator('input[name=website]')).not.toBeInViewport();
@@ -42,7 +42,7 @@ test('the empty form says what to add, and the trap field is out of reach of key
     await page.keyboard.press('Tab');
     visited.push(await page.evaluate(() => document.activeElement?.getAttribute('name') || document.activeElement?.textContent || ''));
   }
-  expect(visited).toEqual(['email', 'phone', 'grade', 'message', 'Send request']);
+  expect(visited).toEqual(['email', 'phone', 'grade', 'message', 'Send message']);
 
   await page.keyboard.press('Enter');
   await expect(form.getByRole('alert')).toHaveText('Add the parent’s name');

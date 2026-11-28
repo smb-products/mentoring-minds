@@ -12,7 +12,7 @@ test.describe.configure({ mode: 'serial' });
 
 const THANKS = 'Thanks. Vienne will email you soon.';
 const EMAIL = 'rosa.delgado@example.com';
-const form = (page: Page) => page.getByRole('form', { name: 'Request an invite' });
+const form = (page: Page) => page.getByRole('form', { name: 'Questions? Message Vienne' });
 
 async function send(page: Page, message: string[]) {
   // A fresh load each time: going to the same #anchor again wouldn't reload the page.
@@ -28,7 +28,7 @@ async function send(page: Page, message: string[]) {
     if (i) await page.keyboard.press('Enter');
     await page.keyboard.type(line);
   }
-  await f.getByRole('button', { name: 'Send request' }).click();
+  await f.getByRole('button', { name: 'Send message' }).click();
   await expect(page.locator('#request-invite').getByText(THANKS)).toBeVisible();
 }
 
@@ -68,7 +68,7 @@ test('wrong input says what to fix, keeps what was typed without echoing it, and
   await f.getByLabel('Parent name').fill('Dana Ruiz');
   await f.getByLabel('Email').fill('dana.ruiz@example.com');
   await f.getByLabel('Message').fill('Please call after five.');
-  const submit = f.getByRole('button', { name: 'Send request' });
+  const submit = f.getByRole('button', { name: 'Send message' });
 
   await submit.click();
   await expect(f.getByRole('alert')).toHaveText('Choose your child’s grade');

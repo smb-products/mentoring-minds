@@ -34,9 +34,10 @@ test('on a 320px phone: nothing sideways, hero, header and rates all fit, and Si
     expect(await part.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   }
 
-  // Landing C: the hero's call to action is 'Request an invite', and it lands on the form of that name (lead edit).
-  await page.locator('main').getByRole('link', { name: 'Request an invite' }).first().click();
-  await expect(page.getByRole('form', { name: 'Request an invite' })).toBeInViewport();
+  // Open sign-up (J3, lead edit): the hero's call to action is 'Get started', and it goes to sign-up.
+  await page.locator('main').getByRole('link', { name: 'Get started' }).first().click();
+  await expect(page).toHaveURL(/\/sign-in\?mode=new$/);
+  await page.goto('/');
   await signIn.click();
   await expect(page).toHaveURL(/\/sign-in$/);
 });
